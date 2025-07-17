@@ -1,0 +1,8 @@
+{
+  "description": "Um roteador simples para Deno.serve.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seu-usuario/deno-router.git "
+  },
+  "license": "MIT"
+}

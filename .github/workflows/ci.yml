@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test (Deno ${{ matrix.denoVersion }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        denoVersion:
+          - "v1.x"
+          - "beta"
+          - "nightly"
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: ${{ matrix.denoVersion }}
+
+      - name: Cache vendor dir
+        uses: actions/cache@v3
+        with:
+          path: |
+            vendor/
+            .deno_dir/
+          key: deno-cache-${{ runner.os }}-${{ hashFiles('**/deno.json') }}
+          restore-keys: |
+            deno-cache-${{ runner.os }}-
+
+      - name: Run tests
+        run: deno test --unstable
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: "v1.x"
+
+      - name: Lint code
+        run: deno lint
+
+  format:
+    name: Format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: "v1.x"
+
+      - name: Check formatting
+        run: deno fmt --check

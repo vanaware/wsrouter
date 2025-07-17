@@ -1,0 +1,16 @@
+{
+  "name": "@seu-usuario/deno-router",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./src/mod.ts"
+  },
+  "test": {
+    "unstable": true
+  },
+  "lint": {
+    "files": ["src/**/*.ts", "tests/**/*.ts"]
+  },
+  "fmt": {
+    "files": ["src/**/*.ts", "tests/**/*.ts"]
+  }
+}

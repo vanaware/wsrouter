@@ -1,0 +1,35 @@
+name: Publish to JSR
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    name: Publish to JSR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install JSR CLI
+        run: npm install -g jsr
+
+      - name: Login to JSR
+        env:
+          JSR_TOKEN: ${{ secrets.JSR_API_TOKEN }}
+        run: |
+          echo "//jsr.io:registry=https://api.jsr.io/npm-registry/ " >> ~/.npmrc
+          echo "registry=https://api.jsr.io/npm-registry/ " >> ~/.npmrc
+
+      - name: Publish package
+        run: jsr publish --yes
