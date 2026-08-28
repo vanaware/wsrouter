@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Broadcast Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 200px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+        }
+        #messageInput {
+            width: calc(100% - 110px);
+            padding: 5px;
+        }
+        #sendButton {
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Broadcast Test</h1>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type a message...">
+    <button id="sendButton">Send</button>
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        let socket;
+
+        function connectWebSocket(baseRef, room, user) {
+            const wsUrl = `ws://localhost:8000/${baseRef}chat/${room}/${user}`;
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                messagesDiv.innerHTML += `<p><strong>Connected to room: ${room}, user: ${user}</strong></p>`;
+            };
+
+            socket.onmessage = (event) => {
+                messagesDiv.innerHTML += `<p><strong>Broadcast Message:</strong> ${event.data}</p>`;
+            };
+
+            socket.onclose = () => {
+                messagesDiv.innerHTML += `<p><strong>Disconnected from room: ${room}, user: ${user}</strong></p>`;
+            };
+
+            socket.onerror = (event) => {
+                messagesDiv.innerHTML += `<p><strong>Error:</strong> ${event.message}</p>`;
+            };
+        }
+
+        sendButton.onclick = () => {
+            const message = messageInput.value;
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(message);
+                messageInput.value = '';
+            } else {
+                messagesDiv.innerHTML += `<p><strong>Error:</strong> WebSocket is not open.</p>`;
+            }
+        };
+
+        // Connect to a WebSocket room and user
+        connectWebSocket('servidor/', 'room1', 'user2');
+    </script>
+</body>
+</html>

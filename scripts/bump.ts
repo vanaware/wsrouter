@@ -3,17 +3,29 @@
 // Seu código Deno aqui...
 console.log("Rodando script bump...");
 
-import { parse } from "https://deno.land/std @0.224.0/flags/mod.ts";
+import {parseArgs} from "@std/cli/parse-args";
 
-const args = parse(Deno.args, {
-  boolean: ["major", "minor", "patch"],
+const args = parseArgs(Deno.args, {
+  boolean: ["major", "minor", "patch", "help"],
   default: { patch: true },
 });
+if (args._.length > 0) {
+  console.error("Uso incorreto. Use --help para ver as opções disponíveis.");
+  Deno.exit(1);
+}
+if (args.help) {
+  console.log("Uso: deno run bump.ts [--major] [--minor] [--patch]");
+  console.log("Atualiza a versão do projeto e gera o changelog.");
+  console.log("--major: Incrementa a versão major");
+  console.log("--minor: Incrementa a versão minor");
+  console.log("--patch: Incrementa a versão patch (padrão)");
+  Deno.exit(0);
+}
 
 async function runCmd(cmd: string[]) {
-  const p = Deno.run({ cmd });
-  const status = await p.status();
-  if (!status.success) {
+  const command = new Deno.Command(cmd[0], { args: cmd.slice(1) });
+  const { success } = await command.spawn().status;
+  if (!success) {
     console.error(`Erro executando: ${cmd.join(" ")}`);
     Deno.exit(1);
   }
@@ -48,12 +60,12 @@ const denoJson = JSON.parse(await Deno.readTextFile("deno.json"));
 denoJson.version = newVersion;
 await Deno.writeTextFile("deno.json", JSON.stringify(denoJson, null, 2));
 
-const logOutput = new TextDecoder().decode(
-  await Deno.run({
-    cmd: ["git", "log", "--pretty=format:%h %s", `v${versionRaw}..HEAD`],
-    stdout: "piped",
-  }).output()
-);
+const gitLogCmd = new Deno.Command("git", {
+  args: ["log", "--pretty=format:%h %s", `v${versionRaw}..HEAD`],
+  stdout: "piped",
+});
+const gitLogResult = await gitLogCmd.output();
+const logOutput = new TextDecoder().decode(gitLogResult.stdout);
 
 const changelog = `## v${newVersion} (${new Date().toISOString().slice(0, 10)})\n\n${
   logOutput.trim() ? logOutput.split("\n").map((line) => "- " + line).join("\n") : "- Sem alterações relevantes"
