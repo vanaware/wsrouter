@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket Broadcast Test - user2</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; max-width: 800px; }
+    #messages {
+      border: 1px solid #ccc; padding: 10px; height: 300px;
+      overflow-y: scroll; margin-bottom: 10px; background: #fafafa;
+    }
+    #messages p { margin: 4px 0; }
+    .broadcast { background: #fff3cd; font-weight: bold; }
+    .controls { display: flex; gap: 8px; margin-bottom: 10px; }
+    #messageInput { flex: 1; padding: 8px; }
+    #sendButton { padding: 8px 16px; cursor: pointer; }
+    .status { padding: 8px; border-radius: 4px; margin-bottom: 10px; }
+    .status.connected { background: #d4edda; color: #155724; }
+    .status.disconnected { background: #f8d7da; color: #721c24; }
+    .info { background: #e7f3ff; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>📡 WebSocket Broadcast Test — user2</h1>
+
+  <div class="info">
+    <strong>Conectado como:</strong> user2 na sala <code>room1</code><br>
+    <strong>Endpoint:</strong> <code>ws://localhost:8000/api/chat/room1/user2</code><br>
+    <strong>Teste:</strong> Abra o <a href="/api/index.html" target="_blank">index.html</a> em outra aba para ver o broadcast funcionando!
+  </div>
+
+  <div id="status" class="status disconnected">⏳ Conectando...</div>
+
+  <div id="messages"></div>
+
+  <div class="controls">
+    <input type="text" id="messageInput" placeholder="Digite para fazer broadcast...">
+    <button id="sendButton">Broadcast</button>
+  </div>
+
+  <script>
+    const messagesDiv = document.getElementById('messages');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const statusDiv = document.getElementById('status');
+
+    // ⚠️ URL correta: ws://host/api/chat/room/user
+    const WS_URL = 'ws://localhost:8000/api/chat/room1/user2';
+
+    let socket;
+
+    function connect() {
+      socket = new WebSocket(WS_URL);
+
+      socket.onopen = () => {
+        statusDiv.className = 'status connected';
+        statusDiv.textContent = '✅ Conectado como user2 em room1';
+        addMessage('🟢 Conexão estabelecida');
+      };
+
+      socket.onmessage = (event) => {
+        // Mensagens de broadcast têm prefixo "[user]:"
+        const isBroadcast = event.data.startsWith('[');
+        addMessage(event.data, isBroadcast);
+      };
+
+      socket.onclose = (event) => {
+        statusDiv.className = 'status disconnected';
+        statusDiv.textContent = `❌ Desconectado (código: ${event.code})`;
+        addMessage(`🔴 Conexão fechada (código: ${event.code})`);
+      };
+
+      socket.onerror = () => {
+        addMessage('⚠️ Erro na conexão');
+      };
+    }
+
+    function addMessage(text, isBroadcast = false) {
+      const p = document.createElement('p');
+      if (isBroadcast) p.className = 'broadcast';
+      p.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+      messagesDiv.appendChild(p);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    sendButton.onclick = () => {
+      const message = messageInput.value.trim();
+      if (!message) return;
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(message);
+        addMessage(`📤 ${message}`);
+        messageInput.value = '';
+      } else {
+        addMessage('⚠️ WebSocket não está conectado');
+      }
+    };
+
+    messageInput.onkeypress = (e) => {
+      if (e.key === 'Enter') sendButton.click();
+    };
+
+    connect();
+  </script>
+</body>
+</html>
