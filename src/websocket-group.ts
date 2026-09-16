@@ -147,7 +147,7 @@ export class WebSocketGroup {
     if (!broadcast) return;
     setTimeout(() => {
       try {
-        if (ws.readyState === WebSocket.OPEN) {
+        if (this.sockets.has(ws) && ws.readyState === WebSocket.OPEN) {
           const { message, permissionFn, senderParams } = broadcast;
           if (
             !permissionFn || permissionFn(receiverParams, senderParams, message)
@@ -181,6 +181,13 @@ export class WebSocketGroup {
     };
     this.emit("broadcast", message, senderParams);
     for (const [socket, receiverParams] of this.sockets.entries()) {
+      if (
+        socket.readyState === WebSocket.CLOSED ||
+        socket.readyState === WebSocket.CLOSING
+      ) {
+        this.removeSocket(socket);
+        continue;
+      }
       if (socket.readyState !== WebSocket.OPEN) continue;
       try {
         if (
@@ -200,7 +207,10 @@ export class WebSocketGroup {
    */
   closeGroup(): void {
     for (const [socket, params] of this.sockets.entries()) {
-      if (socket.readyState === WebSocket.OPEN) {
+      if (
+        socket.readyState === WebSocket.OPEN ||
+        socket.readyState === WebSocket.CONNECTING
+      ) {
         socket.close(1000, "Group is being closed");
       }
       this.emit("disconnect", socket, params);

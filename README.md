@@ -54,7 +54,7 @@ O `@vanaware/wsrouter` é um router moderno com suporte completo a HTTP e WebSoc
 ### Deno
 
 ```typescript
-import { createDenoRouter } from "jsr:@vanaware/wsrouter@1.0.0/deno";
+import { createDenoRouter } from "jsr:@vanaware/wsrouter@0.1.0/deno";
 ```
 
 Ou via import map no `deno.json`:
@@ -62,7 +62,7 @@ Ou via import map no `deno.json`:
 ```json
 {
   "imports": {
-    "@vanaware/wsrouter": "jsr:@vanaware/wsrouter@1.0.0"
+    "@vanaware/wsrouter": "jsr:@vanaware/wsrouter@0.1.0"
   }
 }
 ```

@@ -126,9 +126,10 @@ export class Router {
     if (this.trustProxy) {
       const protoHeader = req.headers.get("x-forwarded-proto");
       const forwardedProto = protoHeader
-        ? protoHeader.split(",")[0]?.trim()
+        ? protoHeader.split(",")[0]?.trim().toLowerCase()
         : undefined;
       if (forwardedProto === "https") return false;
+      if (forwardedProto === "http") return true;
     }
     const url = new URL(req.url);
     if (url.protocol === "https:") return false;
@@ -140,6 +141,15 @@ export class Router {
     url.protocol = "https:";
     if (req.headers.get("upgrade")?.toLowerCase() === "websocket") {
       url.protocol = "wss:";
+    }
+    if (this.trustProxy) {
+      const hostHeader = req.headers.get("x-forwarded-host");
+      if (hostHeader) {
+        const forwardedHost = hostHeader.split(",")[0]?.trim();
+        if (forwardedHost && /^[\w.:-]+$/.test(forwardedHost)) {
+          url.host = forwardedHost;
+        }
+      }
     }
     return url.toString();
   }
@@ -774,9 +784,10 @@ export class Router {
     // 4. Check for 405 Method Not Allowed
     const adjustedUrl = new URL(req.url);
     adjustedUrl.pathname = this.stripBase(adjustedUrl.pathname);
-    const allowedMethods = this.httpRoutes
+    const rawAllowed = this.httpRoutes
       .filter((r) => r.pattern.exec(adjustedUrl))
       .map((r) => r.method);
+    const allowedMethods = Array.from(new Set(rawAllowed));
     if (allowedMethods.length > 0 && !allowedMethods.includes(req.method)) {
       return new Response("Method Not Allowed", {
         status: 405,
@@ -797,13 +808,50 @@ export class Router {
     if (req.method === "GET" || req.method === "HEAD") {
       const staticRes = await this.handleStaticFile(req);
       if (staticRes.status !== 404) {
+        // ETag 304 Not Modified validation
+        const ifNoneMatch = req.headers.get("if-none-match");
+        const etag = staticRes.headers.get("etag");
+        if (ifNoneMatch && etag && ifNoneMatch === etag) {
+          if (staticRes.body) {
+            try {
+              await staticRes.body.cancel();
+            } catch {
+              // ignore stream cancel failure
+            }
+          }
+          return new Response(null, {
+            status: 304,
+            statusText: "Not Modified",
+            headers: staticRes.headers,
+          });
+        }
+
+        // Head request: cancel stream body to prevent file descriptor leaks
         if (req.method === "HEAD") {
+          if (staticRes.body) {
+            try {
+              await staticRes.body.cancel();
+            } catch {
+              // ignore stream cancel failure
+            }
+          }
           return new Response(null, {
             status: staticRes.status,
             statusText: staticRes.statusText,
             headers: staticRes.headers,
           });
         }
+
+        // Handle directory 301/302 redirects with basePath preservation
+        if (staticRes.status === 301 || staticRes.status === 302) {
+          const loc = staticRes.headers.get("Location");
+          if (
+            loc && loc.startsWith("/") && !loc.startsWith("//") && this.basePath
+          ) {
+            staticRes.headers.set("Location", this.basePath + loc);
+          }
+        }
+
         for (const [k, v] of Object.entries(extraHeaders)) {
           staticRes.headers.set(k, v);
         }
@@ -821,10 +869,20 @@ export class Router {
     }
     const { pathname } = new URL(req.url);
     const adjustedPathname = this.stripBase(pathname);
+    const normalized = normalize("/" + adjustedPathname);
+    // Strict defense-in-depth: reject traversal escapes
+    if (normalized.startsWith("/..") || normalized === "/..") {
+      return new Response("Not Found", { status: 404 });
+    }
     const safePath = normalize(adjustedPathname).replace(/^(\.\.[/\\])+/, "");
+    const segments = safePath.split("/").filter(Boolean);
+    // Strict defense: never allow '.' or '..' segments regardless of allowDotfiles
+    if (segments.some((seg) => seg === ".." || seg === ".")) {
+      return new Response("Not Found", { status: 404 });
+    }
     if (
       !this.allowDotfiles &&
-      safePath.split("/").some((segment) => segment.startsWith("."))
+      segments.some((segment) => segment.startsWith("."))
     ) {
       return new Response("Not Found", { status: 404 });
     }
@@ -894,7 +952,10 @@ export class Router {
    */
   closeAllWebSockets(): void {
     for (const [socket, { group }] of this.webSockets.entries()) {
-      if (socket.readyState === WebSocket.OPEN) {
+      if (
+        socket.readyState === WebSocket.OPEN ||
+        socket.readyState === WebSocket.CONNECTING
+      ) {
         socket.close(1001, "Server is shutting down");
       }
       group.removeSocket(socket);

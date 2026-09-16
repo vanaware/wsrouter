@@ -1,10 +1,43 @@
 # Possibilidades de Retorno dos Handlers HTTP
 
-Os handlers HTTP retornam um objeto com duas propriedades: `body` e `init`. Vou detalhar todas as possibilidades.
+Os handlers HTTP no `@vanaware/wsrouter` oferecem **duas formas flexíveis de retorno**:
+
+1. **Instância nativa de `Response`** (padrão Web API)
+2. **Objeto com `{ body, init }`** (formato ergonômico simplificado)
 
 ---
 
-## 📦 `body: BodyInit`
+## 🚀 1. Retorno de `Response` Nativo (Web Standard)
+
+Você pode retornar diretamente qualquer instância de `Response` nativa, incluindo helpers como `Response.json()` ou `new Response(...)`:
+
+```typescript
+// Resposta simples com texto
+app.get("/ping", () => new Response("pong"));
+
+// JSON com helper nativo Response.json()
+app.get("/api/users", () => {
+  return Response.json({ users: ["Alice", "Bob"] }, { status: 200 });
+});
+
+// Redirecionamento nativo
+app.get("/legacy", () => {
+  return Response.redirect("https://example.com/new-url", 301);
+});
+
+// Resposta customizada com headers e status
+app.post("/api/items", async (req) => {
+  const item = await req.json();
+  return new Response(JSON.stringify(item), {
+    status: 201,
+    headers: { "Content-Type": "application/json" },
+  });
+});
+```
+
+---
+
+## 📦 2. Retorno com Objeto `{ body, init }`
 
 O `body` pode ser qualquer um destes tipos:
 

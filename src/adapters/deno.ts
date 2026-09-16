@@ -49,11 +49,18 @@ async function tryServeDir(baseDir: string, pathname: string): Promise<Response 
   const candidates = buildFileCandidates(baseDir, pathname);
   for (const candidate of candidates) {
     try {
-      // 🚀 SYMLINKS: Usar lstat para recusar symlinks
+      // 🚀 SYMLINKS: Usar lstat para recusar symlinks diretos
       const info = await Deno.lstat(candidate);
       
       if (info.isSymlink) {
         console.warn(`[Static] Symlink recusado: ${candidate}`);
+        continue;
+      }
+
+      // 🚀 CONTAINMENT: Verificar que o path real está contido no diretório base (previne symlinks intermediários)
+      const realCandidate = await Deno.realPath(candidate).catch(() => null);
+      if (!realCandidate || (!realCandidate.startsWith(resolvedBase + "/") && realCandidate !== resolvedBase)) {
+        console.warn(`[Static] Path fora do diretório base recusado: ${candidate}`);
         continue;
       }
       
@@ -62,12 +69,13 @@ async function tryServeDir(baseDir: string, pathname: string): Promise<Response 
         const mimeType = defaultDenoMimeTypeResolver(ext) ?? "application/octet-stream";
         const file = await Deno.open(candidate);
         
-        // 🚀 HEADERS: Adicionar metadata completa
+        // 🚀 HEADERS: Adicionar metadata completa e segurança
         const headers: HeadersInit = {
           "Content-Type": mimeType,
           "Content-Length": info.size.toString(),
           "Last-Modified": info.mtime?.toUTCString() ?? new Date().toUTCString(),
           "Cache-Control": "public, max-age=3600",
+          "X-Content-Type-Options": "nosniff",
         };
         
         // Adicionar ETag baseado em size + mtime
