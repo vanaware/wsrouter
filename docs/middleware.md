@@ -76,7 +76,7 @@ app.ws("/chat/:room", (ws, _req, params) => {
   };
 });
 
-Deno.serve({ port: 8000 }, app.handleRequest.bind(app));
+Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 ```
 
 ### Exemplo 2: Logging + Rate Limiting

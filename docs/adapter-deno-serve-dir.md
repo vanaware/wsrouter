@@ -119,7 +119,7 @@ const app = createDenoServeDirRouter({
 
 app.get("/hello", () => ({ body: "Hello!" }));
 
-Deno.serve({ port: 8000 }, app.handleRequest.bind(app));
+Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 ```
 
 ### Com CORS e dir listing
@@ -179,7 +179,7 @@ const app = createDenoServeDirRouter({
 
 app.worker((req) => workerHandler.fetch(req, env, ctx));
 
-Deno.serve({ port: Number(env.PORT || 8000) }, app.handleRequest.bind(app));
+Deno.serve({ port: Number(env.PORT || 3000) }, app.handleRequest.bind(app));
 ```
 
 ---

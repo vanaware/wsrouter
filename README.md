@@ -94,8 +94,8 @@ app.get("/users/:id", (_req, params) => ({
   body: JSON.stringify({ userId: params.id }),
 }));
 
-Deno.serve({ port: 8000 }, app.handleRequest.bind(app));
-console.log("🚀 Servidor rodando em http://localhost:8000");
+Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
+console.log("🚀 Servidor rodando em http://localhost:3000");
 ```
 
 ### Chat WebSocket com Salas
@@ -131,7 +131,7 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
   };
 });
 
-Deno.serve({ port: 8000 }, app.handleRequest.bind(app));
+Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 ```
 
 ---
@@ -925,7 +925,19 @@ Contribuições são bem-vindas! Por favor:
 4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
-### Desenvolvimento Local
+### Desenvolvimento Local / AI Studio
+
+Devido às restrições do ambiente AI Studio e para compatibilidade com a plataforma, o projeto utiliza a porta `3000` para o servidor de desenvolvimento. A infraestrutura inclui um arquivo `package.json` ponte que executa o `install-script.sh` antes de invocar o `deno task`. Isso garante que o Deno seja baixado e configurado se não estiver no ambiente.
+
+```bash
+# Iniciar o servidor de desenvolvimento
+npm run dev
+
+# Rodar a checagem completa de testes, tipos e linting
+npm run test
+```
+
+Caso esteja rodando localmente (fora do AI Studio) com o Deno já instalado:
 
 ```bash
 # Clone o repositório
@@ -933,13 +945,10 @@ git clone https://github.com/vanaware/wsrouter.git
 cd wsrouter
 
 # Execute testes
-deno task tests
+deno task check-all
 
 # Execute exemplo principal
-deno task start
-
-# Execute exemplo JWT
-deno task example
+deno task dev
 ```
 
 ---

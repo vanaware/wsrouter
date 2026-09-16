@@ -60,9 +60,9 @@ app.ws("/sala", (ws, req, _params) => {
 // ============================================================
 // Servidor
 // ============================================================
-const server = Deno.serve({ port: 8000 }, app.handleRequest.bind(app));
-console.log("🚀 Servidor rodando em http://localhost:8000");
-console.log("🔌 WS: ws://localhost:8000/api/sala (header X-User-Name opcional)");
+const server = Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
+console.log("🚀 Servidor rodando em http://localhost:3000");
+console.log("🔌 WS: ws://localhost:3000/api/sala (header X-User-Name opcional)");
 ```
 
 ---
@@ -88,7 +88,7 @@ Como a rota `/sala` não tem `:param`, o objeto `params` é sempre `{}`. Então 
 // No navegador, headers customizados não são possíveis no WebSocket.
 // Alternativa: passar o nome na query string ou primeira mensagem.
 
-const ws = new WebSocket("ws://localhost:8000/api/sala");
+const ws = new WebSocket("ws://localhost:3000/api/sala");
 
 ws.onopen = () => {
   // Primeira mensagem identifica o usuário
