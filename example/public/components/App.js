@@ -7,6 +7,8 @@ import { WebRTCExample } from './WebRTCExample.js';
 import { PresenceExample } from './PresenceExample.js';
 import { JwtExample } from './JwtExample.js';
 import { ApiInspectorExample } from './ApiInspectorExample.js';
+import { ServerSettingsModal } from './ServerSettingsModal.js';
+import { getCustomBackend } from './config.js';
 
 export function App() {
   // User Identity State
@@ -38,6 +40,7 @@ export function App() {
 
   const [activeMobileSubTab, setActiveMobileSubTab] = useState('stream');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showStats, setShowStats] = useState(false);
 
   // Sync tab with URL query parameter
@@ -66,8 +69,13 @@ export function App() {
   const handleOpenViewerTab = () => {
     const randomGuestNum = Math.floor(Math.random() * 900 + 100);
     const viewerId = `usr_guest_${randomGuestNum}`;
-    const viewerUrl = `${window.location.origin}/index.html?tab=webrtc&autojoin=1&name=Viewer_${randomGuestNum}&avatar=👀&userId=${viewerId}`;
-    window.open(viewerUrl, '_blank');
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', 'webrtc');
+    url.searchParams.set('autojoin', '1');
+    url.searchParams.set('name', `Viewer_${randomGuestNum}`);
+    url.searchParams.set('avatar', '👀');
+    url.searchParams.set('userId', viewerId);
+    window.open(url.toString(), '_blank');
   };
 
   // Support autojoin via URL query params (e.g. for viewer tabs)
@@ -116,6 +124,8 @@ export function App() {
         onOpenViewerTab=${handleOpenViewerTab}
         activeMobileSubTab=${activeMobileSubTab}
         onSelectMobileSubTab=${setActiveMobileSubTab}
+        onOpenSettings=${() => setIsSettingsOpen(true)}
+        isCustomBackend=${Boolean(getCustomBackend())}
       />
 
       <!-- Pages View Area -->
@@ -168,6 +178,12 @@ export function App() {
           onClose=${() => setIsEditingProfile(false)}
         />
       `}
+
+      <!-- Backend Server Settings Modal -->
+      <${ServerSettingsModal}
+        isOpen=${isSettingsOpen}
+        onClose=${() => setIsSettingsOpen(false)}
+      />
     </div>
   `;
 }

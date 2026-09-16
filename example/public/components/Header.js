@@ -1,5 +1,7 @@
 // example/public/components/Header.js
 import { html } from 'https://esm.sh/htm/preact';
+import { useState, useEffect } from 'https://esm.sh/preact/hooks';
+import { subscribeBackendHealth, isHostedOnDenoServer } from './config.js';
 
 export function Header({
   activeTab,
@@ -11,7 +13,18 @@ export function Header({
   onOpenViewerTab,
   activeMobileSubTab,
   onSelectMobileSubTab,
+  onOpenSettings,
+  isCustomBackend,
 }) {
+  const [health, setHealth] = useState({ isChecking: false, isOnline: false });
+
+  useEffect(() => {
+    const unsubscribe = subscribeBackendHealth((status) => {
+      setHealth(status);
+    });
+    return unsubscribe;
+  }, []);
+
   const tabs = [
     { id: 'webrtc', label: 'WebRTC Live Stream', icon: 'videocam', badge: 'Main' },
     { id: 'presence', label: 'Presence Tracker', icon: 'groups' },
@@ -61,6 +74,22 @@ export function Header({
               <span class="hide-on-mobile">+ Viewer Tab</span>
             </button>
           `}
+
+          <!-- Server / Endpoint Settings Button with Heartbeat Status -->
+          <button
+            type="button"
+            class="button border small round ${isCustomBackend ? 'fill blue-900 text-blue-200' : 'text-slate-300'}"
+            onClick=${onOpenSettings}
+            title=${health.isOnline ? `Backend Online (${health.latencyMs}ms)` : health.isChecking ? 'Checking backend heartbeat...' : 'Backend unreachable / offline'}
+            style="position: relative;"
+          >
+            <span
+              class="live-dot-indicator ${health.isOnline ? 'live' : 'offline'}"
+              style="width: 8px; height: 8px; margin-right: 4px; background-color: ${health.isOnline ? '#10b981' : health.isChecking ? '#f59e0b' : '#ef4444'}; box-shadow: 0 0 6px ${health.isOnline ? '#10b981' : health.isChecking ? '#f59e0b' : '#ef4444'};"
+            ></span>
+            <i class="material-symbols-outlined" style="font-size: 15px;">dns</i>
+            <span class="hide-on-mobile">${isCustomBackend ? 'Custom' : 'Server'}</span>
+          </button>
 
           <!-- User Profile Chip -->
           <button

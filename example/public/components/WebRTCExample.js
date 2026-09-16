@@ -5,6 +5,7 @@ import { StreamView } from './StreamView.js';
 import { ChatPanel } from './ChatPanel.js';
 import { OnlineUsers } from './OnlineUsers.js';
 import { StreamStats } from './StreamStats.js';
+import { buildWsUrl } from './config.js';
 
 const RTC_CONFIG = {
   iceServers: [
@@ -343,130 +344,143 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
 
     let reconnectTimer = null;
     let isCancelled = false;
+    let retryDelay = 2000;
 
     const connectWebSocket = () => {
       if (isCancelled) return;
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/api/webrtc/${encodeURIComponent(user.room)}?userId=${encodeURIComponent(user.userId)}&name=${encodeURIComponent(user.name)}&avatar=${encodeURIComponent(user.avatar)}&role=${isBroadcastingRef.current ? 'broadcaster' : 'viewer'}`;
+      const wsUrl = buildWsUrl(`/api/webrtc/${encodeURIComponent(user.room)}?userId=${encodeURIComponent(user.userId)}&name=${encodeURIComponent(user.name)}&avatar=${encodeURIComponent(user.avatar)}&role=${isBroadcastingRef.current ? 'broadcaster' : 'viewer'}`);
 
-      const socket = new WebSocket(wsUrl);
-      wsRef.current = socket;
+      try {
+        const socket = new WebSocket(wsUrl);
+        wsRef.current = socket;
 
-      socket.onopen = () => {
-        setIsConnected(true);
-        setStats((prev) => ({ ...prev, wsConnected: true }));
+        socket.onopen = () => {
+          retryDelay = 2000;
+          setIsConnected(true);
+          setStats((prev) => ({ ...prev, wsConnected: true }));
 
-        if (!isBroadcastingRef.current) {
-          socket.send(JSON.stringify({
-            type: 'request_stream',
-            userId: user.userId,
-            room: user.room,
-          }));
-        }
-      };
-
-      socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-
-          if (data.type === 'presence_state') {
-            setUsers(data.users || []);
-            return;
+          if (!isBroadcastingRef.current) {
+            socket.send(JSON.stringify({
+              type: 'request_stream',
+              userId: user.userId,
+              room: user.room,
+            }));
           }
-          if (data.type === 'presence_join') {
-            setUsers((prev) => {
-              const existing = prev.filter((u) => u.userId !== data.user.userId);
-              return [...existing, data.user];
-            });
+        };
 
-            if (isBroadcastingRef.current && data.user.userId !== user.userId) {
-              connectToViewer(data.user.userId);
+        socket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'presence_state') {
+              setUsers(data.users || []);
+              return;
             }
-            return;
-          }
-          if (data.type === 'presence_leave') {
-            setUsers((prev) => prev.filter((u) => u.userId !== data.userId));
-            const pc = peerConnectionsRef.current.get(data.userId);
-            if (pc) {
-              pc.close();
-              peerConnectionsRef.current.delete(data.userId);
+            if (data.type === 'presence_join') {
+              setUsers((prev) => {
+                const existing = prev.filter((u) => u.userId !== data.user.userId);
+                return [...existing, data.user];
+              });
+
+              if (isBroadcastingRef.current && data.user.userId !== user.userId) {
+                connectToViewer(data.user.userId);
+              }
+              return;
             }
-            return;
-          }
-          if (data.type === 'presence_update') {
-            setUsers((prev) =>
-              prev.map((u) => (u.userId === data.userId ? { ...u, data: { ...u.data, ...data.data } } : u))
-            );
-            return;
-          }
-
-          if (data.type === 'broadcaster_started') {
-            setIsLive(true);
-            setBroadcasterId(data.broadcasterId);
-            setBroadcasterName(data.broadcasterName || 'Host');
-            setBroadcasterAvatar(data.broadcasterAvatar || '👤');
-
-            if (!isBroadcastingRef.current && data.broadcasterId !== user.userId) {
-              socket.send(JSON.stringify({
-                type: 'request_stream',
-                userId: user.userId,
-                room: user.room,
-              }));
+            if (data.type === 'presence_leave') {
+              setUsers((prev) => prev.filter((u) => u.userId !== data.userId));
+              const pc = peerConnectionsRef.current.get(data.userId);
+              if (pc) {
+                pc.close();
+                peerConnectionsRef.current.delete(data.userId);
+              }
+              return;
             }
-            return;
-          }
+            if (data.type === 'presence_update') {
+              setUsers((prev) =>
+                prev.map((u) => (u.userId === data.userId ? { ...u, data: { ...u.data, ...data.data } } : u))
+              );
+              return;
+            }
 
-          if (data.type === 'broadcaster_stopped') {
-            setIsLive(false);
-            setBroadcasterId(null);
-            setBroadcasterName('');
-            setRemoteStream(null);
-            peerConnectionsRef.current.forEach((pc) => pc.close());
-            peerConnectionsRef.current.clear();
-            return;
-          }
+            if (data.type === 'broadcaster_started') {
+              setIsLive(true);
+              setBroadcasterId(data.broadcasterId);
+              setBroadcasterName(data.broadcasterName || 'Host');
+              setBroadcasterAvatar(data.broadcasterAvatar || '👤');
 
-          if (data.type === 'request_stream' && isBroadcastingRef.current) {
-            connectToViewer(data.userId);
-            return;
-          }
+              if (!isBroadcastingRef.current && data.broadcasterId !== user.userId) {
+                socket.send(JSON.stringify({
+                  type: 'request_stream',
+                  userId: user.userId,
+                  room: user.room,
+                }));
+              }
+              return;
+            }
 
-          if (data.type === 'webrtc_offer' && data.target === user.userId) {
-            handleReceiveOffer(data);
-            return;
-          }
+            if (data.type === 'broadcaster_stopped') {
+              setIsLive(false);
+              setBroadcasterId(null);
+              setBroadcasterName('');
+              setRemoteStream(null);
+              peerConnectionsRef.current.forEach((pc) => pc.close());
+              peerConnectionsRef.current.clear();
+              return;
+            }
 
-          if (data.type === 'webrtc_answer' && data.target === user.userId) {
-            handleReceiveAnswer(data);
-            return;
-          }
+            if (data.type === 'request_stream' && isBroadcastingRef.current) {
+              connectToViewer(data.userId);
+              return;
+            }
 
-          if (data.type === 'webrtc_candidate' && data.target === user.userId) {
-            handleReceiveCandidate(data);
-            return;
-          }
+            if (data.type === 'webrtc_offer' && data.target === user.userId) {
+              handleReceiveOffer(data);
+              return;
+            }
 
-          if (data.type === 'chat') {
-            setMessages((prev) => [...prev, data]);
-            return;
-          }
+            if (data.type === 'webrtc_answer' && data.target === user.userId) {
+              handleReceiveAnswer(data);
+              return;
+            }
 
-          if (data.type === 'stream_reaction') {
-            spawnReaction(data.emoji);
-            return;
-          }
-        } catch (err) {
-          console.error('[WebRTC] Parse error:', err);
-        }
-      };
+            if (data.type === 'webrtc_candidate' && data.target === user.userId) {
+              handleReceiveCandidate(data);
+              return;
+            }
 
-      socket.onclose = () => {
-        setIsConnected(false);
-        setStats((prev) => ({ ...prev, wsConnected: false }));
+            if (data.type === 'chat') {
+              setMessages((prev) => [...prev, data]);
+              return;
+            }
+
+            if (data.type === 'stream_reaction') {
+              spawnReaction(data.emoji);
+              return;
+            }
+          } catch {
+            // graceful parse fallback
+          }
+        };
+
+        socket.onerror = () => {
+          // Socket error will trigger onclose
+        };
+
+        socket.onclose = () => {
+          setIsConnected(false);
+          setStats((prev) => ({ ...prev, wsConnected: false }));
+          if (!isCancelled) {
+            reconnectTimer = setTimeout(connectWebSocket, retryDelay);
+            retryDelay = Math.min(retryDelay * 1.5, 10000);
+          }
+        };
+      } catch {
         if (!isCancelled) {
-          reconnectTimer = setTimeout(connectWebSocket, 2000);
+          reconnectTimer = setTimeout(connectWebSocket, retryDelay);
+          retryDelay = Math.min(retryDelay * 1.5, 10000);
         }
-      };
+      }
     };
 
     connectWebSocket();

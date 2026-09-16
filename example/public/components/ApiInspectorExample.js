@@ -1,6 +1,7 @@
 // example/public/components/ApiInspectorExample.js
 import { html } from 'https://esm.sh/htm/preact';
 import { useState } from 'https://esm.sh/preact/hooks';
+import { buildApiUrl } from './config.js';
 
 const ENDPOINTS = [
   { method: 'GET', url: '/api/stream/main-stage', desc: 'Inspect active WebRTC stream and live viewers' },
@@ -41,7 +42,7 @@ export function ApiInspectorExample() {
         options.body = customBody;
       }
 
-      const res = await fetch(customUrl, options);
+      const res = await fetch(buildApiUrl(customUrl), options);
       const elapsed = Math.round(performance.now() - startTime);
 
       let data;

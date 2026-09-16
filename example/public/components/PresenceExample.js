@@ -1,6 +1,7 @@
 // example/public/components/PresenceExample.js
 import { html } from 'https://esm.sh/htm/preact';
 import { useState, useEffect, useRef } from 'https://esm.sh/preact/hooks';
+import { buildWsUrl, buildApiUrl } from './config.js';
 
 const ROOMS = ['general', 'engineering', 'lounge'];
 const STATUS_OPTIONS = [
@@ -47,80 +48,93 @@ export function PresenceExample({ user }) {
   useEffect(() => {
     let isCancelled = false;
     let reconnectTimer = null;
+    let retryDelay = 2000;
 
     const connect = () => {
       if (isCancelled) return;
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/api/presence-chat/${currentRoom}?userId=${encodeURIComponent(user.userId)}&name=${encodeURIComponent(user.name)}&avatar=${encodeURIComponent(user.avatar)}&status=${encodeURIComponent(status)}&customStatus=${encodeURIComponent(customStatus)}`;
+      const wsUrl = buildWsUrl(`/api/presence-chat/${currentRoom}?userId=${encodeURIComponent(user.userId)}&name=${encodeURIComponent(user.name)}&avatar=${encodeURIComponent(user.avatar)}&status=${encodeURIComponent(status)}&customStatus=${encodeURIComponent(customStatus)}`);
 
       addEvent(`Connecting to room #${currentRoom}...`, 'info');
-      const socket = new WebSocket(wsUrl);
-      wsRef.current = socket;
+      try {
+        const socket = new WebSocket(wsUrl);
+        wsRef.current = socket;
 
-      socket.onopen = () => {
-        setIsConnected(true);
-        addEvent(`Connected to #${currentRoom}`, 'success');
-      };
+        socket.onopen = () => {
+          retryDelay = 2000;
+          setIsConnected(true);
+          addEvent(`Connected to #${currentRoom}`, 'success');
+        };
 
-      socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
+        socket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
 
-          if (data.type === 'presence_state') {
-            setUsers(data.users || []);
-            addEvent(`Received initial presence snapshot (${data.users?.length || 0} users)`, 'info');
-            return;
-          }
+            if (data.type === 'presence_state') {
+              setUsers(data.users || []);
+              addEvent(`Received initial presence snapshot (${data.users?.length || 0} users)`, 'info');
+              return;
+            }
 
-          if (data.type === 'presence_join') {
-            setUsers((prev) => {
-              const existing = prev.filter((u) => u.userId !== data.user.userId);
-              return [...existing, data.user];
-            });
-            addEvent(`👋 ${data.user.data.name || data.user.userId} joined #${currentRoom}`, 'join');
-            return;
-          }
+            if (data.type === 'presence_join') {
+              setUsers((prev) => {
+                const existing = prev.filter((u) => u.userId !== data.user.userId);
+                return [...existing, data.user];
+              });
+              addEvent(`👋 ${data.user.data?.name || data.user.userId} joined #${currentRoom}`, 'join');
+              return;
+            }
 
-          if (data.type === 'presence_leave') {
-            setUsers((prev) => {
-              const departing = prev.find((u) => u.userId === data.userId);
-              if (departing) {
-                addEvent(`🚪 ${departing.data.name || data.userId} left #${currentRoom}`, 'leave');
-              }
-              return prev.filter((u) => u.userId !== data.userId);
-            });
-            return;
-          }
-
-          if (data.type === 'presence_update') {
-            setUsers((prev) =>
-              prev.map((u) => {
-                if (u.userId === data.userId) {
-                  addEvent(`🔄 ${u.data.name || data.userId} is now ${data.data.status || 'updated'}`, 'update');
-                  return { ...u, data: { ...u.data, ...data.data } };
+            if (data.type === 'presence_leave') {
+              setUsers((prev) => {
+                const departing = prev.find((u) => u.userId === data.userId);
+                if (departing) {
+                  addEvent(`🚪 ${departing.data?.name || data.userId} left #${currentRoom}`, 'leave');
                 }
-                return u;
-              })
-            );
-            return;
-          }
+                return prev.filter((u) => u.userId !== data.userId);
+              });
+              return;
+            }
 
-          if (data.type === 'chat') {
-            setChatMessages((prev) => [...prev, data]);
-            return;
-          }
-        } catch {
-          // ignore
-        }
-      };
+            if (data.type === 'presence_update') {
+              setUsers((prev) =>
+                prev.map((u) => {
+                  if (u.userId === data.userId) {
+                    addEvent(`🔄 ${u.data?.name || data.userId} is now ${data.data?.status || 'updated'}`, 'update');
+                    return { ...u, data: { ...u.data, ...data.data } };
+                  }
+                  return u;
+                })
+              );
+              return;
+            }
 
-      socket.onclose = () => {
-        setIsConnected(false);
-        addEvent(`Disconnected from #${currentRoom}`, 'leave');
+            if (data.type === 'chat') {
+              setChatMessages((prev) => [...prev, data]);
+              return;
+            }
+          } catch {
+            // ignore parse errors
+          }
+        };
+
+        socket.onerror = () => {
+          // Handled gracefully via onclose
+        };
+
+        socket.onclose = () => {
+          setIsConnected(false);
+          addEvent(`Disconnected from #${currentRoom}`, 'leave');
+          if (!isCancelled) {
+            reconnectTimer = setTimeout(connect, retryDelay);
+            retryDelay = Math.min(retryDelay * 1.5, 10000);
+          }
+        };
+      } catch {
         if (!isCancelled) {
-          reconnectTimer = setTimeout(connect, 2000);
+          reconnectTimer = setTimeout(connect, retryDelay);
+          retryDelay = Math.min(retryDelay * 1.5, 10000);
         }
-      };
+      }
     };
 
     connect();
@@ -166,7 +180,7 @@ export function PresenceExample({ user }) {
 
   const fetchRoomPresenceApi = async () => {
     try {
-      const res = await fetch(`/api/presence/${currentRoom}`);
+      const res = await fetch(buildApiUrl(`/api/presence/${currentRoom}`));
       const data = await res.json();
       setApiResponse({ endpoint: `/api/presence/${currentRoom}`, data });
       setShowApiModal(true);
@@ -178,7 +192,7 @@ export function PresenceExample({ user }) {
 
   const fetchAllPresenceApi = async () => {
     try {
-      const res = await fetch('/api/presence');
+      const res = await fetch(buildApiUrl('/api/presence'));
       const data = await res.json();
       setApiResponse({ endpoint: '/api/presence', data });
       setShowApiModal(true);

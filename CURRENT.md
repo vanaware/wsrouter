@@ -114,7 +114,19 @@ A complete, high-performance WebRTC peer connection and signaling engine (`src/w
 
 ---
 
-## 📚 Documentation Status
+## 🚀 CI/CD & Deployment Workflows
+
+1. **GitHub Pages Deployment Workflow (`.github/workflows/pages.yml`)**:
+   - Automated workflow triggers on push to `main` (for `example/**` or `src/**`) and manual `workflow_dispatch`.
+   - Provisions Deno environment, runs `deno task check` integrity validation, creates `.nojekyll`, and copies `index.html` to `404.html` for single-page routing support on GitHub Pages.
+   - Deploys static assets in `example/public` using `actions/deploy-pages@v4`.
+   - **Subfolder Resilience**: Configured client-side modules (`config.js`, `App.js`, etc.) using relative imports, `new URL(window.location.href)` query parameter handling, and customizable backend server connection settings for seamless operation on GitHub Pages subfolder paths (`https://<owner>.github.io/<repo>/`).
+
+2. **JSR Publishing Workflow (`.github/workflows/publish.yml`)**:
+   - Triggers on tag release (`v*`), runs full verification `deno task check-all`, and publishes package to JSR.
+
+3. **Continuous Integration (`.github/workflows/ci.yml`)**:
+   - Runs matrix tests across Deno `v2.x` and `canary`, type checking, formatting, and linting.
 
 - `README.md`: Comprehensive guide with examples for HTTP routing, WebSockets, WebRTC live streaming, online presence tracking, static files, middleware, and configuration options.
 - `docs/webrtc.md`: Full WebRTC live video/audio streaming and peer signaling guide with client-side and server-side examples, reaction protocols, and complete API reference.

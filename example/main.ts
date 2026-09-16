@@ -18,6 +18,55 @@ const app = createDenoRouter({
   forceHttps: false,
 });
 
+// Enable CORS for API routes so static GitHub Pages or external frontends can query the backend
+app.use("/api/*", async (req, _params, next) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }
+
+  const res = await next(req);
+  if (res) {
+    const headers = new Headers(res.headers);
+    headers.set("Access-Control-Allow-Origin", "*");
+    headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    return new Response(res.body, {
+      status: res.status,
+      statusText: res.statusText,
+      headers,
+    });
+  }
+  return res;
+});
+
+// Health check / heartbeat endpoint
+app.get("/api/health", () => {
+  return {
+    body: JSON.stringify({
+      status: "ok",
+      server: "WsRouter",
+      version: "0.1.0",
+      runtime: "Deno",
+      timestamp: Date.now(),
+      uptime: Math.round(performance.now() / 1000),
+    }),
+    init: {
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+    },
+  };
+});
+
 // ==========================================
 // 1. 🎥 WebRTC Live Video Streaming & Signaling
 // ==========================================

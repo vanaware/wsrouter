@@ -1,6 +1,7 @@
 // example/public/components/JwtExample.js
 import { html } from 'https://esm.sh/htm/preact';
 import { useState, useRef, useEffect } from 'https://esm.sh/preact/hooks';
+import { buildWsUrl, buildApiUrl } from './config.js';
 
 export function JwtExample() {
   const [username, setUsername] = useState('admin');
@@ -38,7 +39,7 @@ export function JwtExample() {
     addLog(`POST /api/login (user: ${username})...`, 'info');
 
     try {
-      const res = await fetch('/api/login', {
+      const res = await fetch(buildApiUrl('/api/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -65,8 +66,7 @@ export function JwtExample() {
       wsRef.current.close();
     }
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/api/jwt-chat/${room}`;
+    const wsUrl = buildWsUrl(`/api/jwt-chat/${room}`);
     addLog(`Connecting WebSocket with subprotocol Bearer to ${wsUrl}...`, 'info');
 
     try {
