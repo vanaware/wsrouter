@@ -84,8 +84,9 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
   });
 }
 
-setTimeout(() => {
-  if (app.closeGroupByPath("/chat/:room/:user")) {
-    console.log("🔒 Grupo de chat fechado após 30s.");
-  }
-}, 30000);
+// (Opcional) Teste de fechamento programado de grupo
+// setTimeout(() => {
+//   if (app.closeGroupByPath("/chat/:room/:user")) {
+//     console.log("🔒 Grupo de chat fechado após 30s.");
+//   }
+// }, 30000);

@@ -129,6 +129,33 @@ app.use(async (_req, _params, next) => {
 });
 ```
 
+### Exemplo 4: Middleware Escopado por Path e State/Meta
+
+Você pode aplicar middlewares apenas a caminhos específicos e compartilhar metadados (como usuário autenticado) através do terceiro parâmetro de contexto ou headers:
+
+```typescript
+// Executa apenas para rotas que iniciam com /admin/*
+app.use("/admin/*", async (req, params, next, ctx) => {
+  const token = req.headers.get("Authorization");
+  if (!token) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  // Anexa metadados ao state compartilhado
+  if (ctx) {
+    ctx.state.authorizedUser = { id: "user-123", role: "admin" };
+  }
+  return await next();
+});
+```
+
+---
+
+## 🏗️ Arquitetura Modular Interna
+
+A engine de middlewares foi modularizada em classes dedicadas:
+- **`MiddlewareRoute`** (`src/middleware-route.ts`): Encapsula a função de middleware e o padrão opcional de rota (como `/api/*` ou wildcard global).
+- **`MiddlewareChain`** (`src/middleware-chain.ts`): Executa o padrão Onion (cebola), passando requisições recursivamente com suporte a `RequestContext` (`req`, `params`, `state`).
+
 ---
 
 ## 📊 Comparação: Middleware vs PermissionFn

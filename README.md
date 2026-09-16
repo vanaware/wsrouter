@@ -152,16 +152,27 @@ app.head("/path", handler);
 
 ### Formato do Handler
 
-Os handlers retornam um objeto com `body` e opcionalmente `init`:
+Os handlers podem retornar um objeto com `body` (e opcionalmente `init`) ou diretamente uma instância padrão de `Response`:
 
 ```typescript
 type HttpHandler = (
   req: Request,
   params: RouteParams,
-) => { body: BodyInit; init?: ResponseInit } | Promise<{ body: BodyInit; init?: ResponseInit }>;
+  ctx?: RequestContext,
+) => 
+  | { body: BodyInit; init?: ResponseInit }
+  | Response
+  | Promise<{ body: BodyInit; init?: ResponseInit } | Response>;
 ```
 
 #### Exemplos
+
+**Resposta Direta com `Response`:**
+```typescript
+app.get("/health", () => {
+  return new Response("OK", { status: 200 });
+});
+```
 
 **Resposta JSON:**
 ```typescript
@@ -282,6 +293,23 @@ Middlewares executam antes do handler final e podem modificar a requisição, ab
 ```typescript
 app.use(async (req, params, next) => {
   console.log(`📝 ${req.method} ${req.url}`);
+  return await next();
+});
+```
+
+### Escopo por Caminho (Path-scoped) & Estado Compartilhado (State/Meta)
+
+Middlewares podem ser vinculados a caminhos específicos e compartilhar dados entre si ou com os handlers:
+
+```typescript
+app.use("/admin/*", async (req, params, next, ctx) => {
+  const token = req.headers.get("Authorization");
+  if (!token) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  if (ctx) {
+    ctx.state.authorizedUser = { id: "user-42", role: "admin" };
+  }
   return await next();
 });
 ```
@@ -703,20 +731,34 @@ app.patch(path, handler)
 app.options(path, handler)
 app.head(path, handler)
 app.ws(path, handler)
+app.worker(handlerOrRoute, name?)
 
 // Middlewares
 app.use(middleware)
+app.use(pathPattern, middleware)
+
+// Sub-routers
+app.mount(prefix, subRouter)
 
 // WebSockets
 app.getWsGroupByPath(pattern): WebSocketGroup | undefined
 app.closeGroupByPath(pattern): boolean
 app.closeAllWebSockets(): void
 
+// Inspeção & Rotas Modulares
+app.getHttpRoutes(): readonly HttpRoute[]
+app.getWsRoutes(): readonly WsRoute[]
+app.getMiddlewares(): readonly MiddlewareRoute[]
+app.getMiddlewareChain(): MiddlewareChain
+app.getWorkers(): readonly WorkerRoute[]
+app.getHttpRouteByPath(method, path): HttpRoute | undefined
+app.getWsRouteByPath(path): WsRoute | undefined
+
 // Handler principal
 app.handleRequest(req: Request): Promise<Response>
 ```
 
-### `WebSocketGroup` Methods
+### `WebSocketGroup` Methods & Hooks
 
 ```typescript
 group.addSocket(ws, params)
@@ -726,6 +768,22 @@ group.size: number
 group.broadcast(message, permissionFn?, senderParams?)
 group.sendLastBroadcastTo(ws, receiverParams)
 group.closeGroup()
+
+// Event Hooks & Lifecycle
+group.onConnect((ws, params) => void)
+group.onDisconnect((ws, params) => void)
+group.on(event, listener)
+group.off(event, listener)
+group.emit(event, ...args)
+```
+
+### Modular Routing Classes
+
+- **`HttpRoute`**: Encapsula métodos HTTP (`GET`, `POST`, etc.), compilação de `URLPattern`, correspondência e execução de handlers.
+- **`WsRoute`**: Encapsula endpoints WebSocket, seu respectivo `WebSocketGroup`, `URLPattern` e ciclo de conexões.
+- **`MiddlewareRoute`**: Encapsula funções de middleware com suporte a escopo de caminho opcional.
+- **`MiddlewareChain`**: Executa a pilha em modelo cebola (onion), provendo `RequestContext` e `state`.
+- **`WorkerRoute`**: Encapsula handlers de fallback e workers executados antes de arquivos estáticos.
 ```
 
 ### `PermissionFn`

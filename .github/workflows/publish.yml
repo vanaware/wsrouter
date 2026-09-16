@@ -1,4 +1,4 @@
-name: Publish Deno Package
+name: Publish Package to JSR
 on:
   push:
     tags:
@@ -12,5 +12,14 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      - name: Publish package
-        run: npx jsr publish
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: "v2.x"
+
+      - name: Verify code integrity
+        run: deno task check-all
+
+      - name: Publish to JSR
+        run: deno publish

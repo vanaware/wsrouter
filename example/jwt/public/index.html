@@ -44,7 +44,7 @@
       const password = document.getElementById("password").value;
 
       try {
-        const res = await fetch("http://localhost:8000/api/login", {
+        const res = await fetch("/api/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password })
@@ -69,7 +69,8 @@
       
       // ✅ O token é passado via Subprotocol (segundo argumento do WebSocket)
       // O servidor receberá: Sec-WebSocket-Protocol: Bearer, <token>
-      const wsUrl = "ws://localhost:3000/api/chat/geral";
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/api/chat/geral`;
       log(`🔄 Conectando a: ${wsUrl}`);
       
       ws = new WebSocket(wsUrl, ["Bearer", token]);

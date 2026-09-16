@@ -19,15 +19,24 @@
     .status.connected { background: #d4edda; color: #155724; }
     .status.disconnected { background: #f8d7da; color: #721c24; }
     .info { background: #e7f3ff; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+    .nav { background: #f0f4f8; border: 1px solid #d9e2ec; padding: 10px 14px; border-radius: 6px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+    .nav a { color: #0066cc; text-decoration: none; font-weight: bold; }
+    .nav a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
+  <div class="nav">
+    <a id="link-to-index" href="index.html">&larr; Voltar para Página Inicial (user1) 💬</a>
+    <span>📍 <strong>Broadcast (user2)</strong></span>
+  </div>
+
   <h1>📡 WebSocket Broadcast Test — user2</h1>
 
   <div class="info">
     <strong>Conectado como:</strong> user2 na sala <code>room1</code><br>
-    <strong>Endpoint:</strong> <code>ws://localhost:8000/api/chat/room1/user2</code><br>
-    <strong>Teste:</strong> Abra o <a href="/api/index.html" target="_blank">index.html</a> em outra aba para ver o broadcast funcionando!
+    <strong>Endpoint:</strong> <code>/api/chat/room1/user2</code><br>
+    <strong>Página Inicial:</strong> <a href="index.html">Voltar para o Chat (user1)</a> | 
+    <a href="index.html" target="_blank">Abrir em nova aba para testar broadcast</a>
   </div>
 
   <div id="status" class="status disconnected">⏳ Conectando...</div>
@@ -45,8 +54,9 @@
     const sendButton = document.getElementById('sendButton');
     const statusDiv = document.getElementById('status');
 
-    // ⚠️ URL correta: ws://host/api/chat/room/user
-    const WS_URL = 'ws://localhost:8000/api/chat/room1/user2';
+    // ⚠️ Construção dinâmica da URL do WebSocket
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const WS_URL = `${protocol}//${window.location.host}/api/chat/room1/user2`;
 
     let socket;
 
