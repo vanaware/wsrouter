@@ -11,6 +11,7 @@ import { MiddlewareRoute } from "./middleware-route.ts";
 import { MiddlewareChain } from "./middleware-chain.ts";
 import { WorkerRoute } from "./worker-route.ts";
 import { WebSocketGroup } from "./websocket-group.ts";
+import type { PresenceUser } from "./presence.ts";
 import {
   DEFAULT_LAST_BROADCAST_DELAY,
   type HttpHandler,
@@ -626,20 +627,22 @@ export class Router {
       route.group.emit("message", socket, ev.data, params);
     };
 
+    const errorHandler = (ev: Event | ErrorEvent) => {
+      const errorMsg = "message" in ev && typeof ev.message === "string" ? ev.message : "";
+      if (errorMsg) {
+        console.warn(`[Router] WebSocket connection warning: ${errorMsg}`);
+      }
+      cleanup();
+    };
+
     if (typeof socket.addEventListener === "function") {
       socket.addEventListener("message", messageListener);
       socket.addEventListener("close", cleanup);
-      socket.addEventListener("error", (ev) => {
-        console.error(`WebSocket error:`, ev);
-        cleanup();
-      });
+      socket.addEventListener("error", errorHandler);
     } else {
       socket.onmessage = messageListener;
       socket.onclose = cleanup;
-      socket.onerror = (ev) => {
-        console.error(`WebSocket error:`, ev);
-        cleanup();
-      };
+      socket.onerror = errorHandler;
     }
     try {
       await route.handler(socket, req, params);
@@ -978,6 +981,30 @@ export class Router {
     if (!group) return false;
     group.closeGroup();
     return true;
+  }
+
+  /**
+   * Retrieves the list of online users tracked in the WebSocketGroup of a specific path pattern.
+   *
+   * @param pathOrPattern The route pattern (e.g. "/chat/:room").
+   */
+  getPresence<T = Record<string, unknown>>(
+    pathOrPattern: string,
+  ): PresenceUser<T>[] {
+    return this.getWsGroupByPath(pathOrPattern)?.getPresenceList<T>() ?? [];
+  }
+
+  /**
+   * Retrieves a specific online user from the WebSocketGroup of a specific path pattern.
+   *
+   * @param pathOrPattern The route pattern (e.g. "/chat/:room").
+   * @param userId The unique user ID to look up.
+   */
+  getPresenceUser<T = Record<string, unknown>>(
+    pathOrPattern: string,
+    userId: string,
+  ): PresenceUser<T> | undefined {
+    return this.getWsGroupByPath(pathOrPattern)?.getPresenceUser<T>(userId);
   }
 
   private extractParams(

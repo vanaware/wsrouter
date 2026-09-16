@@ -9,6 +9,15 @@ import {
   type PermissionFn,
   type RouteParams,
 } from "./types.ts";
+import {
+  PresenceTracker,
+  type PresenceTrackerOptions,
+  type PresenceUser,
+} from "./presence.ts";
+import {
+  WebRTCSignalingHub,
+  type WebRTCSignalingHubOptions,
+} from "./webrtc.ts";
 
 /** Internal record of the most recent broadcast in this group for replay to new subscribers. */
 interface LastBroadcast {
@@ -30,6 +39,9 @@ export class WebSocketGroup {
   private lastBroadcast: LastBroadcast | null = null;
   private lastBroadcastDelay: number;
   private listeners = new Map<string, Set<WebSocketGroupListener>>();
+  // deno-lint-ignore no-explicit-any
+  private _presence?: PresenceTracker<any>;
+  private _signaling?: WebRTCSignalingHub;
 
   /**
    * Creates a new WebSocketGroup instance.
@@ -37,6 +49,124 @@ export class WebSocketGroup {
    */
   constructor(lastBroadcastDelay: number = DEFAULT_LAST_BROADCAST_DELAY) {
     this.lastBroadcastDelay = lastBroadcastDelay;
+  }
+
+  /**
+   * Accesses or initializes the WebRTCSignalingHub instance bound to this group.
+   */
+  get signaling(): WebRTCSignalingHub {
+    if (!this._signaling) {
+      this._signaling = new WebRTCSignalingHub(this);
+    }
+    return this._signaling;
+  }
+
+  /**
+   * Configures or replaces the WebRTCSignalingHub instance with custom options.
+   */
+  configureSignaling(options?: WebRTCSignalingHubOptions): WebRTCSignalingHub {
+    const hub = new WebRTCSignalingHub(this, options);
+    this._signaling = hub;
+    return hub;
+  }
+
+  /**
+   * Routes a WebRTC signaling message through the group's signaling hub.
+   */
+  handleSignaling(
+    ws: WebSocket,
+    rawData: string | Record<string, unknown>,
+    params?: RouteParams,
+  ): boolean {
+    const resolvedParams = params ?? this.sockets.get(ws);
+    return this.signaling.handleMessage(ws, rawData, resolvedParams);
+  }
+
+  /**
+   * Accesses or initializes the PresenceTracker instance bound to this group.
+   */
+  // deno-lint-ignore no-explicit-any
+  get presence(): PresenceTracker<any> {
+    if (!this._presence) {
+      this._presence = new PresenceTracker(this);
+    }
+    return this._presence;
+  }
+
+  /**
+   * Configures or replaces the PresenceTracker instance with custom options.
+   */
+  configurePresence<T = Record<string, unknown>>(
+    options?: PresenceTrackerOptions<T>,
+  ): PresenceTracker<T> {
+    const tracker = new PresenceTracker<T>(this, options);
+    this._presence = tracker;
+    return tracker;
+  }
+
+  /**
+   * Registers a WebSocket connection under an online user presence identity.
+   *
+   * @param ws The connected WebSocket instance.
+   * @param user Identity object containing `userId` and user metadata.
+   */
+  track<T = Record<string, unknown>>(
+    ws: WebSocket,
+    user: { userId: string } & T,
+  ): PresenceUser<T> {
+    const params = this.sockets.get(ws);
+    return (this.presence as PresenceTracker<T>).track(ws, user, params);
+  }
+
+  /**
+   * Removes a WebSocket connection from presence tracking.
+   *
+   * @param ws The WebSocket to untrack.
+   */
+  untrack(ws: WebSocket): boolean {
+    if (!this._presence) return false;
+    const params = this.sockets.get(ws);
+    return this._presence.untrack(ws, params);
+  }
+
+  /**
+   * Updates metadata for an active presence user.
+   *
+   * @param wsOrUserId WebSocket instance or user ID string.
+   * @param data Partial metadata to merge.
+   */
+  updatePresence<T = Record<string, unknown>>(
+    wsOrUserId: WebSocket | string,
+    data: Partial<T>,
+  ): PresenceUser<T> | undefined {
+    return (this.presence as PresenceTracker<T>).update(wsOrUserId, data);
+  }
+
+  /**
+   * Returns a snapshot array of all online users tracked in this group.
+   */
+  getPresenceList<T = Record<string, unknown>>(): PresenceUser<T>[] {
+    return this._presence
+      ? (this._presence as PresenceTracker<T>).getUsers()
+      : [];
+  }
+
+  /**
+   * Retrieves an online user record by userId.
+   */
+  getPresenceUser<T = Record<string, unknown>>(
+    userId: string,
+  ): PresenceUser<T> | undefined {
+    return this._presence
+      ? (this._presence as PresenceTracker<T>).getUser(userId)
+      : undefined;
+  }
+
+  /**
+   * Returns the count of unique online users tracked in this group.
+   */
+  get presenceSize(): number {
+    return this._presence?.size ?? 0;
   }
 
   /**
@@ -61,6 +191,12 @@ export class WebSocketGroup {
     const params = this.sockets.get(ws) ?? {};
     const existed = this.sockets.delete(ws);
     if (existed) {
+      if (this._signaling) {
+        this._signaling.unregisterPeer(ws);
+      }
+      if (this._presence) {
+        this._presence.untrack(ws, params);
+      }
       this.emit("disconnect", ws, params);
     }
   }
@@ -217,5 +353,11 @@ export class WebSocketGroup {
     }
     this.sockets.clear();
     this.lastBroadcast = null;
+    if (this._presence) {
+      this._presence.clear();
+    }
+    if (this._signaling) {
+      this._signaling.clear();
+    }
   }
 }

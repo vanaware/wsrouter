@@ -47,15 +47,59 @@ A comprehensive security audit of the codebase was conducted across routing, sta
 
 ---
 
+## 👥 Online Presence Tracking Suite (Completed)
+
+A dedicated, high-performance `PresenceTracker` engine (`src/presence.ts`) is now integrated natively into `WsRouter` and `WebSocketGroup`:
+
+1. **State Snapshots & Real-Time Diffs**:
+   - Newly connected sockets automatically receive an initial `presence_state` snapshot containing active users in the room.
+   - Live diff events are broadcast to group peers: `presence_join`, `presence_leave`, and `presence_update`.
+2. **Multi-Socket & Multi-Tab Deduplication**:
+   - Sockets are grouped by `userId`. A user connecting from multiple browser tabs or devices increments an active `connections` counter.
+   - Does not emit duplicate `presence_join` broadcasts for secondary tabs; only emits `presence_leave` when the user's final connection closes.
+3. **Dead Connection Pruning**:
+   - Automatically detects and prunes sockets in `CLOSED` state during state queries to prevent ghost presences.
+4. **WebSocketGroup & Router Integration**:
+   - `group.track(ws, user)` and `group.untrack(ws)`.
+   - `group.updatePresence(wsOrUserId, data)`.
+   - `group.getPresenceList()` and `group.getPresenceUser(userId)`.
+   - `router.getPresence(pathOrPattern)` and `router.getPresenceUser(pathOrPattern, userId)`.
+   - Automatic cleanup when sockets are removed from groups or when groups are closed.
+5. **Standalone Example & UI**:
+   - `example/presence/`: Full client/server example with BeerCSS, room switching, live event ticker, multi-tab simulation, and REST API inspector.
+   - `example/principal/public/presence.html`: Live interactive presence dashboard integrated into the main dev server.
+
+---
+
+## 🎥 WebRTC Live Webcam Streaming & Peer Signaling Suite (Completed)
+
+A complete, high-performance WebRTC peer connection and signaling engine (`src/webrtc.ts`) is now integrated into `WsRouter` and `WebSocketGroup`:
+
+1. **Signaling Hub & Peer Coordination**:
+   - `WebRTCSignalingHub` manages SDP offer/answer routing, ICE candidate forwarding, active stream state tracking, and broadcaster announcements.
+   - Supports targeted peer-to-peer delivery without flooding unrelated sockets.
+2. **Broadcaster & Viewer Workflow**:
+   - **Name Entry Gate**: Enforces that users must fill in their name and choose an avatar before entering the live stream room.
+   - **Webcam Broadcaster**: Captures local webcam/audio (`getUserMedia`), broadcasts `broadcaster_started`, creates `RTCPeerConnection` for each incoming viewer, and streams live video directly peer-to-peer.
+   - **Real-Time Online Viewers Panel**: The broadcaster and all participants see everyone currently online and watching in real-time using `PresenceTracker`.
+   - **WebRTC Viewers**: Automatically connect to the active broadcaster upon entering or when the broadcaster goes live, exchanging SDP offers/answers and ICE candidates seamlessly.
+   - **Live Reactions & Chat**: Floating live emoji reactions (👏, ❤️, 🔥, 🚀, 👍) and synchronized room chat.
+3. **Dedicated Example & Dev Server Integration**:
+   - `example/webrtc/`: Standalone WebRTC application runnable via `deno task webrtc`.
+   - `example/principal/public/webrtc.html`: Integrated WebRTC Live Stream dashboard in the main dev server with multi-tab simulation and navigation links.
+
+---
+
 ## 🧪 Test Suite & Validation Status
 
 - **Framework**: `@std/testing/bdd` (`describe`, `it`) & `@std/assert`.
-- **Total Tests**: **124 tests (49 sub-steps)** passing cleanly.
+- **Total Tests**: **127 tests (62 sub-steps)** passing cleanly.
 - **Type Checking**: `deno task check` passes with 0 type errors.
-- **Linting**: `npm run lint` (`deno lint`) checked 20 files with 0 warnings or errors.
+- **Linting**: `npm run lint` (`deno lint`) checked 22 files with 0 warnings or errors.
 
 ### Test Coverage Files
-- `tests/router-test.ts`: Core routing, mounting, and parameters.
+- `tests/webrtc_signaling_test.ts`: WebRTC signaling hub, SDP offers/answers, ICE candidates, stream requests, and broadcast termination.
+- `tests/presence_test.ts`: Presence tracking, multi-tab deduplication, and snapshots.
 - `tests/router_http_test.ts`: HTTP methods, status codes, and headers.
 - `tests/router_http_methods_test.ts`: Advanced methods (`OPTIONS`, `PUT`, `DELETE`, `PATCH`, `HEAD`, `405`).
 - `tests/router_static_test.ts`: Static file resolution and directory indices.

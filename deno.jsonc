@@ -8,15 +8,19 @@
     "check-all": "deno task check && deno task lint && deno task fmt --check && deno task test",
     "tests": "deno task check && deno task test",
     "check": "deno check src/**/*.ts tests/**/*.ts example/**/*.ts",
-    "start": "deno run --allow-read --allow-net --allow-env example/principal/main.ts",
-    "dev": "deno run --allow-read --allow-net --allow-env --watch example/principal/main.ts",
-    "example": "deno run --allow-read --allow-net --allow-env --watch example/jwt/main.ts",
+    "start": "deno run --allow-read --allow-net --allow-env example/main.ts",
+    "dev": "deno run --allow-read --allow-net --allow-env --watch example/main.ts",
+    "presence": "deno run --allow-read --allow-net --allow-env --watch example/main.ts",
+    "webrtc": "deno run --allow-read --allow-net --allow-env --watch example/main.ts",
+    "example": "deno run --allow-read --allow-net --allow-env --watch example/main.ts",
     "bump": "deno run --allow-run --allow-read --allow-write scripts/bump.ts",
     "publish": "deno run --allow-run --allow-read --allow-env scripts/publish.ts"
   },
   "exports": {
     ".": "./src/mod.ts",
     "./deno": "./src/deno.ts",
+    "./presence": "./src/presence.ts",
+    "./webrtc": "./src/webrtc.ts",
     "./deno-serve-dir": "./src/deno-serve-dir.ts",
     "./adapters/deno": "./src/adapters/deno.ts",
     "./adapters/deno-serve-dir": "./src/adapters/deno-serve-dir.ts"
