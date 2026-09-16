@@ -154,6 +154,54 @@ describe("Complete API & Router Coverage", () => {
       group.closeGroup();
       assertEquals(group.size, 0,);
     });
+    it("router.broadcast, updatePresence, sendReaction, getPeerCount, getPeers, sendToPeer on Router", () => {
+      const router = new Router();
+      router.ws("/stream/:room", () => {});
+
+      const wsA = {
+        readyState: 1,
+        send: (d: string) => { sentA.push(d); },
+        close: () => {},
+      } as unknown as WebSocket;
+      const sentA: string[] = [];
+
+      const group = router.getWsGroupByPath("/stream/:room")!;
+      group.addSocket(wsA, { room: "live1" });
+
+      // Test router.broadcast
+      const broadcastOk = router.broadcast("/stream/:room", "hello world");
+      assertEquals(broadcastOk, true);
+      assertEquals(sentA.includes("hello world"), true);
+      assertEquals(router.broadcast("/nonexistent", "hello"), false);
+
+      // Test router.updatePresence
+      group.track(wsA, { userId: "userA", name: "Alice", status: "online" });
+      const updatedUser = router.updatePresence("/stream/:room", "userA", { status: "busy" });
+      assertEquals(updatedUser?.data.status, "busy");
+      assertEquals(router.updatePresence("/nonexistent", "userA", {}), undefined);
+
+      // Test router.sendReaction
+      const reactionOk = router.sendReaction("/stream/:room", "live1", {
+        from: "userB",
+        fromName: "Bob",
+        emoji: "🎉",
+      });
+      assertEquals(reactionOk, true);
+      assertEquals(sentA.some((m) => m.includes("stream_reaction") && m.includes("🎉")), true);
+      assertEquals(router.sendReaction("/nonexistent", "live1", { from: "a", fromName: "b", emoji: "🔥" }), false);
+
+      // Test router peer methods
+      group.registerPeer(wsA, "peerA");
+      assertEquals(router.getPeerCount("/stream/:room"), 1);
+      assertEquals(router.getPeerCount("/nonexistent"), 0);
+      assertEquals(router.getPeers("/stream/:room"), ["peerA"]);
+      assertEquals(router.getPeers("/nonexistent"), []);
+
+      const sentToPeerOk = router.sendToPeer("/stream/:room", "peerA", { type: "custom_ping" });
+      assertEquals(sentToPeerOk, true);
+      assertEquals(sentA.some((m) => m.includes("custom_ping")), true);
+      assertEquals(router.sendToPeer("/nonexistent", "peerA", {}), false);
+    });
   });
 
   describe("MiddlewareRoute and MiddlewareChain edge cases", () => {

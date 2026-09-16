@@ -17,6 +17,7 @@ import {
   DEFAULT_LAST_BROADCAST_DELAY,
   type HttpHandler,
   type Middleware,
+  type PermissionFn,
   type RequestContext,
   type RouteParams,
   type RouterOptions,
@@ -1060,6 +1061,81 @@ export class Router {
     const group = this.getWsGroupByPath(pathOrPattern);
     if (!group) return undefined;
     return group.startBroadcasting(broadcasterId, broadcasterName, room, streamTitle, params);
+  }
+
+  /**
+   * Broadcasts a message to all connections in the WebSocketGroup of a specific path pattern.
+   *
+   * @param pathOrPattern The route pattern (e.g. "/chat/:room").
+   * @param message The serialized message string to broadcast.
+   * @param permissionFn Optional filter callback evaluating delivery permission per socket.
+   * @param senderParams Optional metadata identifying the sender.
+   * @returns `true` if the WebSocketGroup was found, `false` otherwise.
+   */
+  broadcast(
+    pathOrPattern: string,
+    message: string,
+    permissionFn?: PermissionFn,
+    senderParams?: RouteParams,
+  ): boolean {
+    const group = this.getWsGroupByPath(pathOrPattern);
+    if (!group) return false;
+    group.broadcast(message, permissionFn, senderParams);
+    return true;
+  }
+
+  /**
+   * Updates presence metadata for a user or socket on a specific WebSocket route.
+   */
+  updatePresence<T = Record<string, unknown>>(
+    pathOrPattern: string,
+    wsOrUserId: WebSocket | string,
+    partialData: Partial<T>,
+    params?: RouteParams,
+  ): PresenceUser<T> | undefined {
+    return this.getWsGroupByPath(pathOrPattern)?.updatePresence<T>(
+      wsOrUserId,
+      partialData,
+      params,
+    );
+  }
+
+  /**
+   * Broadcasts a live reaction emoji to a room on a WebSocket route.
+   */
+  sendReaction(
+    pathOrPattern: string,
+    room: string,
+    reaction: { from: string; fromName: string; emoji: string; timestamp?: number },
+    params?: RouteParams,
+  ): boolean {
+    const group = this.getWsGroupByPath(pathOrPattern);
+    if (!group) return false;
+    return group.sendReaction(room, reaction, params);
+  }
+
+  /**
+   * Returns the count of registered WebRTC peers on a WebSocket route.
+   */
+  getPeerCount(pathOrPattern: string): number {
+    return this.getWsGroupByPath(pathOrPattern)?.peerCount ?? 0;
+  }
+
+  /**
+   * Returns a list of all registered peer IDs on a WebSocket route.
+   */
+  getPeers(pathOrPattern: string): string[] {
+    return this.getWsGroupByPath(pathOrPattern)?.getPeers() ?? [];
+  }
+
+  /**
+   * Sends a direct signaling message to a registered peer on a WebSocket route.
+   */
+  // deno-lint-ignore no-explicit-any
+  sendToPeer(pathOrPattern: string, peerId: string, message: any): boolean {
+    const group = this.getWsGroupByPath(pathOrPattern);
+    if (!group) return false;
+    return group.sendToPeer(peerId, message);
   }
 
   /**

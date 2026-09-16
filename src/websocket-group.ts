@@ -239,8 +239,9 @@ export class WebSocketGroup {
   updatePresence<T = Record<string, unknown>>(
     wsOrUserId: WebSocket | string,
     data: Partial<T>,
+    params?: RouteParams,
   ): PresenceUser<T> | undefined {
-    return (this.presence as PresenceTracker<T>).update(wsOrUserId, data);
+    return (this.presence as PresenceTracker<T>).update(wsOrUserId, data, params);
   }
 
   /**

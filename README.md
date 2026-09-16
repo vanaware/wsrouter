@@ -898,6 +898,7 @@ app.use(pathPattern, middleware)
 app.mount(prefix, subRouter)
 
 // WebSockets
+app.broadcast(pathOrPattern, message, permissionFn?, senderParams?): boolean
 app.getWsGroupByPath(pattern): WebSocketGroup | undefined
 app.closeGroupByPath(pattern): boolean
 app.closeAllWebSockets(): void
@@ -909,10 +910,15 @@ app.getAllActiveStreams(pathOrPattern): ActiveStreamInfo[]
 app.isBroadcasting(pathOrPattern, room): boolean
 app.startBroadcasting(pathOrPattern, broadcasterId, name, room, title?, params?): ActiveStreamInfo | undefined
 app.stopBroadcasting(pathOrPattern, broadcasterId, room, params?): boolean
+app.sendReaction(pathOrPattern, room, reaction, params?): boolean
+app.getPeerCount(pathOrPattern): number
+app.getPeers(pathOrPattern): string[]
+app.sendToPeer(pathOrPattern, peerId, message): boolean
 
 // Presence Tracking
 app.getPresence(pathOrPattern): PresenceUser[]
 app.getPresenceUser(pathOrPattern, userId): PresenceUser | undefined
+app.updatePresence(pathOrPattern, wsOrUserId, partialData, params?): PresenceUser | undefined
 
 // Inspeção & Rotas Modulares
 app.getHttpRoutes(): readonly HttpRoute[]
