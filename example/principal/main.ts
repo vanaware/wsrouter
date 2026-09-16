@@ -64,11 +64,11 @@ app.ws("/subfolder/*", (ws, _req, params) => {
   ws.onerror = (ev) => console.error("[WS catch-all] error:", ev);
 });
 
-const server = Deno.serve({ port: 8000 }, app.handleRequest.bind(app));
-console.log("🚀 Servidor rodando em http://localhost:8000");
-console.log("📡 API:      http://localhost:8000/api");
-console.log("🔌 WS chat:  ws://localhost:8000/api/chat/:room/:user");
-console.log("📂 Estáticos: http://localhost:8000/api/index.html");
+const server = Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
+console.log("🚀 Servidor rodando em http://localhost:3000");
+console.log("📡 API:      http://localhost:3000/api");
+console.log("🔌 WS chat:  ws://localhost:3000/api/chat/:room/:user");
+console.log("📂 Estáticos: http://localhost:3000/api/index.html");
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   Deno.addSignalListener(signal, () => {

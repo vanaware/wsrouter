@@ -77,7 +77,7 @@ app.ws("/chat/:room", (ws, _req, params) => {
   };
 });
 
-Deno.serve({ port: 8000 }, app.handleRequest.bind(app));
-console.log("🚀 Servidor JWT rodando em http://localhost:8000");
-console.log("🔐 Login: POST http://localhost:8000/api/login");
-console.log("🔌 WS: ws://localhost:8000/api/chat/:room");
+Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
+console.log("🚀 Servidor JWT rodando em http://localhost:3000");
+console.log("🔐 Login: POST http://localhost:3000/api/login");
+console.log("🔌 WS: ws://localhost:3000/api/chat/:room");
