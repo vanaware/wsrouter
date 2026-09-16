@@ -91,6 +91,17 @@ export interface ActiveStreamInfo {
 }
 
 /**
+ * Event map for WebRTC signaling hub lifecycle events.
+ */
+export interface WebRTCSignalingEvents {
+  "stream_start": (stream: ActiveStreamInfo) => void;
+  "stream_stop": (broadcasterId: string, room: string) => void;
+  "peer_register": (peerId: string, ws: WebSocket) => void;
+  "peer_unregister": (peerId: string, ws: WebSocket) => void;
+  "reaction": (reaction: { from: string; fromName: string; emoji: string; room: string }) => void;
+}
+
+/**
  * Options for configuring a WebRTCSignalingHub instance.
  */
 export interface WebRTCSignalingHubOptions {
@@ -110,6 +121,7 @@ export class WebRTCSignalingHub {
   private peerIdToSocket = new Map<string, WebSocket>();
   private activeStreams = new Map<string, ActiveStreamInfo>(); // room -> ActiveStreamInfo
   private broadcasterRooms = new Map<string, string>(); // broadcasterId -> room
+  private listeners = new Map<string, Set<(...args: any[]) => void>>();
   private serialize: (msg: WebRTCSignalingMessage) => string;
 
   constructor(group?: WebSocketGroup, options?: WebRTCSignalingHubOptions) {
@@ -126,6 +138,49 @@ export class WebRTCSignalingHub {
   }
 
   /**
+   * Attaches an event listener for WebRTC signaling lifecycle events.
+   */
+  on<K extends keyof WebRTCSignalingEvents>(event: K, listener: WebRTCSignalingEvents[K]): this {
+    let set = this.listeners.get(event);
+    if (!set) {
+      set = new Set();
+      this.listeners.set(event, set);
+    }
+    set.add(listener as (...args: any[]) => void);
+    return this;
+  }
+
+  /**
+   * Removes an event listener.
+   */
+  off<K extends keyof WebRTCSignalingEvents>(event: K, listener: WebRTCSignalingEvents[K]): this {
+    const set = this.listeners.get(event);
+    if (set) {
+      set.delete(listener as (...args: any[]) => void);
+      if (set.size === 0) {
+        this.listeners.delete(event);
+      }
+    }
+    return this;
+  }
+
+  /**
+   * Emits an event to registered listeners.
+   */
+  emit<K extends keyof WebRTCSignalingEvents>(event: K, ...args: Parameters<WebRTCSignalingEvents[K]>): void {
+    const set = this.listeners.get(event);
+    if (set) {
+      for (const listener of set) {
+        try {
+          listener(...args);
+        } catch (err) {
+          console.error(`Error in WebRTCSignalingHub ${event} listener:`, err);
+        }
+      }
+    }
+  }
+
+  /**
    * Registers a peer connection socket with an identity peerId.
    */
   registerPeer(ws: WebSocket, peerId: string): void {
@@ -135,6 +190,7 @@ export class WebRTCSignalingHub {
     }
     this.socketToPeerId.set(ws, peerId);
     this.peerIdToSocket.set(peerId, ws);
+    this.emit("peer_register", peerId, ws);
   }
 
   /**
@@ -146,11 +202,53 @@ export class WebRTCSignalingHub {
 
     this.socketToPeerId.delete(ws);
     this.peerIdToSocket.delete(peerId);
+    this.emit("peer_unregister", peerId, ws);
 
     const room = this.broadcasterRooms.get(peerId);
     if (room) {
       this.stopBroadcasting(peerId, room);
     }
+  }
+
+  /**
+   * Retrieves the peer ID associated with a WebSocket.
+   */
+  getPeerId(ws: WebSocket): string | undefined {
+    return this.socketToPeerId.get(ws);
+  }
+
+  /**
+   * Retrieves the WebSocket instance for a registered peer ID.
+   */
+  getPeerSocket(peerId: string): WebSocket | undefined {
+    return this.peerIdToSocket.get(peerId);
+  }
+
+  /**
+   * Returns a list of all currently registered peer IDs.
+   */
+  getPeers(): string[] {
+    return Array.from(this.peerIdToSocket.keys());
+  }
+
+  /**
+   * Returns the count of registered peers.
+   */
+  get peerCount(): number {
+    return this.peerIdToSocket.size;
+  }
+
+  /**
+   * Sends a signaling message directly to a specific registered peer.
+   */
+  sendToPeer(peerId: string, message: WebRTCSignalingMessage | string): boolean {
+    const ws = this.peerIdToSocket.get(peerId);
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      const payload = typeof message === "string" ? message : this.serialize(message);
+      ws.send(payload);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -173,6 +271,7 @@ export class WebRTCSignalingHub {
 
     this.activeStreams.set(room, streamInfo);
     this.broadcasterRooms.set(broadcasterId, room);
+    this.emit("stream_start", streamInfo);
 
     const msg: WebRTCSignalingMessage = {
       type: "broadcaster_started",
@@ -203,6 +302,7 @@ export class WebRTCSignalingHub {
     if (current && current.broadcasterId === broadcasterId) {
       this.activeStreams.delete(room);
       this.broadcasterRooms.delete(broadcasterId);
+      this.emit("stream_stop", broadcasterId, room);
 
       const msg: WebRTCSignalingMessage = {
         type: "broadcaster_stopped",
@@ -229,6 +329,64 @@ export class WebRTCSignalingHub {
    */
   getActiveStream(room: string): ActiveStreamInfo | undefined {
     return this.activeStreams.get(room);
+  }
+
+  /**
+   * Alias for getActiveStream.
+   */
+  getBroadcaster(room: string): ActiveStreamInfo | undefined {
+    return this.getActiveStream(room);
+  }
+
+  /**
+   * Returns whether a stream is currently active in a specific room.
+   */
+  isBroadcasting(room: string): boolean {
+    return this.activeStreams.has(room);
+  }
+
+  /**
+   * Returns a snapshot array of all currently active streams across all rooms.
+   */
+  getAllActiveStreams(): ActiveStreamInfo[] {
+    return Array.from(this.activeStreams.values());
+  }
+
+  /**
+   * Broadcasts a floating reaction to a room.
+   */
+  sendReaction(
+    room: string,
+    reaction: { from: string; fromName: string; emoji: string; timestamp?: number },
+    params?: RouteParams,
+  ): boolean {
+    const payload: WebRTCSignalingMessage = {
+      type: "stream_reaction",
+      from: reaction.from,
+      fromName: reaction.fromName,
+      emoji: reaction.emoji,
+      timestamp: reaction.timestamp ?? Date.now(),
+      room,
+    };
+
+    this.emit("reaction", {
+      from: reaction.from,
+      fromName: reaction.fromName,
+      emoji: reaction.emoji,
+      room,
+    });
+
+    if (this.group) {
+      this.group.broadcast(
+        this.serialize(payload),
+        (recvParams, sendParams) => {
+          return !recvParams.room || recvParams.room === room || recvParams.room === sendParams.room;
+        },
+        params,
+      );
+      return true;
+    }
+    return false;
   }
 
   /**

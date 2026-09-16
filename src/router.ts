@@ -12,6 +12,7 @@ import { MiddlewareChain } from "./middleware-chain.ts";
 import { WorkerRoute } from "./worker-route.ts";
 import { WebSocketGroup } from "./websocket-group.ts";
 import type { PresenceUser } from "./presence.ts";
+import type { ActiveStreamInfo, WebRTCSignalingHub } from "./webrtc.ts";
 import {
   DEFAULT_LAST_BROADCAST_DELAY,
   type HttpHandler,
@@ -1005,6 +1006,74 @@ export class Router {
     userId: string,
   ): PresenceUser<T> | undefined {
     return this.getWsGroupByPath(pathOrPattern)?.getPresenceUser<T>(userId);
+  }
+
+  /**
+   * Retrieves the WebRTCSignalingHub associated with a WebSocket route pattern.
+   *
+   * @param pathOrPattern The route pattern (e.g. "/webrtc/:room").
+   */
+  getSignaling(pathOrPattern: string): WebRTCSignalingHub | undefined {
+    return this.getWsGroupByPath(pathOrPattern)?.signaling;
+  }
+
+  /**
+   * Retrieves active stream information for a specific room on a WebSocket route.
+   *
+   * @param pathOrPattern The route pattern.
+   * @param room The room name.
+   */
+  getActiveStream(pathOrPattern: string, room: string): ActiveStreamInfo | undefined {
+    return this.getWsGroupByPath(pathOrPattern)?.getActiveStream(room);
+  }
+
+  /**
+   * Returns all active stream records on a WebSocket route.
+   *
+   * @param pathOrPattern The route pattern.
+   */
+  getAllActiveStreams(pathOrPattern: string): ActiveStreamInfo[] {
+    return this.getWsGroupByPath(pathOrPattern)?.getAllActiveStreams() ?? [];
+  }
+
+  /**
+   * Checks if a live stream is currently active in a specific room.
+   *
+   * @param pathOrPattern The route pattern.
+   * @param room The room name.
+   */
+  isBroadcasting(pathOrPattern: string, room: string): boolean {
+    return this.getWsGroupByPath(pathOrPattern)?.isBroadcasting(room) ?? false;
+  }
+
+  /**
+   * Starts a broadcast in a specific room on a WebSocket route.
+   */
+  startBroadcasting(
+    pathOrPattern: string,
+    broadcasterId: string,
+    broadcasterName: string,
+    room: string,
+    streamTitle?: string,
+    params?: RouteParams,
+  ): ActiveStreamInfo | undefined {
+    const group = this.getWsGroupByPath(pathOrPattern);
+    if (!group) return undefined;
+    return group.startBroadcasting(broadcasterId, broadcasterName, room, streamTitle, params);
+  }
+
+  /**
+   * Stops an active broadcast in a specific room on a WebSocket route.
+   */
+  stopBroadcasting(
+    pathOrPattern: string,
+    broadcasterId: string,
+    room: string,
+    params?: RouteParams,
+  ): boolean {
+    const group = this.getWsGroupByPath(pathOrPattern);
+    if (!group) return false;
+    return group.stopBroadcasting(broadcasterId, room, params);
   }
 
   private extractParams(

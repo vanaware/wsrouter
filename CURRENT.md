@@ -93,12 +93,12 @@ A complete, high-performance WebRTC peer connection and signaling engine (`src/w
 ## 🧪 Test Suite & Validation Status
 
 - **Framework**: `@std/testing/bdd` (`describe`, `it`) & `@std/assert`.
-- **Total Tests**: **127 tests (62 sub-steps)** passing cleanly.
+- **Total Tests**: **127 tests (63 sub-steps)** passing cleanly with 0 failures.
 - **Type Checking**: `deno task check` passes with 0 type errors.
-- **Linting**: `npm run lint` (`deno lint`) checked 22 files with 0 warnings or errors.
+- **Linting**: `npm run lint` (`deno lint`) passes with 0 warnings or errors.
 
 ### Test Coverage Files
-- `tests/webrtc_signaling_test.ts`: WebRTC signaling hub, SDP offers/answers, ICE candidates, stream requests, and broadcast termination.
+- `tests/webrtc_signaling_test.ts`: WebRTC signaling hub, SDP offers/answers, ICE candidates, stream requests, broadcast start/stop, reaction broadcasts, peer rosters, and Router/Group helper queries.
 - `tests/presence_test.ts`: Presence tracking, multi-tab deduplication, and snapshots.
 - `tests/router_http_test.ts`: HTTP methods, status codes, and headers.
 - `tests/router_http_methods_test.ts`: Advanced methods (`OPTIONS`, `PUT`, `DELETE`, `PATCH`, `HEAD`, `405`).
@@ -116,7 +116,9 @@ A complete, high-performance WebRTC peer connection and signaling engine (`src/w
 
 ## 📚 Documentation Status
 
-- `README.md`: Comprehensive guide with examples for HTTP routing, WebSockets, static files, middleware, and configuration options.
+- `README.md`: Comprehensive guide with examples for HTTP routing, WebSockets, WebRTC live streaming, online presence tracking, static files, middleware, and configuration options.
+- `docs/webrtc.md`: Full WebRTC live video/audio streaming and peer signaling guide with client-side and server-side examples, reaction protocols, and complete API reference.
+- `docs/presence.md`: Real-time online presence tracking guide covering multi-tab deduplication, status states, REST inspectors, and protocol event structures.
 - `docs/security.md`: Production security guide covering HTTPS, HSTS, reverse proxy trust, dotfiles, symlinks, path containment, WebSocket CSWSH origin validation, and rate limiting.
 - `docs/return.md`: HTTP return values guide covering both `{ body, init }` objects and native standard `Response` / `Response.json(...)` instances.
 - `docs/adapter-deno-serve-dir.md`: Comparison and setup for the alternative `serveDir` adapter.

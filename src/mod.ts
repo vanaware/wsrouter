@@ -17,6 +17,7 @@ export {
   type SerializedIceCandidate,
   type SerializedSessionDescription,
   WebRTCSignalingHub,
+  type WebRTCSignalingEvents,
   type WebRTCSignalingHubOptions,
   type WebRTCSignalingMessage,
 } from "./webrtc.ts";

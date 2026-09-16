@@ -2,6 +2,7 @@
 import { describe, it } from "@std/testing/bdd";
 import { assert, assertEquals, assertNotEquals } from "@std/assert";
 import {
+  Router,
   WebRTCSignalingHub,
   type WebRTCSignalingMessage,
   WebSocketGroup,
@@ -199,5 +200,76 @@ describe("WebRTCSignalingHub (Signaling & Peer Coordination)", () => {
 
     const reactionReceived = ws2.sent.find((m) => m.includes("stream_reaction") && m.includes("🔥"));
     assert(reactionReceived !== undefined);
+  });
+
+  it("supports WebRTC helper methods, peer inspection, and stream queries on Hub, Group, and Router", () => {
+    const router = new Router();
+    router.ws("/webrtc/:room", () => {});
+
+    const group = router.getWsGroupByPath("/webrtc/:room");
+    assert(group !== undefined);
+
+    const wsAlice = createMockWebSocket();
+    const wsBob = createMockWebSocket();
+
+    group.addSocket(wsAlice, { room: "coding" });
+    group.addSocket(wsBob, { room: "coding" });
+
+    // Register peers via Group
+    group.registerPeer(wsAlice, "peer_alice");
+    group.registerPeer(wsBob, "peer_bob");
+
+    assertEquals(group.peerCount, 2);
+    assertEquals(group.getPeers().sort(), ["peer_alice", "peer_bob"]);
+
+    // Send direct message to peer
+    const directSent = group.sendToPeer("peer_bob", {
+      type: "request_stream",
+      viewerId: "peer_alice",
+      viewerName: "Alice",
+      broadcasterId: "peer_bob",
+      room: "coding",
+    });
+    assertEquals(directSent, true);
+    assertEquals(wsBob.sent.length, 1);
+
+    // Start stream via Router
+    const stream = router.startBroadcasting(
+      "/webrtc/:room",
+      "peer_alice",
+      "Alice In Tech",
+      "coding",
+      "Live Coding Rust & Deno",
+      { room: "coding" },
+    );
+    assertNotEquals(stream, undefined);
+    assertEquals(stream?.broadcasterName, "Alice In Tech");
+
+    // Query active stream via Router & Group
+    assertEquals(router.isBroadcasting("/webrtc/:room", "coding"), true);
+    assertEquals(router.isBroadcasting("/webrtc/:room", "gaming"), false);
+    assertEquals(group.isBroadcasting("coding"), true);
+
+    const activeStreamRouter = router.getActiveStream("/webrtc/:room", "coding");
+    assertEquals(activeStreamRouter?.broadcasterId, "peer_alice");
+
+    const allStreams = router.getAllActiveStreams("/webrtc/:room");
+    assertEquals(allStreams.length, 1);
+    assertEquals(allStreams[0]?.room, "coding");
+
+    // Send live reaction via Group
+    const reactionSent = group.sendReaction("coding", {
+      from: "peer_bob",
+      fromName: "Bob",
+      emoji: "🚀",
+    });
+    assertEquals(reactionSent, true);
+    const bobReaction = wsAlice.sent.find((m) => m.includes("🚀"));
+    assert(bobReaction !== undefined);
+
+    // Stop stream via Router
+    const stopped = router.stopBroadcasting("/webrtc/:room", "peer_alice", "coding");
+    assertEquals(stopped, true);
+    assertEquals(router.isBroadcasting("/webrtc/:room", "coding"), false);
   });
 });

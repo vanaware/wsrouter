@@ -15,6 +15,7 @@ import {
   type PresenceUser,
 } from "./presence.ts";
 import {
+  type ActiveStreamInfo,
   WebRTCSignalingHub,
   type WebRTCSignalingHubOptions,
 } from "./webrtc.ts";
@@ -80,6 +81,106 @@ export class WebSocketGroup {
   ): boolean {
     const resolvedParams = params ?? this.sockets.get(ws);
     return this.signaling.handleMessage(ws, rawData, resolvedParams);
+  }
+
+  /**
+   * Registers a peer connection socket with an identity peerId in the WebRTC signaling hub.
+   */
+  registerPeer(ws: WebSocket, peerId: string): void {
+    this.signaling.registerPeer(ws, peerId);
+  }
+
+  /**
+   * Unregisters a peer socket from the WebRTC signaling hub.
+   */
+  unregisterPeer(ws: WebSocket): void {
+    if (this._signaling) {
+      this._signaling.unregisterPeer(ws);
+    }
+  }
+
+  /**
+   * Starts a webcam/screen broadcast in a room and notifies connected peers.
+   */
+  startBroadcasting(
+    broadcasterId: string,
+    broadcasterName: string,
+    room: string,
+    streamTitle?: string,
+    params?: RouteParams,
+  ): ActiveStreamInfo {
+    return this.signaling.startBroadcasting(
+      broadcasterId,
+      broadcasterName,
+      room,
+      streamTitle,
+      params,
+    );
+  }
+
+  /**
+   * Stops an active broadcast in a room and notifies peers.
+   */
+  stopBroadcasting(
+    broadcasterId: string,
+    room: string,
+    params?: RouteParams,
+  ): boolean {
+    if (!this._signaling) return false;
+    return this._signaling.stopBroadcasting(broadcasterId, room, params);
+  }
+
+  /**
+   * Retrieves active stream information for a specific room.
+   */
+  getActiveStream(room: string): ActiveStreamInfo | undefined {
+    return this._signaling?.getActiveStream(room);
+  }
+
+  /**
+   * Returns whether a stream is currently active in a specific room.
+   */
+  isBroadcasting(room: string): boolean {
+    return this._signaling?.isBroadcasting(room) ?? false;
+  }
+
+  /**
+   * Returns a snapshot array of all active streams in this group.
+   */
+  getAllActiveStreams(): ActiveStreamInfo[] {
+    return this._signaling?.getAllActiveStreams() ?? [];
+  }
+
+  /**
+   * Broadcasts a floating live reaction emoji to a room.
+   */
+  sendReaction(
+    room: string,
+    reaction: { from: string; fromName: string; emoji: string; timestamp?: number },
+    params?: RouteParams,
+  ): boolean {
+    return this.signaling.sendReaction(room, reaction, params);
+  }
+
+  /**
+   * Returns the count of registered WebRTC peers in this group.
+   */
+  get peerCount(): number {
+    return this._signaling?.peerCount ?? 0;
+  }
+
+  /**
+   * Returns a list of all registered peer IDs in this group.
+   */
+  getPeers(): string[] {
+    return this._signaling?.getPeers() ?? [];
+  }
+
+  /**
+   * Sends a signaling message directly to a registered peer in this group.
+   */
+  sendToPeer(peerId: string, message: any): boolean {
+    return this._signaling?.sendToPeer(peerId, message) ?? false;
   }
 
   /**
