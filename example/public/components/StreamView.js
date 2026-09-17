@@ -68,11 +68,13 @@ export function StreamView({
           `}
         </div>
 
-        <!-- Floating Reactions Particles Layer -->
-        <${ReactionOverlay}
-          floatingReactions=${floatingReactions}
-          onSendReaction=${onSendReaction}
-        />
+        <!-- Floating Reactions Particles Layer (Active only when live stream or broadcasting) -->
+        ${(isLive || isBroadcasting) && html`
+          <${ReactionOverlay}
+            floatingReactions=${floatingReactions}
+            onSendReaction=${onSendReaction}
+          />
+        `}
 
         <!-- Active Video Element -->
         <video

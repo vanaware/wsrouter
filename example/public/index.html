@@ -23,7 +23,7 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       background-color: #0f172a;
       color: #f1f5f9;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -32,18 +32,24 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      max-width: 100vw;
+      overflow-x: hidden;
     }
 
     #app {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
     }
 
     .app-root-container {
       max-width: 1400px;
       margin: 0 auto;
       width: 100%;
+      padding: 0 12px;
     }
 
     /* Video Player Stage */
@@ -173,7 +179,7 @@
 
     .reaction-bar {
       position: absolute;
-      bottom: 12px;
+      bottom: 42px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 15;
@@ -182,6 +188,7 @@
       padding: 4px 10px;
       border-radius: 9999px;
       border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
 
     .reaction-btn {

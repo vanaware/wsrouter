@@ -35,9 +35,9 @@ export function Header({
   return html`
     <header class="app-header responsive max mb-3">
       <!-- Top Navigation Bar -->
-      <nav class="transparent p-0">
+      <nav class="transparent p-0" style="flex-wrap: wrap; gap: 8px 12px; max-width: 100%; width: 100%; justify-content: space-between; align-items: center;">
         <!-- Logo & Branding -->
-        <div class="row items-center gap-2">
+        <div class="row items-center gap-2" style="max-width: 100%;">
           <div class="header-logo-icon">
             <span style="font-size: 24px;">⚡</span>
           </div>
@@ -49,16 +49,17 @@ export function Header({
           </div>
         </div>
 
-        <div class="max"></div>
+        <div class="max" style="min-width: 8px;"></div>
 
-        <!-- Right Side Actions -->
-        <div class="row items-center gap-2">
+        <!-- Right Side Actions (Targeted by Focus Mode) -->
+        <div class="row items-center gap-1.5 sm:gap-2" style="flex-wrap: wrap; justify-content: flex-end; max-width: 100%;">
           ${activeTab === 'webrtc' && html`
             <button
               type="button"
               class="button border small round ${showStats ? 'fill amber text-black' : 'text-slate-300'}"
               onClick=${onToggleStats}
               title="Toggle WebRTC Diagnostics & ICE Stats"
+              style="padding: 0 8px; height: 32px;"
             >
               <i class="material-symbols-outlined" style="font-size: 16px;">analytics</i>
               <span class="hide-on-mobile">Stats</span>
@@ -69,6 +70,7 @@ export function Header({
               class="button border small round text-slate-300"
               onClick=${onOpenViewerTab}
               title="Open a new browser tab as a viewer to test multi-user P2P stream"
+              style="padding: 0 8px; height: 32px;"
             >
               <i class="material-symbols-outlined" style="font-size: 16px;">open_in_new</i>
               <span class="hide-on-mobile">+ Viewer Tab</span>
@@ -81,7 +83,7 @@ export function Header({
             class="button border small round ${isCustomBackend ? 'fill blue-900 text-blue-200' : 'text-slate-300'}"
             onClick=${onOpenSettings}
             title=${health.isOnline ? `Backend Online (${health.latencyMs}ms)` : health.isChecking ? 'Checking backend heartbeat...' : 'Backend unreachable / offline'}
-            style="position: relative;"
+            style="position: relative; padding: 0 8px; height: 32px;"
           >
             <span
               class="live-dot-indicator ${health.isOnline ? 'live' : 'offline'}"
@@ -96,26 +98,26 @@ export function Header({
             type="button"
             class="button border small round text-white"
             onClick=${onEditProfile}
-            style="background: rgba(30, 41, 59, 0.7); border-color: #475569;"
+            style="background: rgba(30, 41, 59, 0.7); border-color: #475569; padding: 0 8px; height: 32px; max-width: 140px;"
             title="Click to edit your display name or avatar"
           >
-            <span style="font-size: 16px; margin-right: 4px;">${user.avatar || '👤'}</span>
-            <span class="bold text-xs">${user.name || 'Set Name'}</span>
+            <span style="font-size: 15px; margin-right: 4px;">${user.avatar || '👤'}</span>
+            <span class="bold text-xs" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 75px;">${user.name || 'Set Name'}</span>
           </button>
         </div>
       </nav>
 
-      <!-- Navigation Tabs Strip -->
-      <div class="row items-center gap-1 mt-2 pb-1 overflow-x-auto border-b border-slate-800">
+      <!-- Navigation Tabs Strip (Targeted by Focus Mode) -->
+      <div class="row items-center gap-1.5 mt-2 pb-1 border-b border-slate-800" style="flex-wrap: wrap; width: 100%; max-width: 100%;">
         ${tabs.map(
           (t) => html`
             <button
               type="button"
               class="button small round ${activeTab === t.id ? 'fill primary' : 'transparent text-slate-300'}"
               onClick=${() => onSelectTab(t.id)}
-              style="white-space: nowrap;"
+              style="white-space: nowrap; max-width: 100%; font-size: 0.8rem; padding: 0 10px; height: 32px;"
             >
-              <i class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">${t.icon}</i>
+              <i class="material-symbols-outlined" style="font-size: 16px; margin-right: 4px;">${t.icon}</i>
               <span>${t.label}</span>
               ${t.badge && html`
                 <span class="chip small fill red text-white ml-1" style="font-size: 0.6rem; padding: 0 4px;">
@@ -129,11 +131,12 @@ export function Header({
 
       <!-- Mobile Sub-Navigation for WebRTC -->
       ${activeTab === 'webrtc' && html`
-        <div class="row items-center gap-1 mt-2 show-on-mobile">
+        <div class="row items-center gap-1.5 mt-2 show-on-mobile" style="width: 100%; max-width: 100%; flex-wrap: wrap; box-sizing: border-box;">
           <button
             type="button"
             class="button small round flex-1 ${activeMobileSubTab === 'stream' ? 'fill primary' : 'border text-slate-300'}"
             onClick=${() => onSelectMobileSubTab('stream')}
+            style="min-width: 0; padding: 0 6px; height: 32px; font-size: 0.8rem;"
           >
             <i class="material-symbols-outlined" style="font-size: 16px; margin-right: 4px;">videocam</i>
             <span>Stream</span>
@@ -142,6 +145,7 @@ export function Header({
             type="button"
             class="button small round flex-1 ${activeMobileSubTab === 'chat' ? 'fill primary' : 'border text-slate-300'}"
             onClick=${() => onSelectMobileSubTab('chat')}
+            style="min-width: 0; padding: 0 6px; height: 32px; font-size: 0.8rem;"
           >
             <i class="material-symbols-outlined" style="font-size: 16px; margin-right: 4px;">forum</i>
             <span>Chat</span>
@@ -150,6 +154,7 @@ export function Header({
             type="button"
             class="button small round flex-1 ${activeMobileSubTab === 'users' ? 'fill primary' : 'border text-slate-300'}"
             onClick=${() => onSelectMobileSubTab('users')}
+            style="min-width: 0; padding: 0 6px; height: 32px; font-size: 0.8rem;"
           >
             <i class="material-symbols-outlined" style="font-size: 16px; margin-right: 4px;">people</i>
             <span>Online</span>
