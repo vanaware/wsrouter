@@ -47,6 +47,39 @@ app.use("/api/*", async (req, _params, next) => {
   return res;
 });
 
+// Helper function to safely send message over WebSocket checking readyState
+function safeWsSend(ws: WebSocket, data: string): boolean {
+  if (ws.readyState === WebSocket.OPEN) {
+    try {
+      ws.send(data);
+      return true;
+    } catch {
+      return false;
+    }
+  } else if (ws.readyState === WebSocket.CONNECTING) {
+    const handleOpen = () => {
+      try {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(data);
+        }
+      } catch {
+        // ignore send error on closed socket
+      }
+    };
+    if (typeof ws.addEventListener === "function") {
+      ws.addEventListener("open", handleOpen, { once: true });
+    } else {
+      const prev = ws.onopen;
+      ws.onopen = (ev) => {
+        if (prev) prev.call(ws, ev);
+        handleOpen();
+      };
+    }
+    return true;
+  }
+  return false;
+}
+
 // Health check / heartbeat endpoint
 app.get("/api/health", () => {
   return {
@@ -101,10 +134,13 @@ app.ws("/api/webrtc/:room", (ws, req, params) => {
   // Send current active stream info if broadcaster is already live
   const currentStream = group.signaling.getActiveStream(room);
   if (currentStream) {
-    ws.send(JSON.stringify({
-      type: "broadcaster_started",
-      ...currentStream,
-    }));
+    safeWsSend(
+      ws,
+      JSON.stringify({
+        type: "broadcaster_started",
+        ...currentStream,
+      }),
+    );
   }
 
   // Handle incoming signaling and chat messages
@@ -332,8 +368,10 @@ app.ws("/api/jwt-chat/:room", async (ws, req, params) => {
 
   if (!token) {
     console.warn(`[JWT-WS] ❌ Unauthorized attempt on room #${room}: missing token`);
-    ws.send(JSON.stringify({ type: "error", error: "Authentication required: Missing JWT token" }));
-    ws.close(1008, "Token required");
+    safeWsSend(ws, JSON.stringify({ type: "error", error: "Authentication required: Missing JWT token" }));
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.close(1008, "Token required");
+    }
     return;
   }
 
@@ -343,8 +381,10 @@ app.ws("/api/jwt-chat/:room", async (ws, req, params) => {
     payload = verified.payload as Record<string, unknown>;
   } catch (err) {
     console.warn(`[JWT-WS] ❌ Invalid or expired token:`, err);
-    ws.send(JSON.stringify({ type: "error", error: "Authentication failed: Invalid or expired token" }));
-    ws.close(1008, "Invalid token");
+    safeWsSend(ws, JSON.stringify({ type: "error", error: "Authentication failed: Invalid or expired token" }));
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.close(1008, "Invalid token");
+    }
     return;
   }
 
@@ -354,7 +394,9 @@ app.ws("/api/jwt-chat/:room", async (ws, req, params) => {
 
   const group = app.getWsGroupByPath("/api/jwt-chat/:room");
   if (!group) {
-    ws.close(1011, "JWT chat group not found");
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.close(1011, "JWT chat group not found");
+    }
     return;
   }
 
@@ -367,11 +409,14 @@ app.ws("/api/jwt-chat/:room", async (ws, req, params) => {
     room,
   });
 
-  ws.send(JSON.stringify({
-    type: "auth_success",
-    message: `Welcome ${username}! You are securely connected.`,
-    user: { username, role: userRole },
-  }));
+  safeWsSend(
+    ws,
+    JSON.stringify({
+      type: "auth_success",
+      message: `Welcome ${username}! You are securely connected.`,
+      user: { username, role: userRole },
+    }),
+  );
 
   ws.onmessage = (event) => {
     try {

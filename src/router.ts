@@ -649,10 +649,16 @@ export class Router {
     try {
       await route.handler(socket, req, params);
     } catch (error) {
-      console.error(
-        `[Router] Error in WS handler ${route.pattern.pathname}:`,
-        error,
-      );
+      if (error instanceof Error && (error.name === "InvalidStateError" || error.message.includes("readyState"))) {
+        console.warn(
+          `[Router] WS handler connection state notice for ${route.pattern.pathname}: ${error.message}`,
+        );
+      } else {
+        console.error(
+          `[Router] Error in WS handler ${route.pattern.pathname}:`,
+          error,
+        );
+      }
       if (socket.readyState === WebSocket.OPEN) {
         socket.close(1011, "Internal Server Error");
       }

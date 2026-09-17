@@ -172,15 +172,27 @@ export class PresenceTracker<T = Record<string, unknown>> {
     }
 
     // 1. Send full presence state snapshot to this new socket
-    if (this.options.sendStateOnTrack && ws.readyState === WebSocket.OPEN) {
-      try {
-        const statePayload = this.options.serialize({
-          type: "presence_state",
-          users: this.getUsers(),
-        });
-        ws.send(statePayload);
-      } catch (err) {
-        console.error("[PresenceTracker] Error sending presence snapshot:", err);
+    if (this.options.sendStateOnTrack) {
+      const sendState = () => {
+        if (ws.readyState === WebSocket.OPEN) {
+          try {
+            const statePayload = this.options.serialize({
+              type: "presence_state",
+              users: this.getUsers(),
+            });
+            ws.send(statePayload);
+          } catch (err) {
+            console.error("[PresenceTracker] Error sending presence snapshot:", err);
+          }
+        }
+      };
+
+      if (ws.readyState === WebSocket.OPEN) {
+        sendState();
+      } else if (ws.readyState === WebSocket.CONNECTING) {
+        if (typeof ws.addEventListener === "function") {
+          ws.addEventListener("open", sendState, { once: true });
+        }
       }
     }
 
