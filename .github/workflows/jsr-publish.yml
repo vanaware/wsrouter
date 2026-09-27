@@ -3,12 +3,12 @@ name: Publish to JSR
 on:
   push:
     tags:
-      - 'v*.*' # Dispara apenas para tags iniciando com 'v' (ex: v0.2, v1.0.0)
+      - 'v*.*'
   workflow_dispatch:
 
 permissions:
   contents: read
-  id-token: write # Required for JSR OIDC authentication
+  id-token: write
 
 jobs:
   publish:
@@ -22,10 +22,10 @@ jobs:
         with:
           deno-version-file: .tool-versions
           cache: true
-        
+
       - name: Install dependencies
         run: deno ci
-	
+
       - name: Verify code integrity
         run: deno task check-all
 
