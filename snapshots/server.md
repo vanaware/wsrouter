@@ -7,7 +7,7 @@
 
 # Contexto Exportado do Projeto WorkerDB [v0.2.0] - Modo: SERVER
 
-Gerado automaticamente em: 2026-09-27T22:59:13.652Z
+Gerado automaticamente em: 2026-09-27T23:09:20.030Z
 
 ---
 
@@ -1419,7 +1419,7 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](./LI
     "export": "deno run --allow-read --allow-write ./export.ts",
     "sanitize-version": "deno run -A ./sanitize-version.ts",
     "tag-version": "deno run -A ./tag-version.ts",
-    "bump": "deno install --frozen=false && deno task build dist noversion && deno run -A ./tag-version.ts"
+    "bump": "deno install --frozen=false && deno run -A ./tag-version.ts"
   },
   "exports": {
     ".": "./src/mod.ts",
@@ -3419,7 +3419,12 @@ export class Router {
     try {
       await route.handler(socket, req, params);
     } catch (error) {
-      if (error instanceof Error && (error.name === "InvalidStateError" || error.message.includes("readyState"))) {
+      const isInvalidState = error instanceof Error && 
+        (error.name === "InvalidStateError" || 
+         error.message.includes("readyState") || 
+         error.message.includes("not OPEN"));
+      
+      if (isInvalidState) {
         console.warn(
           `[Router] WS handler connection state notice for ${route.pattern.pathname}: ${error.message}`,
         );

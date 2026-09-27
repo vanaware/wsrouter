@@ -13,7 +13,7 @@
     "export": "deno run --allow-read --allow-write ./export.ts",
     "sanitize-version": "deno run -A ./sanitize-version.ts",
     "tag-version": "deno run -A ./tag-version.ts",
-    "bump": "deno install --frozen=false && deno task build dist noversion && deno run -A ./tag-version.ts"
+    "bump": "deno install --frozen=false && deno run -A ./tag-version.ts"
   },
   "exports": {
     ".": "./src/mod.ts",
