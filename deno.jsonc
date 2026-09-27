@@ -8,13 +8,12 @@
     "check-all": "deno task check && deno task lint && deno task fmt --check && deno task test",
     "tests": "deno task check && deno task test",
     "check": "deno check src/**/*.ts tests/**/*.ts example/**/*.ts",
-    "start": "deno run --allow-read --allow-net --allow-env example/main.ts",
-    "dev": "deno run --allow-read --allow-net --allow-env --watch example/main.ts",
-    "presence": "deno run --allow-read --allow-net --allow-env --watch example/main.ts",
-    "webrtc": "deno run --allow-read --allow-net --allow-env --watch example/main.ts",
-    "example": "deno run --allow-read --allow-net --allow-env --watch example/main.ts",
-    "bump": "deno run --allow-run --allow-read --allow-write scripts/bump.ts",
-    "publish": "deno run --allow-run --allow-read --allow-env scripts/publish.ts"
+    "start": "deno run --allow-read --allow-net --allow-env --env-file example/main.ts",
+    "dev": "deno run --allow-read --allow-net --allow-env --env-file --watch example/main.ts",
+    "export": "deno run --allow-read --allow-write ./export.ts",
+    "sanitize-version": "deno run -A ./sanitize-version.ts",
+    "tag-version": "deno run -A ./tag-version.ts",
+    "bump": "deno install --frozen=false && deno task build dist noversion && deno run -A ./tag-version.ts"
   },
   "exports": {
     ".": "./src/mod.ts",
@@ -25,14 +24,20 @@
     "./adapters/deno": "./src/adapters/deno.ts",
     "./adapters/deno-serve-dir": "./src/adapters/deno-serve-dir.ts"
   },
-  "include": [
-      "LICENSE",
+"publish": {
+    "include": [
+      "src/**/*.ts",
       "README.md",
-      "VERSION",
-      "src/**/*.ts"
+      "docs/**/*.md",
+      "deno.jsonc"
     ],
+    "exclude": [
+      "tests",
+      "example"
+    ]
+  },
   "name": "@vanaware/wsrouter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "author": "Vanaware",
   "description": "A WebSocket router for Deno",
@@ -55,10 +60,10 @@
     "@std/http": "jsr:@std/http@^1",
     "@std/media-types": "jsr:@std/media-types@^1", //uso futuro
     "@std/path": "jsr:@std/path@^1",
-    "jose": "https://deno.land/x/jose@v5.2.0/index.ts"
+    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.1"
   },
      // 📦 Gerenciamento de Dependências
-  "minimumDependencyAge": 60,
+  "minimumDependencyAge": 10,
   "nodeModulesDir": "auto",
   "vendor": true,
   "lint": {

@@ -33,5 +33,7 @@
     "editor.defaultFormatter": "denoland.vscode-deno",
     "json.validate.enable": true
   },
-
+  "json.schemaDownload.trustedDomains": {
+    "https://vanaware.github.io": true
+  }
 }

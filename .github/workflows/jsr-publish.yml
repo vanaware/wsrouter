@@ -1,0 +1,38 @@
+name: Publish to JSR
+
+on:
+  push:
+    tags:
+      - 'v*.*' # Dispara apenas para tags iniciando com 'v' (ex: v0.2, v1.0.0)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # Required for JSR OIDC authentication
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version-file: .tool-versions
+          cache: true
+        
+      - name: Install dependencies
+        run: deno ci
+	
+      - name: Verify code integrity
+        run: deno task check-all
+
+      - name: Sanitize Version
+        run: |
+          deno run -A ./sanitize-version.ts ./deno.jsonc
+
+      - name: Publish WsRouter to JSR
+        run: |
+          deno publish --allow-slow-types --allow-dirty

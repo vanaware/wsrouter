@@ -1,0 +1,65 @@
+{
+  "$schema": "https://vanaware.github.io/buildit/schema/export.json",
+  "projeto": "WorkerDB",
+  "modos": {
+    "example": {
+      "arquivoSaida": "snapshots/example.md",
+      "includes": [
+        "example/{jwt,principal}/**/*.{tsx,jsx,js,ts,css,html,manifest,json,jsonc,md}"
+      ],
+      "excludes": [
+        "**/node_modules/**",
+        "**/.git/**"
+      ],
+      "incluiVersao": true,
+      "instrucaoCustomizada": "O texto abaixo contém os arquivos de CÓDIGO FONTE principais da aplicação exemplo (example).",
+      "default": true
+    },
+    "docs": {
+      "arquivoSaida": "snapshots/docs.md",
+      "includes": [
+        "docs/**/*.{md,txt}",
+        "{README.md,LICENSE,.tool-versions,CHANGELOG.md}"
+      ],
+      "excludes": [
+        "**/node_modules/**",
+        "**/.git/**"
+      ],
+      "incluiVersao": false,
+      "instrucaoCustomizada": "O texto abaixo contém a DOCUMENTAÇÃO e diretrizes arquiteturais do projeto.",
+      "default": true
+    },
+    "server": {
+      "arquivoSaida": "snapshots/server.md",
+      "includes": [
+        "{src,tests}/**/*.{tsx,jsx,js,ts,css,html,json,jsonc,yaml,yml,md}",
+        "{deno.json,deno.jsonc,README.md,.env.example}",
+        ".github/workflows/**/*.{yaml,yml}"
+      ],
+      "excludes": [
+        "**/node_modules/**",
+        "**/.git/**"
+      ],
+      "incluiVersao": true,
+      "instrucaoCustomizada": "O texto abaixo contém os arquivos de configuração e execução do WSROUTER @vanaware/wsrouter e CI/CD.",
+      "default": true
+    },
+    "utils": {
+      "arquivoSaida": "snapshots/utils.md",
+      "includes": [
+        "export.{ts.jsonc}", 
+        "esbuild.{ts.jsonc}", 
+        "denobuild.{ts.jsonc}", 
+        "watch.{ts.jsonc}",
+        "{sanitize-version.ts,tag-version.ts}"
+      ],
+      "excludes": [
+        "**/node_modules/**",
+        "**/.git/**"
+      ],
+      "incluiVersao": false,
+      "instrucaoCustomizada": "O texto abaixo contém o código da biblioteca @vanaware/buildit",
+      "default": true
+    }
+  }
+}

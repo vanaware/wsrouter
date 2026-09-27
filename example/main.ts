@@ -6,7 +6,7 @@
  */
 
 import { createDenoRouter } from "../src/deno.ts";
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT, jwtVerify } from "https://deno.land/x/jose@v5.2.0/index.ts";
 
 const PORT = Number(Deno.env.get("PORT") || 3000);
 const JWT_SECRET = Deno.env.get("JWT_SECRET") || "wsrouter-demo-secret-key-123456";
