@@ -1,0 +1,21 @@
+{
+  "name": "WsRouter Showcase",
+  "short_name": "WsRouter",
+  "description": "Unified WsRouter example featuring WebRTC, Presence and JWT.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://cdn.jsdelivr.net/gh/google/material-design-icons/png/communication/videocam/materialicons/48dp/2x/baseline_videocam_white_48dp.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn.jsdelivr.net/gh/google/material-design-icons/png/communication/videocam/materialicons/48dp/2x/baseline_videocam_white_48dp.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

@@ -649,7 +649,12 @@ export class Router {
     try {
       await route.handler(socket, req, params);
     } catch (error) {
-      if (error instanceof Error && (error.name === "InvalidStateError" || error.message.includes("readyState"))) {
+      const isInvalidState = error instanceof Error && 
+        (error.name === "InvalidStateError" || 
+         error.message.includes("readyState") || 
+         error.message.includes("not OPEN"));
+      
+      if (isInvalidState) {
         console.warn(
           `[Router] WS handler connection state notice for ${route.pattern.pathname}: ${error.message}`,
         );

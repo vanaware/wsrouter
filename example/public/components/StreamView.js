@@ -135,10 +135,10 @@ export function StreamView({
       </div>
 
       <!-- Action & Media Controls Deck -->
-      <article class="round border surface p-3 mb-3" style="background: #1e293b; color: #f8fafc;">
+      <article class="round border p-3 mb-3" style="background: ${isBroadcasting ? '#1e293b' : 'transparent'}; border-color: ${isBroadcasting ? '#475569' : '#1e293b'}; color: #f8fafc;">
         <div class="row items-center justify-between wrap gap-3">
           <!-- Left: Broadcast Master Button -->
-          <div>
+          <div class="row items-center gap-2">
             ${!isBroadcasting ? html`
               <button
                 class="button fill primary round"
@@ -146,7 +146,7 @@ export function StreamView({
                 title="Start broadcasting your webcam and microphone"
               >
                 <i class="material-symbols-outlined" style="font-size: 20px; margin-right: 6px;">videocam</i>
-                <span>Go Live (Webcam)</span>
+                <span>Go Live</span>
               </button>
             ` : html`
               <button
@@ -158,21 +158,28 @@ export function StreamView({
                 <span>End Broadcast</span>
               </button>
             `}
+            
+            ${!isBroadcasting && html`
+              <div class="text-xs text-slate-400 hide-on-mobile ml-2">
+                ${isLive ? '💡 Watching live P2P stream.' : '💡 Ready to host? Click "Go Live" to start.'}
+              </div>
+            `}
           </div>
 
           <!-- Middle: Broadcaster Media Controls -->
-          ${isBroadcasting ? html`
+          ${isBroadcasting && html`
             <div class="row items-center gap-2">
               <!-- Mute / Unmute Microphone -->
               <button
                 class="button small round ${isMuted ? 'fill red' : 'border text-white'}"
                 onClick=${onToggleMic}
                 title=${isMuted ? 'Unmute microphone' : 'Mute microphone'}
+                style="padding: 0 8px; height: 32px;"
               >
-                <i class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">
+                <i class="material-symbols-outlined" style="font-size: 18px; ${!isMuted ? '' : 'margin-right: 4px;'}">
                   ${isMuted ? 'mic_off' : 'mic'}
                 </i>
-                <span>${isMuted ? 'Muted' : 'Mic On'}</span>
+                <span class="hide-on-mobile">${isMuted ? 'Muted' : 'Mic On'}</span>
               </button>
 
               <!-- Turn Video On / Off -->
@@ -180,11 +187,12 @@ export function StreamView({
                 class="button small round ${isVideoOff ? 'fill red' : 'border text-white'}"
                 onClick=${onToggleCamera}
                 title=${isVideoOff ? 'Turn camera on' : 'Turn camera off'}
+                style="padding: 0 8px; height: 32px;"
               >
-                <i class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">
+                <i class="material-symbols-outlined" style="font-size: 18px; ${!isVideoOff ? '' : 'margin-right: 4px;'}">
                   ${isVideoOff ? 'videocam_off' : 'videocam'}
                 </i>
-                <span>${isVideoOff ? 'Camera Off' : 'Camera On'}</span>
+                <span class="hide-on-mobile">${isVideoOff ? 'Camera Off' : 'Camera On'}</span>
               </button>
 
               <!-- Screen Share Toggle -->
@@ -192,23 +200,19 @@ export function StreamView({
                 class="button small round ${isScreenSharing ? 'fill primary' : 'border text-white'}"
                 onClick=${onToggleScreenShare}
                 title=${isScreenSharing ? 'Switch back to webcam' : 'Share your screen'}
+                style="padding: 0 8px; height: 32px;"
               >
-                <i class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">
+                <i class="material-symbols-outlined" style="font-size: 18px; ${!isScreenSharing ? '' : 'margin-right: 4px;'}">
                   ${isScreenSharing ? 'screen_share' : 'present_to_all'}
                 </i>
-                <span>${isScreenSharing ? 'Sharing Screen' : 'Share Screen'}</span>
+                <span class="hide-on-mobile">${isScreenSharing ? 'Sharing' : 'Share Screen'}</span>
               </button>
-            </div>
-          ` : html`
-            <!-- Viewer Tip / Guidance -->
-            <div class="text-xs text-slate-400 hide-on-mobile">
-              ${isLive ? '💡 Watching live P2P stream via WebRTC mesh.' : '💡 Ready to broadcast? Click "Go Live" above.'}
             </div>
           `}
 
           <!-- Right: Peer & Room Summary -->
           <div class="row items-center gap-2">
-            <span class="chip small border" style="font-size: 0.75rem;">
+            <span class="chip small border" style="font-size: 0.75rem; background: rgba(30, 41, 59, 0.4);">
               Room: <strong class="ml-1 text-slate-200">#${user.room || 'main-stage'}</strong>
             </span>
           </div>

@@ -35,9 +35,9 @@ export function Header({
   return html`
     <header class="app-header responsive max mb-3">
       <!-- Top Navigation Bar -->
-      <nav class="transparent p-0" style="flex-wrap: wrap; gap: 8px 12px; max-width: 100%; width: 100%; justify-content: space-between; align-items: center;">
+      <nav class="transparent p-0" style="display: flex; flex-wrap: wrap; gap: 8px 12px; max-width: 100%; width: 100%; justify-content: space-between; align-items: center; min-height: 48px;">
         <!-- Logo & Branding -->
-        <div class="row items-center gap-2" style="max-width: 100%;">
+        <div class="row items-center gap-2" style="flex-shrink: 0;">
           <div class="header-logo-icon">
             <span style="font-size: 24px;">⚡</span>
           </div>
@@ -49,17 +49,15 @@ export function Header({
           </div>
         </div>
 
-        <div class="max" style="min-width: 8px;"></div>
-
         <!-- Right Side Actions (Targeted by Focus Mode) -->
-        <div class="row items-center gap-1.5 sm:gap-2" style="flex-wrap: wrap; justify-content: flex-end; max-width: 100%;">
+        <div class="row items-center gap-1.5 sm:gap-2" style="flex-grow: 1; justify-content: flex-end; min-width: 120px;">
           ${activeTab === 'webrtc' && html`
             <button
               type="button"
               class="button border small round ${showStats ? 'fill amber text-black' : 'text-slate-300'}"
               onClick=${onToggleStats}
               title="Toggle WebRTC Diagnostics & ICE Stats"
-              style="padding: 0 8px; height: 32px;"
+              style="padding: 0 8px; height: 32px; flex-shrink: 0;"
             >
               <i class="material-symbols-outlined" style="font-size: 16px;">analytics</i>
               <span class="hide-on-mobile">Stats</span>
@@ -70,7 +68,7 @@ export function Header({
               class="button border small round text-slate-300"
               onClick=${onOpenViewerTab}
               title="Open a new browser tab as a viewer to test multi-user P2P stream"
-              style="padding: 0 8px; height: 32px;"
+              style="padding: 0 8px; height: 32px; flex-shrink: 0;"
             >
               <i class="material-symbols-outlined" style="font-size: 16px;">open_in_new</i>
               <span class="hide-on-mobile">+ Viewer Tab</span>
@@ -83,7 +81,7 @@ export function Header({
             class="button border small round ${isCustomBackend ? 'fill blue-900 text-blue-200' : 'text-slate-300'}"
             onClick=${onOpenSettings}
             title=${health.isOnline ? `Backend Online (${health.latencyMs}ms)` : health.isChecking ? 'Checking backend heartbeat...' : 'Backend unreachable / offline'}
-            style="position: relative; padding: 0 8px; height: 32px;"
+            style="position: relative; padding: 0 8px; height: 32px; flex-shrink: 0;"
           >
             <span
               class="live-dot-indicator ${health.isOnline ? 'live' : 'offline'}"
@@ -98,7 +96,7 @@ export function Header({
             type="button"
             class="button border small round text-white"
             onClick=${onEditProfile}
-            style="background: rgba(30, 41, 59, 0.7); border-color: #475569; padding: 0 8px; height: 32px; max-width: 140px;"
+            style="background: rgba(30, 41, 59, 0.7); border-color: #475569; padding: 0 8px; height: 32px; max-width: 140px; flex-shrink: 0;"
             title="Click to edit your display name or avatar"
           >
             <span style="font-size: 15px; margin-right: 4px;">${user.avatar || '👤'}</span>
@@ -107,15 +105,18 @@ export function Header({
         </div>
       </nav>
 
-      <!-- Navigation Tabs Strip (Targeted by Focus Mode) -->
-      <div class="row items-center gap-1.5 mt-2 pb-1 border-b border-slate-800" style="flex-wrap: wrap; width: 100%; max-width: 100%;">
+      <!-- Navigation Tabs Strip (Targeted by Focus Mode) - Scrollable on mobile -->
+      <div class="row items-center gap-1.5 mt-2 pb-1 border-b border-slate-800" style="overflow-x: auto; flex-wrap: nowrap; width: 100%; max-width: 100%; scrollbar-width: none; -ms-overflow-style: none;">
+        <style>
+          .app-header .row::-webkit-scrollbar { display: none; }
+        </style>
         ${tabs.map(
           (t) => html`
             <button
               type="button"
               class="button small round ${activeTab === t.id ? 'fill primary' : 'transparent text-slate-300'}"
               onClick=${() => onSelectTab(t.id)}
-              style="white-space: nowrap; max-width: 100%; font-size: 0.8rem; padding: 0 10px; height: 32px;"
+              style="white-space: nowrap; flex-shrink: 0; font-size: 0.8rem; padding: 0 10px; height: 32px;"
             >
               <i class="material-symbols-outlined" style="font-size: 16px; margin-right: 4px;">${t.icon}</i>
               <span>${t.label}</span>
