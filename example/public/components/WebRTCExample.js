@@ -11,7 +11,11 @@ const RTC_CONFIG = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
   ],
+  iceCandidatePoolSize: 10,
 };
 
 export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, onOpenViewerTab }) {
@@ -73,6 +77,14 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
   // Broadcaster: connect to a new viewer
   const connectToViewer = useCallback(async (viewerId) => {
     if (!localStreamRef.current) return;
+    
+    // Prevent redundant connections if already exists and active
+    const existing = peerConnectionsRef.current.get(viewerId);
+    if (existing && (existing.connectionState === 'connected' || existing.connectionState === 'connecting')) {
+      return;
+    }
+    if (existing) existing.close();
+
     try {
       console.log(`[WebRTC] Creating RTCPeerConnection to viewer: ${viewerId}`);
       const pc = new RTCPeerConnection(RTC_CONFIG);
@@ -86,9 +98,9 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
         if (event.candidate) {
           sendSignaling({
             type: 'webrtc_candidate',
-            candidate: event.candidate,
+            candidate: event.candidate.toJSON ? event.candidate.toJSON() : event.candidate,
             from: user.userId,
-            target: viewerId,
+            to: viewerId,
             room: user.room,
           });
         }
@@ -107,9 +119,9 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
 
       sendSignaling({
         type: 'webrtc_offer',
-        sdp: offer.sdp,
+        sdp: offer,
         from: user.userId,
-        target: viewerId,
+        to: viewerId,
         room: user.room,
       });
 
@@ -126,6 +138,10 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
   const handleReceiveOffer = useCallback(async (data) => {
     try {
       console.log(`[WebRTC] Received offer from broadcaster: ${data.from}`);
+      
+      const existing = peerConnectionsRef.current.get(data.from);
+      if (existing) existing.close();
+
       const pc = new RTCPeerConnection(RTC_CONFIG);
       peerConnectionsRef.current.set(data.from, pc);
 
@@ -141,9 +157,9 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
         if (event.candidate) {
           sendSignaling({
             type: 'webrtc_candidate',
-            candidate: event.candidate,
+            candidate: event.candidate.toJSON ? event.candidate.toJSON() : event.candidate,
             from: user.userId,
-            target: data.from,
+            to: data.from,
             room: user.room,
           });
         }
@@ -157,15 +173,15 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
         }));
       };
 
-      await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: data.sdp }));
+      await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
       sendSignaling({
         type: 'webrtc_answer',
-        sdp: answer.sdp,
+        sdp: answer,
         from: user.userId,
-        target: data.from,
+        to: data.from,
         room: user.room,
       });
 
@@ -183,7 +199,7 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
     const pc = peerConnectionsRef.current.get(data.from);
     if (pc) {
       try {
-        await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: data.sdp }));
+        await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
       } catch (err) {
         console.error('[WebRTC] Error setting remote answer:', err);
       }
@@ -362,7 +378,8 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
           if (!isBroadcastingRef.current) {
             socket.send(JSON.stringify({
               type: 'request_stream',
-              userId: user.userId,
+              viewerId: user.userId,
+              viewerName: user.name,
               room: user.room,
             }));
           }
@@ -412,7 +429,8 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
               if (!isBroadcastingRef.current && data.broadcasterId !== user.userId) {
                 socket.send(JSON.stringify({
                   type: 'request_stream',
-                  userId: user.userId,
+                  viewerId: user.userId,
+                  viewerName: user.name,
                   room: user.room,
                 }));
               }
@@ -430,21 +448,21 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
             }
 
             if (data.type === 'request_stream' && isBroadcastingRef.current) {
-              connectToViewer(data.userId);
+              connectToViewer(data.viewerId);
               return;
             }
 
-            if (data.type === 'webrtc_offer' && data.target === user.userId) {
+            if (data.type === 'webrtc_offer' && data.to === user.userId) {
               handleReceiveOffer(data);
               return;
             }
 
-            if (data.type === 'webrtc_answer' && data.target === user.userId) {
+            if (data.type === 'webrtc_answer' && data.to === user.userId) {
               handleReceiveAnswer(data);
               return;
             }
 
-            if (data.type === 'webrtc_candidate' && data.target === user.userId) {
+            if (data.type === 'webrtc_candidate' && data.to === user.userId) {
               handleReceiveCandidate(data);
               return;
             }
@@ -491,6 +509,9 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
       if (wsRef.current) {
         wsRef.current.close();
       }
+      // Cleanup all peer connections
+      peerConnectionsRef.current.forEach((pc) => pc.close());
+      peerConnectionsRef.current.clear();
     };
   }, [user.isRegistered, user.room, user.userId, user.name, user.avatar, connectToViewer, handleReceiveOffer, handleReceiveAnswer, handleReceiveCandidate, spawnReaction]);
 

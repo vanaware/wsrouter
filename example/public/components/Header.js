@@ -1,6 +1,7 @@
 // example/public/components/Header.js
 import { html } from 'https://esm.sh/htm/preact';
 import { useState, useEffect } from 'https://esm.sh/preact/hooks';
+import { APP_VERSION } from './version.js';
 import { subscribeBackendHealth, isHostedOnDenoServer } from './config.js';
 
 export function Header({
@@ -43,7 +44,7 @@ export function Header({
           </div>
           <div>
             <h5 class="m-0 font-bold text-white tracking-tight text-base sm:text-lg">
-              WsRouter <span class="chip small border text-blue-300 ml-1" style="font-size: 0.65rem; padding: 1px 6px;">v0.1.0</span>
+              WsRouter <span class="chip small border text-blue-300 ml-1" style="font-size: 0.65rem; padding: 1px 6px; background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3);">v${APP_VERSION}</span>
             </h5>
             <div class="text-xs text-slate-400 hide-on-mobile">High-Performance WebSocket & HTTP Router for Deno</div>
           </div>

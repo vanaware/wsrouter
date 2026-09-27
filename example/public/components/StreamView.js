@@ -24,20 +24,41 @@ export function StreamView({
 }) {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
+  const [isPaused, setIsPaused] = useState(true);
 
   // Bind local or remote media stream to video element
   useEffect(() => {
     if (!videoRef.current) return;
     const streamToAttach = isBroadcasting ? localStream : remoteStream;
+    
     if (streamToAttach) {
-      videoRef.current.srcObject = streamToAttach;
-      videoRef.current.play().catch((err) => {
-        console.warn('[StreamView] Autoplay prevented or interrupted:', err);
-      });
+      if (videoRef.current.srcObject !== streamToAttach) {
+        videoRef.current.srcObject = streamToAttach;
+      }
+      
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => setIsPaused(false)).catch((err) => {
+          console.warn('[StreamView] Autoplay blocked:', err);
+          setIsPaused(true);
+        });
+      }
     } else {
       videoRef.current.srcObject = null;
+      setIsPaused(true);
     }
-  }, [localStream, remoteStream, isBroadcasting, isLive]);
+  }, [localStream, remoteStream, isBroadcasting]);
+
+  const handleManualPlay = () => {
+    if (videoRef.current) {
+      videoRef.current.play()
+        .then(() => setIsPaused(false))
+        .catch(err => {
+          console.error("Manual play failed:", err);
+          setIsPaused(true);
+        });
+    }
+  };
 
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
@@ -49,6 +70,8 @@ export function StreamView({
       document.exitFullscreen().catch(() => {});
     }
   };
+
+  const isVideoVisible = (isBroadcasting && localStream) || (!isBroadcasting && remoteStream);
 
   return html`
     <div class="stream-view-container">
@@ -82,8 +105,32 @@ export function StreamView({
           autoplay
           playsinline
           muted=${isBroadcasting}
-          class="stage-video-element ${isLive || isBroadcasting ? 'visible' : 'hidden'}"
+          class="stage-video-element ${isVideoVisible ? 'visible' : 'hidden'}"
+          onClick=${handleManualPlay}
         ></video>
+
+        <!-- Autoplay Blocked / Manual Play Overlay -->
+        ${isVideoVisible && !isBroadcasting && html`
+          <div 
+            class="video-manual-play-overlay ${isPaused ? 'visible' : 'hidden'}"
+            onClick=${handleManualPlay}
+            style="position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); cursor: pointer;"
+          >
+            <button class="button circle extra large primary">
+              <i class="material-symbols-outlined" style="font-size: 48px;">play_arrow</i>
+            </button>
+            <div class="absolute bottom-10 text-white bold text-shadow">Click to Start Stream</div>
+          </div>
+        `}
+
+        <!-- Loading / Connecting State -->
+        ${isLive && !isBroadcasting && !remoteStream && html`
+          <div class="stage-placeholder text-center p-4">
+            <div class="progress circle large white mb-3"></div>
+            <h6 class="m-0 font-bold text-slate-200">Connecting to Stream...</h6>
+            <p class="text-sm text-slate-400 mt-1">Establishing P2P connection with broadcaster</p>
+          </div>
+        `}
 
         <!-- Offline / Waiting Placeholder State -->
         ${!isLive && !isBroadcasting && html`

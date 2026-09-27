@@ -132,6 +132,16 @@ export function ServerSettingsModal({ isOpen, onClose }) {
           </button>
         </div>
 
+        ${!healthInfo.isOnline && currentHttp.includes('ais-dev-') && html`
+          <div class="chip small border amber text-amber-200 mb-3" style="width: 100%; white-space: normal; height: auto; padding: 8px;">
+            <i class="material-symbols-outlined" style="font-size: 16px; margin-right: 6px;">warning</i>
+            <span>
+              <strong>AI Studio Limitation:</strong> Accessing a preview URL from an external site (like GitHub Pages) requires an active session. 
+              Try opening <a href="${currentHttp}/api/health" target="_blank" class="text-white underline">${currentHttp}/api/health</a> in a new tab first to "wake up" the session, then return here and click Recheck.
+            </span>
+          </div>
+        `}
+
         ${copyFeedback && html`
           <div class="chip small border green text-white mb-3" style="width: 100%;">
             <i class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">check_circle</i>
@@ -145,78 +155,61 @@ export function ServerSettingsModal({ isOpen, onClose }) {
             <div class="chip small border blue text-blue-200 mb-3" style="width: 100%; white-space: normal; height: auto; padding: 8px;">
               <i class="material-symbols-outlined" style="font-size: 16px; margin-right: 6px;">info</i>
               <span>
-                <strong>Running on Native Deno Server:</strong> This instance is hosting both the API and WebSocket server. You can copy the URLs below to configure your static GitHub Pages deployment.
+                <strong>Copy this URL</strong> and paste it into the "Custom WsRouter Backend" field of your GitHub Pages app to connect them.
               </span>
             </div>
 
-            <!-- Read-only URL boxes with 1-click copy -->
-            <div class="space-y-2 mb-3">
-              <div>
-                <label class="text-xs text-slate-400 block mb-1 bold">HTTP API Origin</label>
-                <div class="row items-center gap-2">
-                  <input
-                    type="text"
-                    readonly
-                    class="border round p-2 flex-1 text-xs text-blue-300 bg-slate-900 font-mono"
-                    value=${currentHttp}
-                    style="border-color: #334155;"
-                  />
-                  <button
-                    type="button"
-                    class="button border small text-slate-200 round"
-                    onClick=${() => handleCopy(currentHttp, 'HTTP URL')}
-                    title="Copy HTTP URL"
-                  >
-                    <i class="material-symbols-outlined" style="font-size: 14px;">content_copy</i>
-                    <span>Copy</span>
-                  </button>
-                </div>
+            <!-- Primary Backend URL (The one users actually need) -->
+            <div class="mb-4">
+              <div class="row items-center justify-between mb-1">
+                <label class="text-xs text-blue-400 bold uppercase tracking-wider">Primary Backend URL</label>
+                <span class="text-[10px] text-slate-500">Copy this to GitHub Pages "Custom Backend"</span>
               </div>
-
-              <div>
-                <label class="text-xs text-slate-400 block mb-1 bold">WebSocket (WSS) Origin</label>
-                <div class="row items-center gap-2">
-                  <input
-                    type="text"
-                    readonly
-                    class="border round p-2 flex-1 text-xs text-emerald-300 bg-slate-900 font-mono"
-                    value=${currentWs}
-                    style="border-color: #334155;"
-                  />
-                  <button
-                    type="button"
-                    class="button border small text-slate-200 round"
-                    onClick=${() => handleCopy(currentWs, 'WebSocket URL')}
-                    title="Copy WebSocket URL"
-                  >
-                    <i class="material-symbols-outlined" style="font-size: 14px;">content_copy</i>
-                    <span>Copy</span>
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label class="text-xs text-slate-400 block mb-1 bold">Config.js Hardcode Snippet (for GitHub Pages)</label>
-                <div class="row items-center gap-2">
-                  <input
-                    type="text"
-                    readonly
-                    class="border round p-2 flex-1 text-xs text-amber-300 bg-slate-900 font-mono"
-                    value=${configJsSnippet}
-                    style="border-color: #334155;"
-                  />
-                  <button
-                    type="button"
-                    class="button border small text-slate-200 round"
-                    onClick=${() => handleCopy(configJsSnippet, 'Config Snippet')}
-                    title="Copy config.js snippet"
-                  >
-                    <i class="material-symbols-outlined" style="font-size: 14px;">content_copy</i>
-                    <span>Copy</span>
-                  </button>
-                </div>
+              <div class="row items-center gap-2 p-3 rounded bg-blue-900 bg-opacity-20 border-2 border-blue-500 border-opacity-40">
+                <input
+                  type="text"
+                  readonly
+                  class="flex-1 text-base text-blue-300 bg-transparent border-none font-mono"
+                  value=${currentHttp}
+                  style="outline: none;"
+                />
+                <button
+                  type="button"
+                  class="button fill primary medium round"
+                  onClick=${() => handleCopy(currentHttp, 'Backend URL')}
+                  title="Copy this URL to use in GitHub Pages"
+                >
+                  <i class="material-symbols-outlined">content_copy</i>
+                  <span>Copy</span>
+                </button>
               </div>
             </div>
+
+            <!-- Advanced / Technical Details (Collapsed by default) -->
+            <details class="mb-4 border border-slate-700 rounded overflow-hidden">
+              <summary class="p-2 bg-slate-800 text-xs text-slate-400 cursor-pointer hover:text-slate-200 transition-colors select-none">
+                <span class="row items-center gap-1">
+                  <i class="material-symbols-outlined" style="font-size: 14px;">settings</i>
+                  Technical Details (WebSocket & Code)
+                </span>
+              </summary>
+              <div class="p-3 bg-slate-900 space-y-3">
+                <div class="row items-center justify-between">
+                  <span class="text-xs text-slate-500">WebSocket (WSS) Origin:</span>
+                  <button
+                    type="button"
+                    class="button transparent small text-emerald-500 p-1 h-auto"
+                    onClick=${() => handleCopy(currentWs, 'WebSocket URL')}
+                  >
+                    <i class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">content_copy</i>
+                    <span class="text-[10px]">Copy WSS</span>
+                  </button>
+                </div>
+                <div class="p-2 bg-slate-950 rounded font-mono text-[10px] text-emerald-600 truncate">
+                  ${currentWs}
+                </div>
+              </div>
+            </details>
 
             <div class="row justify-between items-center mt-4 border-t border-slate-800 pt-3">
               <button
@@ -225,10 +218,10 @@ export function ServerSettingsModal({ isOpen, onClose }) {
                 onClick=${() => setShowOverrideForm(true)}
               >
                 <i class="material-symbols-outlined" style="font-size: 14px;">edit</i>
-                <span>Override with Custom Remote URL</span>
+                <span>Override with Custom URL</span>
               </button>
 
-              <button type="button" class="button fill primary small round" onClick=${onClose}>
+              <button type="button" class="button border small text-slate-300 round" onClick=${onClose}>
                 Close
               </button>
             </div>
@@ -254,22 +247,17 @@ export function ServerSettingsModal({ isOpen, onClose }) {
                   id="server-settings-backend-url-input"
                   value=${backendUrl}
                   onInput=${(e) => setBackendUrlState(e.target.value)}
-                  placeholder="e.g. https://my-wsrouter.deno.dev or http://localhost:3000"
+                  placeholder="e.g. https://my-wsrouter.deno.dev"
                 />
-                <label>Custom WsRouter Backend URL</label>
+                <label>Custom Backend URL</label>
               </div>
 
               ${DEFAULT_REMOTE_BACKEND && html`
-                <div class="text-xs text-slate-400 mb-2">
-                  <span>Default in config.js: </span>
+                <div class="text-xs text-slate-400 mb-3">
+                  <span>Default from config: </span>
                   <code class="text-amber-300 font-mono">${DEFAULT_REMOTE_BACKEND}</code>
                 </div>
               `}
-
-              <div class="text-xs text-slate-400 mb-3 space-y-1 bg-slate-900 p-2 round border border-slate-800 font-mono">
-                <div><strong>Resolved HTTP:</strong> <span class="text-blue-300">${currentHttp}</span></div>
-                <div><strong>Resolved WS:</strong> <span class="text-emerald-300">${currentWs}</span></div>
-              </div>
 
               ${saveStatus && html`
                 <div class="chip small border green text-white mb-3" style="width: 100%;">

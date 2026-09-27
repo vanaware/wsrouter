@@ -79,6 +79,21 @@
       display: none;
     }
 
+    .video-manual-play-overlay {
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .video-manual-play-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .video-manual-play-overlay.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
     .stage-placeholder {
       position: absolute;
       top: 0;

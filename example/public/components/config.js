@@ -159,6 +159,7 @@ export async function checkBackendHealth(timeoutMs = 3500) {
       method: 'GET',
       headers: { Accept: 'application/json' },
       signal: controller.signal,
+      credentials: 'include', // Allow passing cookies to AI Studio proxy
     });
     clearTimeout(timer);
 

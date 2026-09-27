@@ -36,6 +36,7 @@ export function ApiInspectorExample() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
       };
 
       if (customMethod === 'POST' && customBody.trim()) {

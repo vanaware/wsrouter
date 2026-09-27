@@ -19,15 +19,18 @@ const app = createDenoRouter({
 });
 
 // Enable CORS for API routes so static GitHub Pages or external frontends can query the backend
-app.use("/api/*", async (req, _params, next) => {
+app.use(async (req, _params, next) => {
+  const origin = req.headers.get("origin") || "*";
+
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
       headers: {
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": origin,
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, Sec-WebSocket-Protocol",
         "Access-Control-Max-Age": "86400",
+        "Access-Control-Allow-Credentials": "true",
       },
     });
   }
@@ -35,9 +38,10 @@ app.use("/api/*", async (req, _params, next) => {
   const res = await next(req);
   if (res) {
     const headers = new Headers(res.headers);
-    headers.set("Access-Control-Allow-Origin", "*");
+    headers.set("Access-Control-Allow-Origin", origin);
     headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Sec-WebSocket-Protocol");
+    headers.set("Access-Control-Allow-Credentials", "true");
     return new Response(res.body, {
       status: res.status,
       statusText: res.statusText,
