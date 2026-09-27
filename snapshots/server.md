@@ -5,9 +5,9 @@
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB [v0.2.0] - Modo: SERVER
+# Contexto Exportado do Projeto WorkerDB [v0.3.0] - Modo: SERVER
 
-Gerado automaticamente em: 2026-09-27T23:09:20.030Z
+Gerado automaticamente em: 2026-09-27T23:57:06.814Z
 
 ---
 
@@ -67,12 +67,12 @@ name: Publish to JSR
 on:
   push:
     tags:
-      - 'v*.*' # Dispara apenas para tags iniciando com 'v' (ex: v0.2, v1.0.0)
+      - 'v*.*'
   workflow_dispatch:
 
 permissions:
   contents: read
-  id-token: write # Required for JSR OIDC authentication
+  id-token: write
 
 jobs:
   publish:
@@ -86,10 +86,10 @@ jobs:
         with:
           deno-version-file: .tool-versions
           cache: true
-        
+
       - name: Install dependencies
         run: deno ci
-	
+
       - name: Verify code integrity
         run: deno task check-all
 
@@ -100,7 +100,6 @@ jobs:
       - name: Publish WsRouter to JSR
         run: |
           deno publish --allow-slow-types --allow-dirty
-
 ```
 
 ---
@@ -118,6 +117,8 @@ on:
       - 'example/**'
       - 'src/**'
       - '.github/workflows/pages.yml'
+    tags:
+      - 'v*.*'
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -1443,7 +1444,7 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](./LI
     ]
   },
   "name": "@vanaware/wsrouter",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "license": "MIT",
   "author": "Vanaware",
   "description": "A WebSocket router for Deno",
@@ -5509,51 +5510,70 @@ describe("Complete API & Router Coverage", () => {
     });
     it("router.broadcast, updatePresence, sendReaction, getPeerCount, getPeers, sendToPeer on Router", () => {
       const router = new Router();
-      router.ws("/stream/:room", () => {});
+      router.ws("/stream/:room", () => {},);
 
       const wsA = {
         readyState: 1,
-        send: (d: string) => { sentA.push(d); },
+        send: (d: string,) => {
+          sentA.push(d,);
+        },
         close: () => {},
       } as unknown as WebSocket;
       const sentA: string[] = [];
 
-      const group = router.getWsGroupByPath("/stream/:room")!;
-      group.addSocket(wsA, { room: "live1" });
+      const group = router.getWsGroupByPath("/stream/:room",)!;
+      group.addSocket(wsA, { room: "live1", },);
 
       // Test router.broadcast
-      const broadcastOk = router.broadcast("/stream/:room", "hello world");
-      assertEquals(broadcastOk, true);
-      assertEquals(sentA.includes("hello world"), true);
-      assertEquals(router.broadcast("/nonexistent", "hello"), false);
+      const broadcastOk = router.broadcast("/stream/:room", "hello world",);
+      assertEquals(broadcastOk, true,);
+      assertEquals(sentA.includes("hello world",), true,);
+      assertEquals(router.broadcast("/nonexistent", "hello",), false,);
 
       // Test router.updatePresence
-      group.track(wsA, { userId: "userA", name: "Alice", status: "online" });
-      const updatedUser = router.updatePresence("/stream/:room", "userA", { status: "busy" });
-      assertEquals(updatedUser?.data.status, "busy");
-      assertEquals(router.updatePresence("/nonexistent", "userA", {}), undefined);
+      group.track(wsA, { userId: "userA", name: "Alice", status: "online", },);
+      const updatedUser = router.updatePresence("/stream/:room", "userA", {
+        status: "busy",
+      },);
+      assertEquals(updatedUser?.data.status, "busy",);
+      assertEquals(
+        router.updatePresence("/nonexistent", "userA", {},),
+        undefined,
+      );
 
       // Test router.sendReaction
       const reactionOk = router.sendReaction("/stream/:room", "live1", {
         from: "userB",
         fromName: "Bob",
         emoji: "🎉",
-      });
-      assertEquals(reactionOk, true);
-      assertEquals(sentA.some((m) => m.includes("stream_reaction") && m.includes("🎉")), true);
-      assertEquals(router.sendReaction("/nonexistent", "live1", { from: "a", fromName: "b", emoji: "🔥" }), false);
+      },);
+      assertEquals(reactionOk, true,);
+      assertEquals(
+        sentA.some((m,) => m.includes("stream_reaction",) && m.includes("🎉",)),
+        true,
+      );
+      assertEquals(
+        router.sendReaction("/nonexistent", "live1", {
+          from: "a",
+          fromName: "b",
+          emoji: "🔥",
+        },),
+        false,
+      );
 
       // Test router peer methods
-      group.registerPeer(wsA, "peerA");
-      assertEquals(router.getPeerCount("/stream/:room"), 1);
-      assertEquals(router.getPeerCount("/nonexistent"), 0);
-      assertEquals(router.getPeers("/stream/:room"), ["peerA"]);
-      assertEquals(router.getPeers("/nonexistent"), []);
+      group.registerPeer(wsA, "peerA",);
+      assertEquals(router.getPeerCount("/stream/:room",), 1,);
+      assertEquals(router.getPeerCount("/nonexistent",), 0,);
+      assertEquals(router.getPeers("/stream/:room",), ["peerA",],);
+      assertEquals(router.getPeers("/nonexistent",), [],);
 
-      const sentToPeerOk = router.sendToPeer("/stream/:room", "peerA", { type: "custom_ping" });
-      assertEquals(sentToPeerOk, true);
-      assertEquals(sentA.some((m) => m.includes("custom_ping")), true);
-      assertEquals(router.sendToPeer("/nonexistent", "peerA", {}), false);
+      const sentToPeerOk = router.sendToPeer("/stream/:room", "peerA", {
+        type: "custom_ping",
+      },);
+      assertEquals(sentToPeerOk, true,);
+      assertEquals(sentA.some((m,) => m.includes("custom_ping",)), true,);
+      assertEquals(router.sendToPeer("/nonexistent", "peerA", {},), false,);
     });
   });
 
@@ -6821,14 +6841,14 @@ Deno.test("Arquivo legítimo em subpasta é servido", async () => {
 
 ```ts
 // tests/presence_test.ts
-import { describe, it } from "@std/testing/bdd";
-import { assert, assertEquals, assertNotEquals } from "@std/assert";
+import { describe, it, } from "@std/testing/bdd";
+import { assert, assertEquals, assertNotEquals, } from "@std/assert";
 import {
   PresenceTracker,
   type PresenceUser,
   WebSocketGroup,
 } from "../src/mod.ts";
-import { createDenoRouter } from "../src/deno.ts";
+import { createDenoRouter, } from "../src/deno.ts";
 
 // Helper to construct a mock WebSocket instance for unit testing
 function createMockWebSocket(
@@ -6838,8 +6858,8 @@ function createMockWebSocket(
   return {
     readyState,
     sent,
-    send: (data: string) => {
-      sent.push(data);
+    send: (data: string,) => {
+      sent.push(data,);
     },
     close: () => {},
     addEventListener: () => {},
@@ -6857,131 +6877,132 @@ describe("PresenceTracker (Standalone)", () => {
       userId: "alice",
       name: "Alice",
       avatar: "alice.png",
-    });
+    },);
 
-    assertEquals(user.userId, "alice");
-    assertEquals(user.data.name, "Alice");
-    assertEquals(user.connections, 1);
-    assertEquals(tracker.size, 1);
-    assertEquals(tracker.connectionCount, 1);
-    assertEquals(tracker.has("alice"), true);
-    assertEquals(tracker.has("bob"), false);
+    assertEquals(user.userId, "alice",);
+    assertEquals(user.data.name, "Alice",);
+    assertEquals(user.connections, 1,);
+    assertEquals(tracker.size, 1,);
+    assertEquals(tracker.connectionCount, 1,);
+    assertEquals(tracker.has("alice",), true,);
+    assertEquals(tracker.has("bob",), false,);
 
     // Verify initial snapshot sent directly to ws1
-    assertEquals(ws1.sent.length, 1);
-    const snapshot = JSON.parse(ws1.sent[0]!);
-    assertEquals(snapshot.type, "presence_state");
-    assertEquals(snapshot.users.length, 1);
-    assertEquals(snapshot.users[0].userId, "alice");
+    assertEquals(ws1.sent.length, 1,);
+    const snapshot = JSON.parse(ws1.sent[0]!,);
+    assertEquals(snapshot.type, "presence_state",);
+    assertEquals(snapshot.users.length, 1,);
+    assertEquals(snapshot.users[0].userId, "alice",);
   });
 
   it("handles multi-tab connections without duplicate join broadcasts", () => {
     const group = new WebSocketGroup();
-    const tracker = new PresenceTracker(group);
+    const tracker = new PresenceTracker(group,);
 
     const ws1 = createMockWebSocket();
     const ws2 = createMockWebSocket();
-    group.addSocket(ws1, {});
-    group.addSocket(ws2, {});
+    group.addSocket(ws1, {},);
+    group.addSocket(ws2, {},);
 
     let joinCount = 0;
     tracker.on("join", () => {
       joinCount++;
-    });
+    },);
 
     // Tab 1 connects
-    tracker.track(ws1, { userId: "alice", name: "Alice" });
-    assertEquals(joinCount, 1);
-    assertEquals(tracker.getUser("alice")?.connections, 1);
+    tracker.track(ws1, { userId: "alice", name: "Alice", },);
+    assertEquals(joinCount, 1,);
+    assertEquals(tracker.getUser("alice",)?.connections, 1,);
 
     // Tab 2 connects for the same user
-    tracker.track(ws2, { userId: "alice", name: "Alice" });
-    assertEquals(joinCount, 1); // No second join event
-    assertEquals(tracker.getUser("alice")?.connections, 2);
-    assertEquals(tracker.size, 1);
-    assertEquals(tracker.connectionCount, 2);
+    tracker.track(ws2, { userId: "alice", name: "Alice", },);
+    assertEquals(joinCount, 1,); // No second join event
+    assertEquals(tracker.getUser("alice",)?.connections, 2,);
+    assertEquals(tracker.size, 1,);
+    assertEquals(tracker.connectionCount, 2,);
 
     // Tab 1 closes -> user remains online
-    tracker.untrack(ws1);
-    assertEquals(tracker.has("alice"), true);
-    assertEquals(tracker.getUser("alice")?.connections, 1);
+    tracker.untrack(ws1,);
+    assertEquals(tracker.has("alice",), true,);
+    assertEquals(tracker.getUser("alice",)?.connections, 1,);
 
     // Tab 2 closes -> user goes offline
     let leaveCount = 0;
     tracker.on("leave", () => {
       leaveCount++;
-    });
-    tracker.untrack(ws2);
-    assertEquals(leaveCount, 1);
-    assertEquals(tracker.has("alice"), false);
-    assertEquals(tracker.size, 0);
-    assertEquals(tracker.connectionCount, 0);
+    },);
+    tracker.untrack(ws2,);
+    assertEquals(leaveCount, 1,);
+    assertEquals(tracker.has("alice",), false,);
+    assertEquals(tracker.size, 0,);
+    assertEquals(tracker.connectionCount, 0,);
   });
 
   it("broadcasts join, leave, and update diffs to group members", () => {
     const group = new WebSocketGroup();
-    const tracker = new PresenceTracker(group);
+    const tracker = new PresenceTracker(group,);
 
     const aliceWs = createMockWebSocket();
     const bobWs = createMockWebSocket();
-    group.addSocket(aliceWs, {});
-    group.addSocket(bobWs, {});
+    group.addSocket(aliceWs, {},);
+    group.addSocket(bobWs, {},);
 
     // Alice joins
-    tracker.track(aliceWs, { userId: "alice", role: "admin" });
+    tracker.track(aliceWs, { userId: "alice", role: "admin", },);
 
     // Bob joins -> Alice should receive Bob's join diff
-    tracker.track(bobWs, { userId: "bob", role: "member" });
+    tracker.track(bobWs, { userId: "bob", role: "member", },);
 
     // Inspect Alice's received messages (should contain Bob's join event)
-    const bobJoinMsg = aliceWs.sent.find((msg) => {
+    const bobJoinMsg = aliceWs.sent.find((msg,) => {
       try {
-        const parsed = JSON.parse(msg);
+        const parsed = JSON.parse(msg,);
         return parsed.type === "presence_join" && parsed.user.userId === "bob";
       } catch {
         return false;
       }
-    });
-    assertNotEquals(bobJoinMsg, undefined);
+    },);
+    assertNotEquals(bobJoinMsg, undefined,);
 
     // Bob updates status
-    tracker.update(bobWs, { role: "moderator", status: "away" });
-    const bobUpdateMsg = aliceWs.sent.find((msg) => {
+    tracker.update(bobWs, { role: "moderator", status: "away", },);
+    const bobUpdateMsg = aliceWs.sent.find((msg,) => {
       try {
-        const parsed = JSON.parse(msg);
-        return parsed.type === "presence_update" && parsed.user.data.status === "away";
+        const parsed = JSON.parse(msg,);
+        return parsed.type === "presence_update" &&
+          parsed.user.data.status === "away";
       } catch {
         return false;
       }
-    });
-    assertNotEquals(bobUpdateMsg, undefined);
+    },);
+    assertNotEquals(bobUpdateMsg, undefined,);
 
     // Bob disconnects
-    tracker.untrack(bobWs);
-    const bobLeaveMsg = aliceWs.sent.find((msg) => {
+    tracker.untrack(bobWs,);
+    const bobLeaveMsg = aliceWs.sent.find((msg,) => {
       try {
-        const parsed = JSON.parse(msg);
+        const parsed = JSON.parse(msg,);
         return parsed.type === "presence_leave" && parsed.userId === "bob";
       } catch {
         return false;
       }
-    });
-    assertNotEquals(bobLeaveMsg, undefined);
+    },);
+    assertNotEquals(bobLeaveMsg, undefined,);
   });
 
   it("prunes closed sockets automatically during presence inspection", () => {
     const tracker = new PresenceTracker();
-    const ws = createMockWebSocket(WebSocket.OPEN);
-    tracker.track(ws, { userId: "carol" });
-    assertEquals(tracker.has("carol"), true);
+    const ws = createMockWebSocket(WebSocket.OPEN,);
+    tracker.track(ws, { userId: "carol", },);
+    assertEquals(tracker.has("carol",), true,);
 
     // Simulate socket closing in the background
-    Object.defineProperty(ws, "readyState", { value: WebSocket.CLOSED });
+    Object.defineProperty(ws, "readyState", { value: WebSocket.CLOSED, },);
 
     // Inspection should automatically prune carol
-    assertEquals(tracker.has("carol"), false);
-    assertEquals(tracker.getUsers().length, 0);
-    assertEquals(tracker.size, 0);
+    assertEquals(tracker.has("carol",), false,);
+    assertEquals(tracker.getUsers().length, 0,);
+    assertEquals(tracker.size, 0,);
   });
 });
 
@@ -6989,96 +7010,100 @@ describe("WebSocketGroup & Router Presence Integration", () => {
   it("allows tracking presence directly through WebSocketGroup", () => {
     const group = new WebSocketGroup();
     const ws = createMockWebSocket();
-    group.addSocket(ws, { room: "lobby" });
+    group.addSocket(ws, { room: "lobby", },);
 
     const user = group.track(ws, {
       userId: "dave",
       username: "Dave",
       status: "online",
-    });
+    },);
 
-    assertEquals(user.userId, "dave");
-    assertEquals(group.presenceSize, 1);
-    assertEquals(group.getPresenceList().length, 1);
-    assertEquals(group.getPresenceUser("dave")?.data.username, "Dave");
+    assertEquals(user.userId, "dave",);
+    assertEquals(group.presenceSize, 1,);
+    assertEquals(group.getPresenceList().length, 1,);
+    assertEquals(group.getPresenceUser("dave",)?.data.username, "Dave",);
 
     // Updating presence through group helper
-    group.updatePresence(ws, { status: "busy" });
-    assertEquals(group.getPresenceUser("dave")?.data.status, "busy");
+    group.updatePresence(ws, { status: "busy", },);
+    assertEquals(group.getPresenceUser("dave",)?.data.status, "busy",);
 
     // Automatically untracks when removeSocket is called
-    group.removeSocket(ws);
-    assertEquals(group.presenceSize, 0);
-    assertEquals(group.getPresenceList().length, 0);
+    group.removeSocket(ws,);
+    assertEquals(group.presenceSize, 0,);
+    assertEquals(group.getPresenceList().length, 0,);
   });
 
   it("clears presence state when group is closed", () => {
     const group = new WebSocketGroup();
     const ws1 = createMockWebSocket();
     const ws2 = createMockWebSocket();
-    group.addSocket(ws1, {});
-    group.addSocket(ws2, {});
+    group.addSocket(ws1, {},);
+    group.addSocket(ws2, {},);
 
-    group.track(ws1, { userId: "user1" });
-    group.track(ws2, { userId: "user2" });
-    assertEquals(group.presenceSize, 2);
+    group.track(ws1, { userId: "user1", },);
+    group.track(ws2, { userId: "user2", },);
+    assertEquals(group.presenceSize, 2,);
 
     group.closeGroup();
-    assertEquals(group.presenceSize, 0);
-    assertEquals(group.getPresenceList().length, 0);
+    assertEquals(group.presenceSize, 0,);
+    assertEquals(group.getPresenceList().length, 0,);
   });
 
   it("allows querying presence via Router convenience methods", () => {
     const router = createDenoRouter();
-    router.ws("/rooms/:id", () => {});
+    router.ws("/rooms/:id", () => {},);
 
-    const group = router.getWsGroupByPath("/rooms/:id")!;
-    assert(group !== undefined);
+    const group = router.getWsGroupByPath("/rooms/:id",)!;
+    assert(group !== undefined,);
 
     const ws = createMockWebSocket();
-    group.addSocket(ws, { id: "gaming" });
-    group.track(ws, { userId: "gamer1", game: "chess" });
+    group.addSocket(ws, { id: "gaming", },);
+    group.track(ws, { userId: "gamer1", game: "chess", },);
 
-    const presenceList = router.getPresence("/rooms/:id");
-    assertEquals(presenceList.length, 1);
-    assertEquals(presenceList[0]!.userId, "gamer1");
-    assertEquals(presenceList[0]!.data.game, "chess");
+    const presenceList = router.getPresence("/rooms/:id",);
+    assertEquals(presenceList.length, 1,);
+    assertEquals(presenceList[0]!.userId, "gamer1",);
+    assertEquals(presenceList[0]!.data.game, "chess",);
 
-    const singleUser = router.getPresenceUser("/rooms/:id", "gamer1");
-    assertEquals(singleUser?.userId, "gamer1");
+    const singleUser = router.getPresenceUser("/rooms/:id", "gamer1",);
+    assertEquals(singleUser?.userId, "gamer1",);
   });
 
   it("supports custom presence filtering across rooms", () => {
     const group = new WebSocketGroup();
     const tracker = group.configurePresence({
-      filter: (receiverParams, senderParams) => {
+      filter: (receiverParams, senderParams,) => {
         // Only deliver presence updates if both sockets are in the same room
         return receiverParams.room === senderParams.room;
       },
-    });
+    },);
 
     const wsRoom1A = createMockWebSocket();
     const wsRoom1B = createMockWebSocket();
     const wsRoom2 = createMockWebSocket();
 
-    group.addSocket(wsRoom1A, { room: "room1" });
-    group.addSocket(wsRoom1B, { room: "room1" });
-    group.addSocket(wsRoom2, { room: "room2" });
+    group.addSocket(wsRoom1A, { room: "room1", },);
+    group.addSocket(wsRoom1B, { room: "room1", },);
+    group.addSocket(wsRoom2, { room: "room2", },);
 
     // Initial tracking for listeners
-    tracker.track(wsRoom1A, { userId: "u1" }, { room: "room1" });
-    tracker.track(wsRoom2, { userId: "u3" }, { room: "room2" });
+    tracker.track(wsRoom1A, { userId: "u1", }, { room: "room1", },);
+    tracker.track(wsRoom2, { userId: "u3", }, { room: "room2", },);
 
     // User 2 joins room1
-    tracker.track(wsRoom1B, { userId: "u2" }, { room: "room1" });
+    tracker.track(wsRoom1B, { userId: "u2", }, { room: "room1", },);
 
     // wsRoom1A (room1) should have received u2's join event
-    const room1ReceivedJoin = wsRoom1A.sent.some((m) => m.includes("presence_join") && m.includes("u2"));
-    assertEquals(room1ReceivedJoin, true);
+    const room1ReceivedJoin = wsRoom1A.sent.some((m,) =>
+      m.includes("presence_join",) && m.includes("u2",)
+    );
+    assertEquals(room1ReceivedJoin, true,);
 
     // wsRoom2 (room2) should NOT have received u2's join event
-    const room2ReceivedJoin = wsRoom2.sent.some((m) => m.includes("presence_join") && m.includes("u2"));
-    assertEquals(room2ReceivedJoin, false);
+    const room2ReceivedJoin = wsRoom2.sent.some((m,) =>
+      m.includes("presence_join",) && m.includes("u2",)
+    );
+    assertEquals(room2ReceivedJoin, false,);
   });
 });
 
@@ -8007,113 +8032,121 @@ describe("WorkerRoute Class", () => {
 
 ```ts
 // tests/security_audit_test.ts
-import { describe, it } from "jsr:@std/testing@^1/bdd";
-import { assertEquals, assertNotEquals } from "@std/assert";
-import { createDenoRouter } from "../src/deno.ts";
-import { join } from "@std/path";
-import { WebSocketGroup } from "../src/websocket-group.ts";
+import { describe, it, } from "jsr:@std/testing@^1/bdd";
+import { assertEquals, assertNotEquals, } from "@std/assert";
+import { createDenoRouter, } from "../src/deno.ts";
+import { join, } from "@std/path";
+import { WebSocketGroup, } from "../src/websocket-group.ts";
 
 async function setupFixture(): Promise<{ tmpRoot: string; publicDir: string }> {
-  const tmpRoot = await Deno.makeTempDir({ prefix: "wsrouter_audit_" });
-  const publicDir = join(tmpRoot, "public");
-  await Deno.mkdir(publicDir, { recursive: true });
-  await Deno.mkdir(join(publicDir, "subfolder"), { recursive: true });
+  const tmpRoot = await Deno.makeTempDir({ prefix: "wsrouter_audit_", },);
+  const publicDir = join(tmpRoot, "public",);
+  await Deno.mkdir(publicDir, { recursive: true, },);
+  await Deno.mkdir(join(publicDir, "subfolder",), { recursive: true, },);
 
-  await Deno.writeTextFile(join(publicDir, "index.html"), "<h1>Home</h1>");
-  await Deno.writeTextFile(join(publicDir, "app.js"), "console.log('app');");
-  await Deno.writeTextFile(join(publicDir, "subfolder", "page.html"), "<p>Sub</p>");
-  await Deno.writeTextFile(join(tmpRoot, "secret.txt"), "CONFIDENTIAL_DATA");
-  return { tmpRoot, publicDir };
+  await Deno.writeTextFile(join(publicDir, "index.html",), "<h1>Home</h1>",);
+  await Deno.writeTextFile(join(publicDir, "app.js",), "console.log('app');",);
+  await Deno.writeTextFile(
+    join(publicDir, "subfolder", "page.html",),
+    "<p>Sub</p>",
+  );
+  await Deno.writeTextFile(join(tmpRoot, "secret.txt",), "CONFIDENTIAL_DATA",);
+  return { tmpRoot, publicDir, };
 }
 
-async function cleanup(dir: string): Promise<void> {
-  await Deno.remove(dir, { recursive: true }).catch(() => {});
+async function cleanup(dir: string,): Promise<void> {
+  await Deno.remove(dir, { recursive: true, },).catch(() => {},);
 }
 
 describe("Security Audit & Hardening Suite", () => {
   it("Static files include X-Content-Type-Options: nosniff", async () => {
-    const { tmpRoot, publicDir } = await setupFixture();
+    const { tmpRoot, publicDir, } = await setupFixture();
     try {
-      const app = createDenoRouter({ staticDir: publicDir });
-      const req = new Request("http://localhost/app.js");
-      const res = await app.handleRequest(req);
-      assertEquals(res.status, 200);
-      assertEquals(res.headers.get("X-Content-Type-Options"), "nosniff");
+      const app = createDenoRouter({ staticDir: publicDir, },);
+      const req = new Request("http://localhost/app.js",);
+      const res = await app.handleRequest(req,);
+      assertEquals(res.status, 200,);
+      assertEquals(res.headers.get("X-Content-Type-Options",), "nosniff",);
       await res.text();
     } finally {
-      await cleanup(tmpRoot);
+      await cleanup(tmpRoot,);
     }
   });
 
   it("ETag matching If-None-Match returns 304 Not Modified without streaming body", async () => {
-    const { tmpRoot, publicDir } = await setupFixture();
+    const { tmpRoot, publicDir, } = await setupFixture();
     try {
-      const app = createDenoRouter({ staticDir: publicDir });
+      const app = createDenoRouter({ staticDir: publicDir, },);
       // 1. Initial request to get ETag
-      const req1 = new Request("http://localhost/index.html");
-      const res1 = await app.handleRequest(req1);
-      assertEquals(res1.status, 200);
-      const etag = res1.headers.get("ETag");
-      assertNotEquals(etag, null);
+      const req1 = new Request("http://localhost/index.html",);
+      const res1 = await app.handleRequest(req1,);
+      assertEquals(res1.status, 200,);
+      const etag = res1.headers.get("ETag",);
+      assertNotEquals(etag, null,);
       await res1.text();
 
       // 2. Request with If-None-Match matching etag
       const req2 = new Request("http://localhost/index.html", {
-        headers: { "If-None-Match": etag! },
-      });
-      const res2 = await app.handleRequest(req2);
-      assertEquals(res2.status, 304);
-      assertEquals(res2.body, null);
+        headers: { "If-None-Match": etag!, },
+      },);
+      const res2 = await app.handleRequest(req2,);
+      assertEquals(res2.status, 304,);
+      assertEquals(res2.body, null,);
     } finally {
-      await cleanup(tmpRoot);
+      await cleanup(tmpRoot,);
     }
   });
 
   it("HEAD request to static file returns headers with null body and no stream leak", async () => {
-    const { tmpRoot, publicDir } = await setupFixture();
+    const { tmpRoot, publicDir, } = await setupFixture();
     try {
-      const app = createDenoRouter({ staticDir: publicDir });
-      const req = new Request("http://localhost/index.html", { method: "HEAD" });
-      const res = await app.handleRequest(req);
-      assertEquals(res.status, 200);
-      assertEquals(res.body, null);
-      assertEquals(res.headers.get("Content-Type"), "text/html; charset=utf-8");
-      assertNotEquals(res.headers.get("Content-Length"), null);
+      const app = createDenoRouter({ staticDir: publicDir, },);
+      const req = new Request("http://localhost/index.html", {
+        method: "HEAD",
+      },);
+      const res = await app.handleRequest(req,);
+      assertEquals(res.status, 200,);
+      assertEquals(res.body, null,);
+      assertEquals(
+        res.headers.get("Content-Type",),
+        "text/html; charset=utf-8",
+      );
+      assertNotEquals(res.headers.get("Content-Length",), null,);
     } finally {
-      await cleanup(tmpRoot);
+      await cleanup(tmpRoot,);
     }
   });
 
   it("Path traversal with .. is strictly blocked even when allowDotfiles is true", async () => {
-    const { tmpRoot, publicDir } = await setupFixture();
+    const { tmpRoot, publicDir, } = await setupFixture();
     try {
       const app = createDenoRouter({
         staticDir: publicDir,
         allowDotfiles: true, // dotfiles enabled (e.g. .well-known), but .. traversal must be rejected!
-      });
-      const req = new Request("http://localhost/../../secret.txt");
-      const res = await app.handleRequest(req);
-      assertEquals(res.status, 404);
+      },);
+      const req = new Request("http://localhost/../../secret.txt",);
+      const res = await app.handleRequest(req,);
+      assertEquals(res.status, 404,);
       const body = await res.text();
-      assertEquals(body.includes("CONFIDENTIAL_DATA"), false);
+      assertEquals(body.includes("CONFIDENTIAL_DATA",), false,);
     } finally {
-      await cleanup(tmpRoot);
+      await cleanup(tmpRoot,);
     }
   });
 
   it("Directory 301 redirect preserves basePath", async () => {
-    const { tmpRoot, publicDir } = await setupFixture();
+    const { tmpRoot, publicDir, } = await setupFixture();
     try {
       const app = createDenoRouter({
         basePath: "/site",
         staticDir: publicDir,
-      });
-      const req = new Request("http://localhost/site/subfolder");
-      const res = await app.handleRequest(req);
-      assertEquals(res.status, 301);
-      assertEquals(res.headers.get("Location"), "/site/subfolder/");
+      },);
+      const req = new Request("http://localhost/site/subfolder",);
+      const res = await app.handleRequest(req,);
+      assertEquals(res.status, 301,);
+      assertEquals(res.headers.get("Location",), "/site/subfolder/",);
     } finally {
-      await cleanup(tmpRoot);
+      await cleanup(tmpRoot,);
     }
   });
 
@@ -8121,20 +8154,20 @@ describe("Security Audit & Hardening Suite", () => {
     const app = createDenoRouter({
       forceHttps: true,
       trustProxy: true,
-    });
+    },);
     // Malicious host with path escape or credentials
     const req = new Request("http://example.com/api/test", {
       headers: {
         "x-forwarded-proto": "http",
         "x-forwarded-host": "evil.com/malicious/path",
       },
-    });
-    const res = await app.handleRequest(req);
-    assertEquals(res.status, 301);
-    const location = res.headers.get("Location");
-    assertNotEquals(location, null);
+    },);
+    const res = await app.handleRequest(req,);
+    assertEquals(res.status, 301,);
+    const location = res.headers.get("Location",);
+    assertNotEquals(location, null,);
     // Should fallback to local request host and reject the malicious path injection
-    assertEquals(location!.includes("evil.com/malicious"), false);
+    assertEquals(location!.includes("evil.com/malicious",), false,);
   });
 
   it("WebSocketGroup broadcast prunes closed sockets automatically", () => {
@@ -8153,33 +8186,33 @@ describe("Security Audit & Hardening Suite", () => {
       close: () => {},
     } as unknown as WebSocket;
 
-    group.addSocket(openSocket, {});
-    group.addSocket(closedSocket, {});
-    assertEquals(group.size, 2);
+    group.addSocket(openSocket, {},);
+    group.addSocket(closedSocket, {},);
+    assertEquals(group.size, 2,);
 
-    group.broadcast("hello");
+    group.broadcast("hello",);
     // Closed socket should be pruned from the pool during broadcast
-    assertEquals(group.size, 1);
+    assertEquals(group.size, 1,);
   });
 
   it("WebSocketGroup sendLastBroadcastTo does not deliver to socket removed during delay", async () => {
-    const group = new WebSocketGroup(20);
+    const group = new WebSocketGroup(20,);
     const messages: string[] = [];
     const socket = {
       readyState: WebSocket.OPEN,
-      send: (data: string) => messages.push(data),
+      send: (data: string,) => messages.push(data,),
       close: () => {},
     } as unknown as WebSocket;
 
-    group.broadcast("Welcome message");
-    group.addSocket(socket, {});
-    group.sendLastBroadcastTo(socket, {});
+    group.broadcast("Welcome message",);
+    group.addSocket(socket, {},);
+    group.sendLastBroadcastTo(socket, {},);
 
     // Remove socket before delay timer fires
-    group.removeSocket(socket);
+    group.removeSocket(socket,);
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    assertEquals(messages.length, 0);
+    await new Promise((resolve,) => setTimeout(resolve, 50,));
+    assertEquals(messages.length, 0,);
   });
 });
 
@@ -8342,8 +8375,8 @@ Deno.test("Diretório sem barra final redireciona para com barra", async () => {
 
 ```ts
 // tests/webrtc_signaling_test.ts
-import { describe, it } from "@std/testing/bdd";
-import { assert, assertEquals, assertNotEquals } from "@std/assert";
+import { describe, it, } from "@std/testing/bdd";
+import { assert, assertEquals, assertNotEquals, } from "@std/assert";
 import {
   Router,
   WebRTCSignalingHub,
@@ -8351,13 +8384,15 @@ import {
   WebSocketGroup,
 } from "../src/mod.ts";
 
-function createMockWebSocket(readyState: number = WebSocket.OPEN): WebSocket & { sent: string[] } {
+function createMockWebSocket(
+  readyState: number = WebSocket.OPEN,
+): WebSocket & { sent: string[] } {
   const sent: string[] = [];
   return {
     readyState,
     sent,
-    send: (data: string) => {
-      sent.push(data);
+    send: (data: string,) => {
+      sent.push(data,);
     },
     close: () => {},
     addEventListener: () => {},
@@ -8372,28 +8407,30 @@ describe("WebRTCSignalingHub (Signaling & Peer Coordination)", () => {
     const aliceWs = createMockWebSocket();
     const bobWs = createMockWebSocket();
 
-    hub.registerPeer(aliceWs, "alice");
-    hub.registerPeer(bobWs, "bob");
+    hub.registerPeer(aliceWs, "alice",);
+    hub.registerPeer(bobWs, "bob",);
 
     // Alice sends SDP offer targeted to Bob
     const offerHandled = hub.handleMessage(aliceWs, {
       type: "webrtc_offer",
       from: "alice",
       to: "bob",
-      sdp: { type: "offer", sdp: "v=0\r\no=alice 123456 ... m=video..." },
+      sdp: { type: "offer", sdp: "v=0\r\no=alice 123456 ... m=video...", },
       fromName: "Alice",
-    });
+    },);
 
-    assertEquals(offerHandled, true);
-    assertEquals(bobWs.sent.length, 1);
-    assertEquals(aliceWs.sent.length, 0); // Alice shouldn't receive her own offer
+    assertEquals(offerHandled, true,);
+    assertEquals(bobWs.sent.length, 1,);
+    assertEquals(aliceWs.sent.length, 0,); // Alice shouldn't receive her own offer
 
-    const bobReceivedOffer = JSON.parse(bobWs.sent[0]!) as WebRTCSignalingMessage;
-    assertEquals(bobReceivedOffer.type, "webrtc_offer");
+    const bobReceivedOffer = JSON.parse(
+      bobWs.sent[0]!,
+    ) as WebRTCSignalingMessage;
+    assertEquals(bobReceivedOffer.type, "webrtc_offer",);
     if (bobReceivedOffer.type === "webrtc_offer") {
-      assertEquals(bobReceivedOffer.from, "alice");
-      assertEquals(bobReceivedOffer.sdp.type, "offer");
-      assertEquals(bobReceivedOffer.fromName, "Alice");
+      assertEquals(bobReceivedOffer.from, "alice",);
+      assertEquals(bobReceivedOffer.sdp.type, "offer",);
+      assertEquals(bobReceivedOffer.fromName, "Alice",);
     }
 
     // Bob sends SDP answer targeted back to Alice
@@ -8401,18 +8438,20 @@ describe("WebRTCSignalingHub (Signaling & Peer Coordination)", () => {
       type: "webrtc_answer",
       from: "bob",
       to: "alice",
-      sdp: { type: "answer", sdp: "v=0\r\no=bob 789101 ... m=video..." },
+      sdp: { type: "answer", sdp: "v=0\r\no=bob 789101 ... m=video...", },
       fromName: "Bob",
-    });
+    },);
 
-    assertEquals(answerHandled, true);
-    assertEquals(aliceWs.sent.length, 1);
+    assertEquals(answerHandled, true,);
+    assertEquals(aliceWs.sent.length, 1,);
 
-    const aliceReceivedAnswer = JSON.parse(aliceWs.sent[0]!) as WebRTCSignalingMessage;
-    assertEquals(aliceReceivedAnswer.type, "webrtc_answer");
+    const aliceReceivedAnswer = JSON.parse(
+      aliceWs.sent[0]!,
+    ) as WebRTCSignalingMessage;
+    assertEquals(aliceReceivedAnswer.type, "webrtc_answer",);
     if (aliceReceivedAnswer.type === "webrtc_answer") {
-      assertEquals(aliceReceivedAnswer.from, "bob");
-      assertEquals(aliceReceivedAnswer.sdp.type, "answer");
+      assertEquals(aliceReceivedAnswer.from, "bob",);
+      assertEquals(aliceReceivedAnswer.sdp.type, "answer",);
     }
   });
 
@@ -8421,8 +8460,8 @@ describe("WebRTCSignalingHub (Signaling & Peer Coordination)", () => {
     const aliceWs = createMockWebSocket();
     const bobWs = createMockWebSocket();
 
-    hub.registerPeer(aliceWs, "alice");
-    hub.registerPeer(bobWs, "bob");
+    hub.registerPeer(aliceWs, "alice",);
+    hub.registerPeer(bobWs, "bob",);
 
     const candidateHandled = hub.handleMessage(aliceWs, {
       type: "webrtc_candidate",
@@ -8433,15 +8472,17 @@ describe("WebRTCSignalingHub (Signaling & Peer Coordination)", () => {
         sdpMid: "0",
         sdpMLineIndex: 0,
       },
-    });
+    },);
 
-    assertEquals(candidateHandled, true);
-    assertEquals(bobWs.sent.length, 1);
-    const receivedCandidate = JSON.parse(bobWs.sent[0]!) as WebRTCSignalingMessage;
-    assertEquals(receivedCandidate.type, "webrtc_candidate");
+    assertEquals(candidateHandled, true,);
+    assertEquals(bobWs.sent.length, 1,);
+    const receivedCandidate = JSON.parse(
+      bobWs.sent[0]!,
+    ) as WebRTCSignalingMessage;
+    assertEquals(receivedCandidate.type, "webrtc_candidate",);
     if (receivedCandidate.type === "webrtc_candidate") {
-      assertEquals(receivedCandidate.from, "alice");
-      assertEquals(receivedCandidate.candidate.sdpMid, "0");
+      assertEquals(receivedCandidate.from, "alice",);
+      assertEquals(receivedCandidate.candidate.sdpMid, "0",);
     }
   });
 
@@ -8452,8 +8493,8 @@ describe("WebRTCSignalingHub (Signaling & Peer Coordination)", () => {
     const broadcasterWs = createMockWebSocket();
     const viewerWs = createMockWebSocket();
 
-    group.addSocket(broadcasterWs, { room: "stage1" });
-    group.addSocket(viewerWs, { room: "stage1" });
+    group.addSocket(broadcasterWs, { room: "stage1", },);
+    group.addSocket(viewerWs, { room: "stage1", },);
 
     // Broadcaster starts streaming
     hub.handleMessage(broadcasterWs, {
@@ -8461,17 +8502,19 @@ describe("WebRTCSignalingHub (Signaling & Peer Coordination)", () => {
       broadcasterId: "streamer_dan",
       broadcasterName: "Dan",
       streamTitle: "Live Coding Session",
-    }, { room: "stage1" });
+    }, { room: "stage1", },);
 
-    const active = hub.getActiveStream("stage1");
-    assertNotEquals(active, undefined);
-    assertEquals(active?.broadcasterId, "streamer_dan");
-    assertEquals(active?.broadcasterName, "Dan");
-    assertEquals(active?.streamTitle, "Live Coding Session");
+    const active = hub.getActiveStream("stage1",);
+    assertNotEquals(active, undefined,);
+    assertEquals(active?.broadcasterId, "streamer_dan",);
+    assertEquals(active?.broadcasterName, "Dan",);
+    assertEquals(active?.streamTitle, "Live Coding Session",);
 
     // Viewer should have received the broadcaster_started notification
-    const startNotice = viewerWs.sent.find((m) => m.includes("broadcaster_started"));
-    assert(startNotice !== undefined);
+    const startNotice = viewerWs.sent.find((m,) =>
+      m.includes("broadcaster_started",)
+    );
+    assert(startNotice !== undefined,);
 
     // Viewer sends request_stream to broadcaster
     hub.handleMessage(viewerWs, {
@@ -8479,21 +8522,25 @@ describe("WebRTCSignalingHub (Signaling & Peer Coordination)", () => {
       viewerId: "viewer_claire",
       viewerName: "Claire",
       broadcasterId: "streamer_dan",
-    }, { room: "stage1" });
+    }, { room: "stage1", },);
 
     // Broadcaster should receive the request_stream message directly
-    const requestNotice = broadcasterWs.sent.find((m) => m.includes("request_stream") && m.includes("viewer_claire"));
-    assert(requestNotice !== undefined);
+    const requestNotice = broadcasterWs.sent.find((m,) =>
+      m.includes("request_stream",) && m.includes("viewer_claire",)
+    );
+    assert(requestNotice !== undefined,);
 
     // Broadcaster stops streaming
     hub.handleMessage(broadcasterWs, {
       type: "broadcaster_stopped",
       broadcasterId: "streamer_dan",
-    }, { room: "stage1" });
+    }, { room: "stage1", },);
 
-    assertEquals(hub.getActiveStream("stage1"), undefined);
-    const stopNotice = viewerWs.sent.find((m) => m.includes("broadcaster_stopped"));
-    assert(stopNotice !== undefined);
+    assertEquals(hub.getActiveStream("stage1",), undefined,);
+    const stopNotice = viewerWs.sent.find((m,) =>
+      m.includes("broadcaster_stopped",)
+    );
+    assert(stopNotice !== undefined,);
   });
 
   it("automatically terminates broadcast when broadcaster socket disconnects", () => {
@@ -8503,24 +8550,26 @@ describe("WebRTCSignalingHub (Signaling & Peer Coordination)", () => {
     const broadcasterWs = createMockWebSocket();
     const viewerWs = createMockWebSocket();
 
-    group.addSocket(broadcasterWs, { room: "main" });
-    group.addSocket(viewerWs, { room: "main" });
+    group.addSocket(broadcasterWs, { room: "main", },);
+    group.addSocket(viewerWs, { room: "main", },);
 
     hub.handleMessage(broadcasterWs, {
       type: "broadcaster_started",
       broadcasterId: "host1",
       broadcasterName: "Host 1",
-    }, { room: "main" });
+    }, { room: "main", },);
 
-    assertEquals(hub.getActiveStream("main")?.broadcasterId, "host1");
+    assertEquals(hub.getActiveStream("main",)?.broadcasterId, "host1",);
 
     // Broadcaster disconnects from WebSocketGroup
-    group.removeSocket(broadcasterWs);
+    group.removeSocket(broadcasterWs,);
 
     // Stream should be automatically removed and stop message broadcasted
-    assertEquals(hub.getActiveStream("main"), undefined);
-    const stopNotice = viewerWs.sent.find((m) => m.includes("broadcaster_stopped"));
-    assert(stopNotice !== undefined);
+    assertEquals(hub.getActiveStream("main",), undefined,);
+    const stopNotice = viewerWs.sent.find((m,) =>
+      m.includes("broadcaster_stopped",)
+    );
+    assert(stopNotice !== undefined,);
   });
 
   it("broadcasts live stream reactions to group members", () => {
@@ -8530,8 +8579,8 @@ describe("WebRTCSignalingHub (Signaling & Peer Coordination)", () => {
     const ws1 = createMockWebSocket();
     const ws2 = createMockWebSocket();
 
-    group.addSocket(ws1, { room: "live" });
-    group.addSocket(ws2, { room: "live" });
+    group.addSocket(ws1, { room: "live", },);
+    group.addSocket(ws2, { room: "live", },);
 
     hub.handleMessage(ws1, {
       type: "stream_reaction",
@@ -8539,31 +8588,33 @@ describe("WebRTCSignalingHub (Signaling & Peer Coordination)", () => {
       fromName: "User 1",
       emoji: "🔥",
       timestamp: Date.now(),
-    }, { room: "live" });
+    }, { room: "live", },);
 
-    const reactionReceived = ws2.sent.find((m) => m.includes("stream_reaction") && m.includes("🔥"));
-    assert(reactionReceived !== undefined);
+    const reactionReceived = ws2.sent.find((m,) =>
+      m.includes("stream_reaction",) && m.includes("🔥",)
+    );
+    assert(reactionReceived !== undefined,);
   });
 
   it("supports WebRTC helper methods, peer inspection, and stream queries on Hub, Group, and Router", () => {
     const router = new Router();
-    router.ws("/webrtc/:room", () => {});
+    router.ws("/webrtc/:room", () => {},);
 
-    const group = router.getWsGroupByPath("/webrtc/:room");
-    assert(group !== undefined);
+    const group = router.getWsGroupByPath("/webrtc/:room",);
+    assert(group !== undefined,);
 
     const wsAlice = createMockWebSocket();
     const wsBob = createMockWebSocket();
 
-    group.addSocket(wsAlice, { room: "coding" });
-    group.addSocket(wsBob, { room: "coding" });
+    group.addSocket(wsAlice, { room: "coding", },);
+    group.addSocket(wsBob, { room: "coding", },);
 
     // Register peers via Group
-    group.registerPeer(wsAlice, "peer_alice");
-    group.registerPeer(wsBob, "peer_bob");
+    group.registerPeer(wsAlice, "peer_alice",);
+    group.registerPeer(wsBob, "peer_bob",);
 
-    assertEquals(group.peerCount, 2);
-    assertEquals(group.getPeers().sort(), ["peer_alice", "peer_bob"]);
+    assertEquals(group.peerCount, 2,);
+    assertEquals(group.getPeers().sort(), ["peer_alice", "peer_bob",],);
 
     // Send direct message to peer
     const directSent = group.sendToPeer("peer_bob", {
@@ -8572,9 +8623,9 @@ describe("WebRTCSignalingHub (Signaling & Peer Coordination)", () => {
       viewerName: "Alice",
       broadcasterId: "peer_bob",
       room: "coding",
-    });
-    assertEquals(directSent, true);
-    assertEquals(wsBob.sent.length, 1);
+    },);
+    assertEquals(directSent, true,);
+    assertEquals(wsBob.sent.length, 1,);
 
     // Start stream via Router
     const stream = router.startBroadcasting(
@@ -8583,37 +8634,44 @@ describe("WebRTCSignalingHub (Signaling & Peer Coordination)", () => {
       "Alice In Tech",
       "coding",
       "Live Coding Rust & Deno",
-      { room: "coding" },
+      { room: "coding", },
     );
-    assertNotEquals(stream, undefined);
-    assertEquals(stream?.broadcasterName, "Alice In Tech");
+    assertNotEquals(stream, undefined,);
+    assertEquals(stream?.broadcasterName, "Alice In Tech",);
 
     // Query active stream via Router & Group
-    assertEquals(router.isBroadcasting("/webrtc/:room", "coding"), true);
-    assertEquals(router.isBroadcasting("/webrtc/:room", "gaming"), false);
-    assertEquals(group.isBroadcasting("coding"), true);
+    assertEquals(router.isBroadcasting("/webrtc/:room", "coding",), true,);
+    assertEquals(router.isBroadcasting("/webrtc/:room", "gaming",), false,);
+    assertEquals(group.isBroadcasting("coding",), true,);
 
-    const activeStreamRouter = router.getActiveStream("/webrtc/:room", "coding");
-    assertEquals(activeStreamRouter?.broadcasterId, "peer_alice");
+    const activeStreamRouter = router.getActiveStream(
+      "/webrtc/:room",
+      "coding",
+    );
+    assertEquals(activeStreamRouter?.broadcasterId, "peer_alice",);
 
-    const allStreams = router.getAllActiveStreams("/webrtc/:room");
-    assertEquals(allStreams.length, 1);
-    assertEquals(allStreams[0]?.room, "coding");
+    const allStreams = router.getAllActiveStreams("/webrtc/:room",);
+    assertEquals(allStreams.length, 1,);
+    assertEquals(allStreams[0]?.room, "coding",);
 
     // Send live reaction via Group
     const reactionSent = group.sendReaction("coding", {
       from: "peer_bob",
       fromName: "Bob",
       emoji: "🚀",
-    });
-    assertEquals(reactionSent, true);
-    const bobReaction = wsAlice.sent.find((m) => m.includes("🚀"));
-    assert(bobReaction !== undefined);
+    },);
+    assertEquals(reactionSent, true,);
+    const bobReaction = wsAlice.sent.find((m,) => m.includes("🚀",));
+    assert(bobReaction !== undefined,);
 
     // Stop stream via Router
-    const stopped = router.stopBroadcasting("/webrtc/:room", "peer_alice", "coding");
-    assertEquals(stopped, true);
-    assertEquals(router.isBroadcasting("/webrtc/:room", "coding"), false);
+    const stopped = router.stopBroadcasting(
+      "/webrtc/:room",
+      "peer_alice",
+      "coding",
+    );
+    assertEquals(stopped, true,);
+    assertEquals(router.isBroadcasting("/webrtc/:room", "coding",), false,);
   });
 });
 

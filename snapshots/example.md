@@ -5,9 +5,9 @@
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB [v0.2.0] - Modo: EXAMPLE
+# Contexto Exportado do Projeto WorkerDB [v0.3.0] - Modo: EXAMPLE
 
-Gerado automaticamente em: 2026-09-27T23:09:19.998Z
+Gerado automaticamente em: 2026-09-27T23:57:06.793Z
 
 ---
 
