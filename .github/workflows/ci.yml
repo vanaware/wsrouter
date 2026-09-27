@@ -10,61 +10,42 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    name: Test (Deno ${{ matrix.denoVersion }})
+  check:
+    name: Type Check & Test (Deno ${{ matrix.denoVersion }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
         denoVersion:
-          - "v1.x"
-          - "beta"
-          - "nightly"
+          - "v2.x"
+          - "canary"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Deno
-        uses: denoland/setup-deno@v1
+        uses: denoland/setup-deno@v2
         with:
           deno-version: ${{ matrix.denoVersion }}
 
-      - name: Cache vendor dir
-        uses: actions/cache@v3
-        with:
-          path: |
-            vendor/
-            .deno_dir/
-          key: deno-cache-${{ runner.os }}-${{ hashFiles('**/deno.json') }}
-          restore-keys: |
-            deno-cache-${{ runner.os }}-
+      - name: Check code types
+        run: deno task check
 
       - name: Run tests
-        run: deno test --unstable
+        run: deno task test
 
-  lint:
-    name: Lint
+  lint-and-format:
+    name: Lint & Format Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Deno
-        uses: denoland/setup-deno@v1
+        uses: denoland/setup-deno@v2
         with:
-          deno-version: "v1.x"
+          deno-version: "v2.x"
 
       - name: Lint code
-        run: deno lint
-
-  format:
-    name: Format check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v1
-        with:
-          deno-version: "v1.x"
+        run: deno task lint
 
       - name: Check formatting
-        run: deno fmt --check
+        run: deno task fmt-check

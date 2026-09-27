@@ -17,11 +17,14 @@ O `@vanaware/wsrouter` é um router moderno com suporte completo a HTTP e WebSoc
 - ✅ **405 Method Not Allowed** com header `Allow` quando método não é permitido
 - ✅ Base path configurável com normalização inteligente
 
-### 🔌 WebSockets
+### 🔌 WebSockets & Real-Time Suite
 - ✅ Upgrade automático com adaptadores por runtime
 - ✅ **Grupos de WebSocket** com broadcast inteligente
 - ✅ **Dual Params PermissionFn**: filtra por receiver, sender e conteúdo da mensagem
 - ✅ **Last Broadcast automático**: novos membros recebem a última mensagem ao conectar
+- ✅ **🎥 WebRTC Signaling Engine**: streaming P2P de webcam, tela e áudio, ofertas SDP, respostas e candidatos ICE
+- ✅ **👥 Online Presence Tracking**: contagem e roster de usuários online, detecção multi-aba/multi-dispositivo e status customizados
+- ✅ **Reações Flutuantes**: broadcast e overlay de emojis animados em tempo real
 - ✅ Handlers `onclose`/`onerror` não são sobrescritos pelo router
 - ✅ Graceful shutdown com `closeAllWebSockets()`
 
@@ -54,7 +57,7 @@ O `@vanaware/wsrouter` é um router moderno com suporte completo a HTTP e WebSoc
 ### Deno
 
 ```typescript
-import { createDenoRouter } from "jsr:@vanaware/wsrouter@1.0.0/deno";
+import { createDenoRouter } from "jsr:@vanaware/wsrouter@0.1.0/deno";
 ```
 
 Ou via import map no `deno.json`:
@@ -62,7 +65,7 @@ Ou via import map no `deno.json`:
 ```json
 {
   "imports": {
-    "@vanaware/wsrouter": "jsr:@vanaware/wsrouter@1.0.0"
+    "@vanaware/wsrouter": "jsr:@vanaware/wsrouter@0.1.0"
   }
 }
 ```
@@ -94,8 +97,8 @@ app.get("/users/:id", (_req, params) => ({
   body: JSON.stringify({ userId: params.id }),
 }));
 
-Deno.serve({ port: 8000 }, app.handleRequest.bind(app));
-console.log("🚀 Servidor rodando em http://localhost:8000");
+Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
+console.log("🚀 Servidor rodando em http://localhost:3000");
 ```
 
 ### Chat WebSocket com Salas
@@ -131,7 +134,62 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
   };
 });
 
-Deno.serve({ port: 8000 }, app.handleRequest.bind(app));
+Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
+```
+
+### 🎥 WebRTC Live Streaming & Sinalização P2P
+
+```typescript
+import { createDenoRouter } from "@vanaware/wsrouter/deno";
+
+const app = createDenoRouter({ basePath: "/api" });
+
+// Rota de sinalização WebRTC (transmissão de webcam, ofertas SDP, respostas, ICE e reações)
+app.ws("/webrtc/:room", (ws, _req, params) => {
+  const group = app.getWsGroupByPath("/webrtc/:room");
+  if (!group) return;
+
+  ws.onmessage = (event) => {
+    // Encaminha ofertas SDP, ICE candidates e eventos de stream automaticamente
+    group.handleSignaling(ws, event.data, params);
+  };
+});
+
+Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
+```
+
+### 👥 Rastreamento de Presença Online em Tempo Real
+
+```typescript
+import { createDenoRouter } from "@vanaware/wsrouter/deno";
+
+const app = createDenoRouter({ basePath: "/api" });
+
+app.ws("/presence-chat/:room", (ws, req, params) => {
+  const group = app.getWsGroupByPath("/presence-chat/:room");
+  if (!group) return;
+
+  const url = new URL(req.url);
+  const userId = url.searchParams.get("userId") || "anon";
+  const name = url.searchParams.get("name") || "Guest";
+
+  // Registra presença do usuário (emite snapshot e broadcasts de join/leave sem duplicar abas)
+  group.track(ws, {
+    userId,
+    name,
+    status: "online",
+    statusMessage: "Programando com WsRouter",
+  });
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === "update_status") {
+      group.updatePresence(ws, { status: data.status, statusMessage: data.statusMessage });
+    }
+  };
+});
+
+Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 ```
 
 ---
@@ -152,16 +210,27 @@ app.head("/path", handler);
 
 ### Formato do Handler
 
-Os handlers retornam um objeto com `body` e opcionalmente `init`:
+Os handlers podem retornar um objeto com `body` (e opcionalmente `init`) ou diretamente uma instância padrão de `Response`:
 
 ```typescript
 type HttpHandler = (
   req: Request,
   params: RouteParams,
-) => { body: BodyInit; init?: ResponseInit } | Promise<{ body: BodyInit; init?: ResponseInit }>;
+  ctx?: RequestContext,
+) => 
+  | { body: BodyInit; init?: ResponseInit }
+  | Response
+  | Promise<{ body: BodyInit; init?: ResponseInit } | Response>;
 ```
 
 #### Exemplos
+
+**Resposta Direta com `Response`:**
+```typescript
+app.get("/health", () => {
+  return new Response("OK", { status: 200 });
+});
+```
 
 **Resposta JSON:**
 ```typescript
@@ -282,6 +351,23 @@ Middlewares executam antes do handler final e podem modificar a requisição, ab
 ```typescript
 app.use(async (req, params, next) => {
   console.log(`📝 ${req.method} ${req.url}`);
+  return await next();
+});
+```
+
+### Escopo por Caminho (Path-scoped) & Estado Compartilhado (State/Meta)
+
+Middlewares podem ser vinculados a caminhos específicos e compartilhar dados entre si ou com os handlers:
+
+```typescript
+app.use("/admin/*", async (req, params, next, ctx) => {
+  const token = req.headers.get("Authorization");
+  if (!token) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  if (ctx) {
+    ctx.state.authorizedUser = { id: "user-42", role: "admin" };
+  }
   return await next();
 });
 ```
@@ -487,6 +573,105 @@ app.closeGroupByPath("/chat/:room/:user");
 // Fechar todos os WebSockets (graceful shutdown)
 app.closeAllWebSockets();
 ```
+
+---
+
+## 🎥 WebRTC Live Webcam Streaming & Sinalização
+
+O `@vanaware/wsrouter` inclui um hub de sinalização WebRTC de alta performance integrado ao `WebSocketGroup`. Permite streaming peer-to-peer de vídeo/áudio, anúncios de transmissão, encaminhamento de ofertas SDP, respostas, candidatos ICE e reações flutuantes com zero dependências externas.
+
+### Fluxo de Sinalização Simplificado
+
+1. **Broadcaster entra e publica stream**: envia `{ type: "broadcaster_started", broadcasterId, broadcasterName, streamTitle }`.
+2. **Espectadores requisitam transmissão**: enviam `{ type: "request_stream", viewerId, viewerName }`.
+3. **Oferta e Resposta SDP**: O Broadcaster cria um `RTCPeerConnection` para cada espectador e envia `webrtc_offer`; o espectador responde com `webrtc_answer`.
+4. **ICE Candidates**: Ambas as pontas trocam candidatos via `{ type: "webrtc_candidate", to: targetPeerId, candidate }`.
+5. **Mídia Direta P2P**: O fluxo de áudio e vídeo trafega diretamente entre os navegadores sem onerar a CPU do servidor.
+
+```typescript
+import { createDenoRouter } from "@vanaware/wsrouter/deno";
+
+const app = createDenoRouter({ basePath: "/api" });
+
+app.ws("/webrtc/:room", (ws, _req, params) => {
+  const group = app.getWsGroupByPath("/webrtc/:room");
+  if (!group) return;
+
+  // Encaminha ofertas/respostas SDP e candidatos ICE diretamente ao destinatário
+  ws.onmessage = (event) => {
+    group.handleSignaling(ws, event.data, params);
+  };
+});
+```
+
+### Consultas de Streams e Peers via Router e Grupo
+
+```typescript
+// Saber se há live ativa em uma sala
+const isLive = app.isBroadcasting("/webrtc/:room", "gaming");
+
+// Obter dados do transmissor atual
+const broadcaster = app.getActiveStream("/webrtc/:room", "gaming");
+
+// Listar todas as transmissões ativas
+const allLive = app.getAllActiveStreams("/webrtc/:room");
+
+// Enviar reação flutuante programaticamente
+group.sendReaction("gaming", {
+  from: "user_123",
+  fromName: "Dan",
+  emoji: "🔥",
+});
+```
+
+Veja o guia completo em [docs/webrtc.md](./docs/webrtc.md).
+
+---
+
+## 👥 Online Presence Tracking Suite
+
+O motor nativo `PresenceTracker` gerencia o ciclo de vida de usuários online, snapshots de estado e atualizações de status.
+
+### Deduplicação Automática de Múltiplas Abas
+
+Quando um mesmo `userId` abre múltiplas abas ou conexões simultâneas, o WsRouter incrementa o contador `connections` sem poluir a sala com múltiplos eventos `presence_join`. O evento `presence_leave` só é emitido aos pares quando a **última conexão** daquele usuário é encerrada.
+
+```typescript
+app.ws("/presence/:room", (ws, req, params) => {
+  const group = app.getWsGroupByPath("/presence/:room");
+  if (!group) return;
+
+  // Registra presença com metadados customizados
+  group.track(ws, {
+    userId: "user_42",
+    name: "Alice",
+    status: "online", // "online" | "away" | "busy" | "meeting"
+    statusMessage: "Em reunião de design",
+  });
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === "set_status") {
+      // Atualiza status e emite broadcast `presence_update`
+      group.updatePresence(ws, {
+        status: data.status,
+        statusMessage: data.statusMessage,
+      });
+    }
+  };
+});
+
+// API REST: inspecionar usuários online em qualquer rota
+app.get("/api/online-users", () => {
+  const users = app.getPresence("/presence/:room");
+  return {
+    body: JSON.stringify({ count: users.length, users }),
+    init: { headers: { "Content-Type": "application/json" } },
+  };
+});
+```
+
+Veja o guia completo em [docs/presence.md](./docs/presence.md).
 
 ---
 
@@ -703,20 +888,52 @@ app.patch(path, handler)
 app.options(path, handler)
 app.head(path, handler)
 app.ws(path, handler)
+app.worker(handlerOrRoute, name?)
 
 // Middlewares
 app.use(middleware)
+app.use(pathPattern, middleware)
+
+// Sub-routers
+app.mount(prefix, subRouter)
 
 // WebSockets
+app.broadcast(pathOrPattern, message, permissionFn?, senderParams?): boolean
 app.getWsGroupByPath(pattern): WebSocketGroup | undefined
 app.closeGroupByPath(pattern): boolean
 app.closeAllWebSockets(): void
+
+// WebRTC Signaling & Streaming
+app.getSignaling(pathOrPattern): WebRTCSignalingHub | undefined
+app.getActiveStream(pathOrPattern, room): ActiveStreamInfo | undefined
+app.getAllActiveStreams(pathOrPattern): ActiveStreamInfo[]
+app.isBroadcasting(pathOrPattern, room): boolean
+app.startBroadcasting(pathOrPattern, broadcasterId, name, room, title?, params?): ActiveStreamInfo | undefined
+app.stopBroadcasting(pathOrPattern, broadcasterId, room, params?): boolean
+app.sendReaction(pathOrPattern, room, reaction, params?): boolean
+app.getPeerCount(pathOrPattern): number
+app.getPeers(pathOrPattern): string[]
+app.sendToPeer(pathOrPattern, peerId, message): boolean
+
+// Presence Tracking
+app.getPresence(pathOrPattern): PresenceUser[]
+app.getPresenceUser(pathOrPattern, userId): PresenceUser | undefined
+app.updatePresence(pathOrPattern, wsOrUserId, partialData, params?): PresenceUser | undefined
+
+// Inspeção & Rotas Modulares
+app.getHttpRoutes(): readonly HttpRoute[]
+app.getWsRoutes(): readonly WsRoute[]
+app.getMiddlewares(): readonly MiddlewareRoute[]
+app.getMiddlewareChain(): MiddlewareChain
+app.getWorkers(): readonly WorkerRoute[]
+app.getHttpRouteByPath(method, path): HttpRoute | undefined
+app.getWsRouteByPath(path): WsRoute | undefined
 
 // Handler principal
 app.handleRequest(req: Request): Promise<Response>
 ```
 
-### `WebSocketGroup` Methods
+### `WebSocketGroup` Methods, Presence & WebRTC
 
 ```typescript
 group.addSocket(ws, params)
@@ -726,6 +943,46 @@ group.size: number
 group.broadcast(message, permissionFn?, senderParams?)
 group.sendLastBroadcastTo(ws, receiverParams)
 group.closeGroup()
+
+// Online Presence Tracking
+group.presence: PresenceTracker
+group.track(ws, user)
+group.untrack(ws)
+group.updatePresence(wsOrUserId, partialData)
+group.getPresenceList(): PresenceUser[]
+group.getPresenceUser(userId): PresenceUser | undefined
+group.presenceSize: number
+
+// WebRTC Live Signaling
+group.signaling: WebRTCSignalingHub
+group.handleSignaling(ws, rawData, params?)
+group.registerPeer(ws, peerId)
+group.unregisterPeer(ws)
+group.startBroadcasting(broadcasterId, name, room, title?, params?)
+group.stopBroadcasting(broadcasterId, room, params?)
+group.getActiveStream(room)
+group.getAllActiveStreams()
+group.isBroadcasting(room)
+group.sendReaction(room, reaction, params?)
+group.sendToPeer(peerId, message)
+group.peerCount: number
+group.getPeers(): string[]
+
+// Event Hooks & Lifecycle
+group.onConnect((ws, params) => void)
+group.onDisconnect((ws, params) => void)
+group.on(event, listener)
+group.off(event, listener)
+group.emit(event, ...args)
+```
+
+### Modular Routing Classes
+
+- **`HttpRoute`**: Encapsula métodos HTTP (`GET`, `POST`, etc.), compilação de `URLPattern`, correspondência e execução de handlers.
+- **`WsRoute`**: Encapsula endpoints WebSocket, seu respectivo `WebSocketGroup`, `URLPattern` e ciclo de conexões.
+- **`MiddlewareRoute`**: Encapsula funções de middleware com suporte a escopo de caminho opcional.
+- **`MiddlewareChain`**: Executa a pilha em modelo cebola (onion), provendo `RequestContext` e `state`.
+- **`WorkerRoute`**: Encapsula handlers de fallback e workers executados antes de arquivos estáticos.
 ```
 
 ### `PermissionFn`
@@ -883,6 +1140,8 @@ deno task lint
 
 ## 📚 Documentação
 
+- [Guia WebRTC Live Streaming](./docs/webrtc.md)
+- [Rastreamento de Presença Online](./docs/presence.md)
 - [Guia de Segurança](./docs/security.md)
 - [Roadmap de Adaptadores](./docs/roadmap-adapters.md)
 - [Roadmap de Rate Limiting](./docs/roadmap-rate-limiting.md)
@@ -925,7 +1184,19 @@ Contribuições são bem-vindas! Por favor:
 4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
-### Desenvolvimento Local
+### Desenvolvimento Local / AI Studio
+
+Devido às restrições do ambiente AI Studio e para compatibilidade com a plataforma, o projeto utiliza a porta `3000` para o servidor de desenvolvimento. A infraestrutura inclui um arquivo `package.json` ponte que executa o `install-script.sh` antes de invocar o `deno task`. Isso garante que o Deno seja baixado e configurado se não estiver no ambiente.
+
+```bash
+# Iniciar o servidor de desenvolvimento
+npm run dev
+
+# Rodar a checagem completa de testes, tipos e linting
+npm run test
+```
+
+Caso esteja rodando localmente (fora do AI Studio) com o Deno já instalado:
 
 ```bash
 # Clone o repositório
@@ -933,13 +1204,10 @@ git clone https://github.com/vanaware/wsrouter.git
 cd wsrouter
 
 # Execute testes
-deno task tests
+deno task check-all
 
 # Execute exemplo principal
-deno task start
-
-# Execute exemplo JWT
-deno task example
+deno task dev
 ```
 
 ---

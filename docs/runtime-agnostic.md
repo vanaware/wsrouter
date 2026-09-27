@@ -22,8 +22,15 @@ Atualmente, fornecemos adaptadores oficiais e testados apenas para **Deno**. Ada
                            │ injeta adaptadores
 ┌──────────────────────────▼──────────────────────────────┐
  │              CORE AGNÓSTICO (src/mod.ts)                │
- │  - Router, WebSocketGroup, tipos                        │
- │  - ZERO dependência de runtime                          │
+ │  - Router (src/router.ts)                               │
+ │  - HttpRoute (src/http-route.ts)                        │
+ │  - WsRoute (src/ws-route.ts)                            │
+ │  - WebSocketGroup (src/websocket-group.ts)              │
+ │  - MiddlewareChain (src/middleware-chain.ts)            │
+ │  - MiddlewareRoute (src/middleware-route.ts)            │
+ │  - WorkerRoute (src/worker-route.ts)                    │
+ │  - Types (src/types.ts)                                 │
+ │  - ZERO dependência de runtime específico               │
  │  - Usa interfaces: WebSocketUpgrader, StaticFileHandler │
  └──────────────────────────┬──────────────────────────────┘
                            │ implementado por
@@ -70,7 +77,7 @@ const app = createDenoRouter({
 
 app.get("/hello", () => ({ body: "Hello!" }));
 
-Deno.serve({ port: 8000 }, app.handleRequest.bind(app));
+Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 ```
 
 ## 🟢 Usando com Node.js ou Bun (Via Core Puro)

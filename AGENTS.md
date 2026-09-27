@@ -13,17 +13,16 @@ Welcome to the WsRouter project! This file (`AGENTS.md`) is automatically inject
 - **No Direct Deno.test**: Do NOT use the raw `Deno.test()` syntax for new tests.
 - **Command**: Run tests using `deno task test` or `deno task check-all`.
 
-## 6. AI Studio Environment Constraints & Bootstrapping
+## 3. AI Studio Environment Constraints & Bootstrapping
 - **Port 3000**: The development server (Deno's native serve in `example/principal/main.ts`) MUST run on port 3000, as enforced by the AI Studio environment (config .env file with PORT=3000).
 - **HMR**: Hot Module Replacement is disabled. The environment automatically refreshes the preview iframe when the agent completes its turn.
-- **Node.js Bridge (`package.json` & `install-script.sh`)**: Although this is a pure Deno project, the underlying AI Studio container natively expects a Node.js ecosystem. We retain `package.json` EXCLUSIVELY as a bridge to expose the standard `dev`and `lint` scripts required by the platform. These scripts trigger `install-script.sh` to download and bootstrap the Deno CLI on the fly during container initialization, enabling our Deno-native workflow.
+- **Node.js Bridge (`package.json` & `install-script.sh`)**: Although this is a pure Deno project, the underlying AI Studio container natively expects a Node.js ecosystem. We retain `package.json` EXCLUSIVELY as a bridge to expose the standard `dev` and `lint` scripts required by the platform. These scripts trigger `install-script.sh` to download and bootstrap the Deno CLI on the fly during container initialization, enabling our Deno-native workflow.
 
-## 7. Development Workflow & Continuous Validation
+## 4. Development Workflow & Continuous Validation
 - **Mandatory Verification**: After executing ANY task, feature request, or to-do list item, you MUST verify the project's integrity by running:
   - Linter & Type Check: `npm run lint` (which runs `deno check` under the hood).
   - Tests: `deno task test`.
 - **Proactive Unit Testing**: Whenever you implement new functions, utilities, or complex logic, you MUST proactively create unit tests for them using the `@std/testing/bdd` standard. Do not wait for the user to explicitly ask for tests.
 
-By following these guidelines, we maintain a fast, dependency-free, and cohesive Deno/Preact environment without the overhead of Node.js toolchains or complex CSS bundlers.
-
-We are developing an PWA app following a planned directive and tasks. Follow instruction for actual status and next task at CURRENT.md file.
+## 5. Project Status & Roadmap
+- Follow instructions for current status, security audit results, and roadmap directives in the `CURRENT.md` file.

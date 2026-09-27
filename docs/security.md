@@ -58,7 +58,7 @@ Isso instrui navegadores a sempre usar HTTPS para seu domínio.
 
 ## 📂 Proteção de Arquivos Estáticos
 
-### Dotfiles
+### Dotfiles e Traversal Defense-in-Depth
 
 Por padrão, arquivos que começam com `.` são bloqueados:
 
@@ -75,25 +75,21 @@ const app = createDenoRouter({
 - `.DS_Store`
 - `.htaccess`
 
-Se precisar servir dotfiles (não recomendado):
+Mesmo quando `allowDotfiles: true` é habilitado (por exemplo, para servir `.well-known`), segmentos de diretório relativo como `..` e `.` continuam **estritamente proibidos e bloqueados com 404**, garantindo que a ativação de dotfiles nunca abra brechas de path traversal.
 
-```typescript
-const app = createDenoRouter({
-  staticDir: "./public",
-  allowDotfiles: true, // ⚠️ Risco de segurança
-});
-```
+### Symlinks e Diretórios Symlink
 
-### Symlinks
+O adaptador Deno **recusa symlinks** diretamente e valida a resolução física com `Deno.realPath`:
+- Symlinks diretos são detectados via `Deno.lstat` e recusados.
+- Diretórios intermediários symlink são validados contra `resolvedBase`, impedindo que symlinks de diretório apontando para fora do `staticDir` sejam acessados.
 
-O adaptador Deno **recusa symlinks** por padrão para evitar vazamento de arquivos fora do diretório público.
+### Headers de Arquivos Estáticos & Proteção MIME
 
-**Exemplo de ataque bloqueado:**
-```bash
-# Se existir: public/secret -> /etc/passwd
-# Requisição: GET /secret
-# Resultado: 404 (não serve o arquivo)
-```
+O adaptador Deno injeta automaticamente:
+- `X-Content-Type-Options: nosniff` (prevenindo ataques de sniffing MIME)
+- `ETag` e suporte transparente a `If-None-Match` (retornando `304 Not Modified` e cancelando o stream para economia de I/O)
+- `Cache-Control` e `Last-Modified`
+- Tratamento seguro de requisições `HEAD`, cancelando o stream aberto para evitar vazamento de file descriptors.
 
 ### Path Traversal
 
