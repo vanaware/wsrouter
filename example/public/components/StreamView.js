@@ -1,6 +1,6 @@
 // example/public/components/StreamView.js
 import { html } from 'https://esm.sh/htm/preact';
-import { useRef, useEffect } from 'https://esm.sh/preact/hooks';
+import { useRef, useEffect, useState } from 'https://esm.sh/preact/hooks';
 import { ReactionOverlay } from './ReactionOverlay.js';
 
 export function StreamView({
