@@ -173,7 +173,8 @@
       "jsr:@std/http@1",
       "jsr:@std/media-types@1",
       "jsr:@std/path@1",
-      "jsr:@std/testing@1"
+      "jsr:@std/testing@1",
+      "jsr:@vanaware/buildit@~0.4.1"
     ]
   }
 }
