@@ -22,39 +22,47 @@ const app = createDenoRouter({
 // Enable CORS for API routes so static GitHub Pages or external frontends can query the backend
 app.use(async (req, _params, next) => {
   const origin = req.headers.get("origin") || "*";
-  const acrHeaders = req.headers.get("access-control-request-headers");
+  const method = req.method;
 
-  if (req.method === "OPTIONS") {
+  // Preflight request
+  if (method === "OPTIONS") {
     return new Response(null, {
       status: 204,
       headers: {
         "Access-Control-Allow-Origin": origin,
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        "Access-Control-Allow-Headers": acrHeaders || "Content-Type, Authorization, Sec-WebSocket-Protocol",
+        "Access-Control-Allow-Headers": req.headers.get("access-control-request-headers") || "*",
         "Access-Control-Max-Age": "86400",
-        "Access-Control-Allow-Credentials": origin !== "*" ? "true" : "false",
+        "Access-Control-Allow-Credentials": "true",
       },
     });
   }
 
   const res = await next(req);
-  const response = (res instanceof Response) ? res : new Response(JSON.stringify(res), { headers: { "Content-Type": "application/json" } });
+  const response = (res instanceof Response) ? res : new Response(JSON.stringify(res), { 
+    headers: { "Content-Type": "application/json" } 
+  });
   
+  // Clone headers to ensure they are mutable
   const headers = new Headers(response.headers);
+  
+  // Always set CORS headers on every response
   headers.set("Access-Control-Allow-Origin", origin);
   headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+  headers.set("Access-Control-Allow-Credentials", "true");
   
-  if (origin !== "*" && origin !== "null") {
-    headers.set("Access-Control-Allow-Credentials", "true");
-  }
-  
+  const acrHeaders = req.headers.get("access-control-request-headers");
   if (acrHeaders) {
     headers.set("Access-Control-Allow-Headers", acrHeaders);
   } else {
-    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Sec-WebSocket-Protocol");
+    headers.set("Access-Control-Allow-Headers", "*");
   }
 
-  // Use a new response object to ensure headers are properly sent and mutable
+  // Debug log to confirm middleware is running
+  if (req.url.includes("/api/")) {
+    console.log(`[CORS] ${method} ${req.url} -> Status ${response.status} (Origin: ${origin})`);
+  }
+
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,

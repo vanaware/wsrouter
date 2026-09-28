@@ -177,12 +177,18 @@ export async function checkBackendHealth(timeoutMs = 3500) {
       method: 'GET',
       headers: { Accept: 'application/json' },
       signal: controller.signal,
-      credentials: 'include', // Allow passing cookies to AI Studio proxy
+      credentials: 'omit', // Try without credentials first to avoid AI Studio redirect if possible
+      redirect: 'follow',
     });
     clearTimeout(timer);
 
     const elapsed = Math.round(performance.now() - startTime);
     console.log(`[Health] Response: ${res.status} in ${elapsed}ms`);
+
+    // Handle opaque or redirected responses that might fail res.ok
+    if (res.status === 302 || res.status === 0) {
+       throw new Error('Backend requires authentication (AI Studio Login)');
+    }
 
     if (res.ok) {
       let data = null;
