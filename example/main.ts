@@ -99,7 +99,7 @@ app.get("/api/health", () => {
     body: JSON.stringify({
       status: "ok",
       server: "WsRouter",
-      version: "0.3.1",
+      version: "0.3.3",
       runtime: "Deno",
       timestamp: Date.now(),
       uptime: Math.round(performance.now() / 1000),
