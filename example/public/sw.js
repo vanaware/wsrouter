@@ -49,11 +49,20 @@ self.addEventListener('fetch', (event) => {
   // Only cache GET requests
   if (event.request.method !== 'GET') return;
 
+  // Skip caching for API requests
+  const url = new URL(event.request.url);
+  if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return cached || fetch(event.request).then((response) => {
-        // Cache new successful requests
-        if (response.status === 200) {
+        // Only cache local assets or specific trusted CDNs
+        const isLocal = url.origin === self.location.origin;
+        const isCdn = url.hostname.includes('cdn.jsdelivr.net') || url.hostname.includes('fonts.googleapis.com');
+
+        if (response.status === 200 && (isLocal || isCdn)) {
           const cloned = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, cloned);

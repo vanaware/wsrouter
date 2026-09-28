@@ -21,6 +21,7 @@ const app = createDenoRouter({
 // Enable CORS for API routes so static GitHub Pages or external frontends can query the backend
 app.use(async (req, _params, next) => {
   const origin = req.headers.get("origin") || "*";
+  console.log(`[CORS] Request: ${req.method} ${req.url} | Origin: ${origin}`);
 
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -28,7 +29,7 @@ app.use(async (req, _params, next) => {
       headers: {
         "Access-Control-Allow-Origin": origin,
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, Sec-WebSocket-Protocol",
+        "Access-Control-Allow-Headers": req.headers.get("access-control-request-headers") || "Content-Type, Authorization, Sec-WebSocket-Protocol",
         "Access-Control-Max-Age": "86400",
         "Access-Control-Allow-Credentials": "true",
       },
@@ -36,17 +37,19 @@ app.use(async (req, _params, next) => {
   }
 
   const res = await next(req);
-  if (res) {
-    const headers = new Headers(res.headers);
-    headers.set("Access-Control-Allow-Origin", origin);
-    headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Sec-WebSocket-Protocol");
-    headers.set("Access-Control-Allow-Credentials", "true");
-    return new Response(res.body, {
-      status: res.status,
-      statusText: res.statusText,
-      headers,
-    });
+  if (res instanceof Response) {
+    res.headers.set("Access-Control-Allow-Origin", origin);
+    res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+    res.headers.set("Access-Control-Allow-Credentials", "true");
+    
+    if (req.headers.has("access-control-request-headers")) {
+      res.headers.set("Access-Control-Allow-Headers", req.headers.get("access-control-request-headers")!);
+    }
+
+    // Ensure we don't return "*" with credentials
+    if (origin === "*" && res.headers.get("Access-Control-Allow-Credentials") === "true") {
+      res.headers.delete("Access-Control-Allow-Credentials");
+    }
   }
   return res;
 });
@@ -98,7 +101,6 @@ app.get("/api/health", () => {
     init: {
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
       },
     },
   };

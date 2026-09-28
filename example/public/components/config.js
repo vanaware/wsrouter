@@ -170,6 +170,7 @@ export async function checkBackendHealth(timeoutMs = 3500) {
   }
 
   const healthUrl = buildApiUrl('/api/health');
+  console.log(`[Health] Probing: ${healthUrl}`);
 
   try {
     const res = await fetch(healthUrl, {
@@ -181,6 +182,7 @@ export async function checkBackendHealth(timeoutMs = 3500) {
     clearTimeout(timer);
 
     const elapsed = Math.round(performance.now() - startTime);
+    console.log(`[Health] Response: ${res.status} in ${elapsed}ms`);
 
     if (res.ok) {
       let data = null;
