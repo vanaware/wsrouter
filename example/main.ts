@@ -1,5 +1,5 @@
 // example/main.ts
-console.log("Starting WsRouter Example Server v0.3.5...");
+console.log("Starting WsRouter Example Server v0.3.6...");
 /**
  * @file main.ts
  * @description Unified WsRouter example server showcasing WebRTC live streaming,
@@ -22,6 +22,7 @@ const app = createDenoRouter({
 // Enable CORS for API routes so static GitHub Pages or external frontends can query the backend
 app.use(async (req, _params, next) => {
   const origin = req.headers.get("origin") || "*";
+  const acrHeaders = req.headers.get("access-control-request-headers");
 
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -29,7 +30,7 @@ app.use(async (req, _params, next) => {
       headers: {
         "Access-Control-Allow-Origin": origin,
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        "Access-Control-Allow-Headers": req.headers.get("access-control-request-headers") || "Content-Type, Authorization, Sec-WebSocket-Protocol",
+        "Access-Control-Allow-Headers": acrHeaders || "Content-Type, Authorization, Sec-WebSocket-Protocol",
         "Access-Control-Max-Age": "86400",
         "Access-Control-Allow-Credentials": origin !== "*" ? "true" : "false",
       },
@@ -47,8 +48,8 @@ app.use(async (req, _params, next) => {
     headers.set("Access-Control-Allow-Credentials", "true");
   }
   
-  if (req.headers.has("access-control-request-headers")) {
-    headers.set("Access-Control-Allow-Headers", req.headers.get("access-control-request-headers")!);
+  if (acrHeaders) {
+    headers.set("Access-Control-Allow-Headers", acrHeaders);
   } else {
     headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Sec-WebSocket-Protocol");
   }
@@ -100,7 +101,7 @@ app.get("/api/health", () => {
     body: JSON.stringify({
       status: "ok",
       server: "WsRouter",
-      version: "0.3.5",
+      version: "0.3.6",
       runtime: "Deno",
       timestamp: Date.now(),
       uptime: Math.round(performance.now() / 1000),

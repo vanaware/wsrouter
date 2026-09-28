@@ -1,5 +1,5 @@
 // example/public/sw.js
-const CACHE_NAME = 'wsrouter-v0.3.5';
+const CACHE_NAME = 'wsrouter-v0.3.6';
 const ASSETS = [
   './',
   './index.html',
