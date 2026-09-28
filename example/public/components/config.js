@@ -152,6 +152,23 @@ export async function checkBackendHealth(timeoutMs = 3500) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
+  const customBackend = getCustomBackend();
+  const isGH = isGitHubPages();
+
+  // If on static hosting and no backend configured, don't even try to fetch
+  if (isGH && !customBackend) {
+    lastHealthStatus = {
+      isChecking: false,
+      isOnline: false,
+      latencyMs: 0,
+      timestamp: Date.now(),
+      serverInfo: null,
+      error: 'No remote backend configured. Please set one in Settings.',
+    };
+    notifyHealthListeners();
+    return { ...lastHealthStatus };
+  }
+
   const healthUrl = buildApiUrl('/api/health');
 
   try {

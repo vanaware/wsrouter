@@ -8,13 +8,8 @@
   "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "https://cdn.jsdelivr.net/gh/google/material-design-icons/png/communication/videocam/materialicons/48dp/2x/baseline_videocam_white_48dp.png",
-      "sizes": "96x96",
-      "type": "image/png"
-    },
-    {
-      "src": "https://cdn.jsdelivr.net/gh/google/material-design-icons/png/communication/videocam/materialicons/48dp/2x/baseline_videocam_white_48dp.png",
-      "sizes": "192x192",
+      "src": "https://deno.land/logo.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
