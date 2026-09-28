@@ -14,7 +14,7 @@
  * 
  * Example: export const DEFAULT_REMOTE_BACKEND = 'https://my-wsrouter.deno.dev';
  */
-export const DEFAULT_REMOTE_BACKEND = '';
+export const DEFAULT_REMOTE_BACKEND = 'https://wsrouter.vanaware.deno.net';
 
 /**
  * Detects if the current client is hosted on GitHub Pages static hosting
