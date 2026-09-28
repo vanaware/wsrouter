@@ -28,12 +28,20 @@
     "include": [
       "src/**/*.ts",
       "README.md",
-      "docs/**/*.md",
+      "LICENSE",
       "deno.jsonc"
     ],
     "exclude": [
-      "tests",
-      "example"
+      "**/*_test.ts",
+      "**/*.test.ts",
+      "tests/",
+      "example/",
+      "scripts/",
+      "docs/",
+      "planning/",
+      "AGENTS.md",
+      "CURRENT.md",
+      ".github/"
     ]
   },
   "name": "@vanaware/wsrouter",

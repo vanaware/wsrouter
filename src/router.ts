@@ -58,6 +58,8 @@ export class Router {
 
   /**
    * Initializes a new Router instance with the specified options.
+   *
+   * @param options - Configuration options for the router.
    */
   constructor(options: RouterOptions = {}) {
     this.basePath = this.normalizeBasePath(options.basePath ?? "");
@@ -72,6 +74,9 @@ export class Router {
 
   /**
    * Configures the WebSocket upgrader implementation.
+   *
+   * @param upgrader - The upgrader instance to use.
+   * @returns The router instance for chaining.
    */
   setWebSocketUpgrader(upgrader: WebSocketUpgrader): this {
     this.webSocketUpgrader = upgrader;
@@ -80,6 +85,9 @@ export class Router {
 
   /**
    * Configures the static file handler implementation.
+   *
+   * @param handler - The handler instance to use.
+   * @returns The router instance for chaining.
    */
   setStaticFileHandler(handler: StaticFileHandler): this {
     this.staticFileHandler = handler;
@@ -215,6 +223,10 @@ export class Router {
 
   /**
    * Registers global or path-scoped middleware functions or nested MiddlewareChain instances.
+   *
+   * @param middlewareOrPathOrChain - A middleware function, a MiddlewareRoute, a MiddlewareChain, or a path pattern.
+   * @param handler - The middleware function or chain if a path pattern was provided as the first argument.
+   * @returns The router instance for chaining.
    */
   use(
     middlewareOrPathOrChain:
@@ -256,8 +268,24 @@ export class Router {
     return this;
   }
 
-  /** Registers a GET route. */
+  /**
+   * Registers a GET route.
+   *
+   * @param path - The URL pattern for the route.
+   * @param handler - The HTTP handler function.
+   * @param options - Optional route configuration.
+   * @returns The router instance for chaining.
+   */
   get(path: string, handler: HttpHandler, options?: HttpRouteOptions): this;
+  /**
+   * Registers a GET route with route-specific middlewares.
+   *
+   * @param path - The URL pattern for the route.
+   * @param middlewares - Array of middlewares to execute for this route.
+   * @param handler - The HTTP handler function.
+   * @param options - Optional route configuration.
+   * @returns The router instance for chaining.
+   */
   get(
     path: string,
     middlewares: (Middleware | MiddlewareRoute)[],
@@ -999,7 +1027,8 @@ export class Router {
   /**
    * Retrieves the list of online users tracked in the WebSocketGroup of a specific path pattern.
    *
-   * @param pathOrPattern The route pattern (e.g. "/chat/:room").
+   * @param pathOrPattern - The route pattern (e.g. "/chat/:room").
+   * @returns Array of online users with their associated metadata.
    */
   getPresence<T = Record<string, unknown>>(
     pathOrPattern: string,

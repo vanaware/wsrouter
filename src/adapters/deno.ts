@@ -1,15 +1,28 @@
-// monorepo/router/src/adapters/deno.ts
-// 🦕 Adaptadores para Deno Runtime — Fase 3: Segurança reforçada
+// src/adapters/deno.ts
+/**
+ * @file deno.ts
+ * @description Deno-specific adapters for WebSocket upgrading and static file serving.
+ */
 
 import { join, resolve } from "@std/path";
 import type { WebSocketUpgrader, StaticFileHandler } from "../mod.ts";
 
+/**
+ * WebSocket upgrader implementation using the native Deno.upgradeWebSocket API.
+ */
 export const denoWebSocketUpgrader: WebSocketUpgrader = {
   upgrade(req: Request): { socket: WebSocket; response: Response } {
     return Deno.upgradeWebSocket(req);
   },
 };
 
+/**
+ * Factory function to create a static file handler using Deno's file system APIs.
+ *
+ * @param staticDir - Local directory to serve files from.
+ * @param embeddedDir - Optional additional directory for embedded assets.
+ * @returns A StaticFileHandler implementation.
+ */
 export function createDenoStaticFileHandler(
   staticDir: string | null,
   embeddedDir: string | null = null,
@@ -29,10 +42,14 @@ export function createDenoStaticFileHandler(
   };
 }
 
+/**
+ * Internal helper to attempt serving a file from a base directory.
+ * Implements security checks for containment, symlinks, and dotfiles.
+ */
 async function tryServeDir(baseDir: string, pathname: string): Promise<Response | null> {
   const fullPath = join(baseDir, pathname);
   
-  // 🚀 CONTAINMENT: Resolver caminho absoluto e verificar que está dentro de baseDir
+  // 🚀 CONTAINMENT: Resolve absolute path and verify it stays within baseDir
   let resolvedPath: string;
   try {
     resolvedPath = await Deno.realPath(fullPath);
@@ -49,18 +66,18 @@ async function tryServeDir(baseDir: string, pathname: string): Promise<Response 
   const candidates = buildFileCandidates(baseDir, pathname);
   for (const candidate of candidates) {
     try {
-      // 🚀 SYMLINKS: Usar lstat para recusar symlinks diretos
+      // 🚀 SYMLINKS: Use lstat to reject direct symlinks
       const info = await Deno.lstat(candidate);
       
       if (info.isSymlink) {
-        console.warn(`[Static] Symlink recusado: ${candidate}`);
+        console.warn(`[Static] Symlink rejected: ${candidate}`);
         continue;
       }
 
-      // 🚀 CONTAINMENT: Verificar que o path real está contido no diretório base (previne symlinks intermediários)
+      // 🚀 CONTAINMENT: Verify that the real path is contained in the base directory (prevents intermediate symlinks)
       const realCandidate = await Deno.realPath(candidate).catch(() => null);
       if (!realCandidate || (!realCandidate.startsWith(resolvedBase + "/") && realCandidate !== resolvedBase)) {
-        console.warn(`[Static] Path fora do diretório base recusado: ${candidate}`);
+        console.warn(`[Static] Path outside base directory rejected: ${candidate}`);
         continue;
       }
       
@@ -69,7 +86,7 @@ async function tryServeDir(baseDir: string, pathname: string): Promise<Response 
         const mimeType = defaultDenoMimeTypeResolver(ext) ?? "application/octet-stream";
         const file = await Deno.open(candidate);
         
-        // 🚀 HEADERS: Adicionar metadata completa e segurança
+        // 🚀 HEADERS: Add complete metadata and security headers
         const headers: HeadersInit = {
           "Content-Type": mimeType,
           "Content-Length": info.size.toString(),
@@ -78,7 +95,7 @@ async function tryServeDir(baseDir: string, pathname: string): Promise<Response 
           "X-Content-Type-Options": "nosniff",
         };
         
-        // Adicionar ETag baseado em size + mtime
+        // Add ETag based on size + mtime
         if (info.mtime) {
           const etag = `"${info.size.toString(16)}-${info.mtime.getTime().toString(16)}"`;
           headers["ETag"] = etag;
@@ -87,7 +104,7 @@ async function tryServeDir(baseDir: string, pathname: string): Promise<Response 
         return new Response(file.readable, { headers });
       }
       
-      // 🚀 REDIRECT: Se é diretório sem barra final, redirecionar
+      // 🚀 REDIRECT: If it's a directory without a trailing slash, redirect
       if (info.isDirectory && !pathname.endsWith("/")) {
         return new Response(null, {
           status: 301,
@@ -104,6 +121,10 @@ async function tryServeDir(baseDir: string, pathname: string): Promise<Response 
   return null;
 }
 
+/**
+ * Generates an array of potential file path candidates based on the requested pathname.
+ * Handles automatic extension appending (.html, .htm) and index file resolution.
+ */
 function buildFileCandidates(baseDir: string, pathname: string): string[] {
   const fullPath = join(baseDir, pathname);
   const candidates: string[] = [fullPath];
@@ -116,6 +137,9 @@ function buildFileCandidates(baseDir: string, pathname: string): string[] {
   return candidates;
 }
 
+/**
+ * Maps common file extensions to their corresponding standard MIME types.
+ */
 function defaultDenoMimeTypeResolver(ext: string): string | undefined {
   const map: Record<string, string> = {
     html: "text/html; charset=utf-8", htm: "text/html; charset=utf-8",
@@ -126,7 +150,7 @@ function defaultDenoMimeTypeResolver(ext: string): string | undefined {
     pdf: "application/pdf", xml: "application/xml", woff: "font/woff",
     woff2: "font/woff2", ttf: "font/ttf", otf: "font/otf",
     mp3: "audio/mpeg", mp4: "video/mp4", webm: "video/webm", wasm: "application/wasm",
-    // 🚀 EXTENSÕES MODERNAS
+    // 🚀 MODERN EXTENSIONS
     webp: "image/webp", avif: "image/avif", webmanifest: "application/manifest+json",
     ts: "application/typescript", tsx: "application/typescript",
     jsx: "application/javascript", map: "application/json",

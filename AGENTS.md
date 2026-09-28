@@ -24,5 +24,11 @@ Welcome to the WsRouter project! This file (`AGENTS.md`) is automatically inject
   - Tests: `deno task test`.
 - **Proactive Unit Testing**: Whenever you implement new functions, utilities, or complex logic, you MUST proactively create unit tests for them using the `@std/testing/bdd` standard. Do not wait for the user to explicitly ask for tests.
 
-## 5. Project Status & Roadmap
+## 5. JSR Publishing & Documentation Standards
+- **English Only**: All public documentation (README.md, JSDoc) MUST be in English.
+- **JSDoc Requirement**: Every exported symbol MUST have a complete JSDoc block following the standard defined in `docs/publish-jsr-rules.md`.
+- **README Structure**: The `README.md` must follow the mandatory structure: Title, Short Description, Installation, Basic Usage, and Documentation link.
+- **Verification**: Always run `deno doc --lint mod.ts` and `deno publish --dry-run` before confirming any task related to publishing.
+
+## 6. Project Status & Roadmap
 - Follow instructions for current status, security audit results, and roadmap directives in the `CURRENT.md` file.

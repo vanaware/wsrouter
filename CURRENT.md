@@ -146,6 +146,11 @@ A complete, high-performance WebRTC peer connection and signaling engine (`src/w
 
 1. **Rate Limiting Middleware Module**:
    - Implement native sliding-window rate limiting middleware with pluggable storage (in-memory `Map` default, extensible for Redis/KV).
-2. **Additional Runtime Adapters (Phase 2)**:
+2. **JSR Standards Compliance**:
+   - [x] Translate README.md to English.
+   - [x] Align README.md with JSR mandatory structure.
+   - [ ] Audit and update JSDocs for all exported symbols in `src/`.
+   - [x] Configure `publish.include` and `publish.exclude` in `deno.jsonc`.
+3. **Additional Runtime Adapters (Phase 2)**:
    - Implement `src/adapters/bun.ts` using Bun's native `Bun.serve` and WebSocket API.
    - Implement `src/adapters/node.ts` for Node.js using `node:http` and `ws`.
