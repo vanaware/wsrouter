@@ -49,9 +49,17 @@ self.addEventListener('fetch', (event) => {
   // Only cache GET requests
   if (event.request.method !== 'GET') return;
 
-  // Skip caching for API requests
   const url = new URL(event.request.url);
-  if (url.pathname.startsWith('/api/')) {
+  const isLocal = url.origin === self.location.origin;
+
+  // Skip Service Worker for cross-origin API calls or external resources (except CDNs)
+  if (!isLocal) {
+    const isCdn = url.hostname.includes('cdn.jsdelivr.net') || url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('gstatic.com');
+    if (!isCdn) return;
+  }
+
+  // Skip caching for local API requests too
+  if (isLocal && url.pathname.startsWith('/api/')) {
     return;
   }
 
@@ -59,8 +67,7 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((cached) => {
       return cached || fetch(event.request).then((response) => {
         // Only cache local assets or specific trusted CDNs
-        const isLocal = url.origin === self.location.origin;
-        const isCdn = url.hostname.includes('cdn.jsdelivr.net') || url.hostname.includes('fonts.googleapis.com');
+        const isCdn = url.hostname.includes('cdn.jsdelivr.net') || url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('gstatic.com');
 
         if (response.status === 200 && (isLocal || isCdn)) {
           const cloned = response.clone();
