@@ -1,4 +1,5 @@
 // example/main.ts
+console.log("Starting WsRouter Example Server v0.3.5...");
 /**
  * @file main.ts
  * @description Unified WsRouter example server showcasing WebRTC live streaming,
@@ -99,7 +100,7 @@ app.get("/api/health", () => {
     body: JSON.stringify({
       status: "ok",
       server: "WsRouter",
-      version: "0.3.3",
+      version: "0.3.5",
       runtime: "Deno",
       timestamp: Date.now(),
       uptime: Math.round(performance.now() / 1000),

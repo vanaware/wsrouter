@@ -37,7 +37,7 @@
     ]
   },
   "name": "@vanaware/wsrouter",
-  "version": "0.3.3",
+  "version": "0.3.5",
   "license": "MIT",
   "author": "Vanaware",
   "description": "A WebSocket router for Deno",
