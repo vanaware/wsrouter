@@ -1,5 +1,5 @@
 // example/main.ts
-console.log("Starting WsRouter Example Server v0.3.6...");
+console.log("Starting WsRouter Example Server v0.4.0");
 /**
  * @file main.ts
  * @description Unified WsRouter example server showcasing WebRTC live streaming,
@@ -9,13 +9,56 @@ console.log("Starting WsRouter Example Server v0.3.6...");
 import { createDenoRouter } from "../src/deno.ts";
 import { SignJWT, jwtVerify } from "https://deno.land/x/jose@v5.2.0/index.ts";
 
+/**
+ * Procura o primeiro diretório válido entre os candidatos.
+ * Retorna o caminho resolvido ou `null` se nenhum existir.
+ */
+async function resolveStaticDir(
+  candidates: string[],
+): Promise<string | null> {
+  for (const candidate of candidates) {
+    try {
+      const stat = await Deno.stat(candidate);
+      if (stat.isDirectory) {
+        const absolute = await Deno.realPath(candidate);
+        console.log(`✅ staticDir encontrado: "${candidate}" → ${absolute}`);
+        return candidate;
+      }
+      console.warn(`⚠️  "${candidate}" existe, mas não é um diretório.`);
+    } catch (err) {
+      if (err instanceof Deno.errors.NotFound) {
+        // Silencioso: era só um candidato que não existe.
+      } else {
+        console.warn(`⚠️  Erro ao testar "${candidate}":`, err);
+      }
+    }
+  }
+  console.error("❌ Nenhum staticDir válido encontrado entre os candidatos:");
+  for (const c of candidates) console.error(`   - ${c}`);
+  return null;
+}
+
+const staticDirCandidates = [
+  "./example/public",
+  "./public",
+  "public",
+  "/example/public",
+  "example/public",
+];
+
+const resolvedStaticDir = await resolveStaticDir(staticDirCandidates);
+
+if (!resolvedStaticDir) {
+  console.error("🚨 Continuando sem arquivos estáticos — rotas de API ainda funcionarão.");
+}
+
 const PORT = Number(Deno.env.get("PORT") || 3000);
 const JWT_SECRET = Deno.env.get("JWT_SECRET") || "wsrouter-demo-secret-key-123456";
 const encoder = new TextEncoder();
 
 const app = createDenoRouter({
   basePath: "",
-  staticDir: "./example/public",
+  staticDir: resolvedStaticDir ?? undefined,
   forceHttps: false,
 });
 

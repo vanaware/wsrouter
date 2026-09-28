@@ -5,7 +5,7 @@
     "example": {
       "arquivoSaida": "snapshots/example.md",
       "includes": [
-        "example/{jwt,principal}/**/*.{tsx,jsx,js,ts,css,html,manifest,json,jsonc,md}"
+        "example/**/*.{tsx,jsx,js,ts,css,html,manifest,json,jsonc,md}"
       ],
       "excludes": [
         "**/node_modules/**",

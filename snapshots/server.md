@@ -5,9 +5,9 @@
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB [v0.3.0] - Modo: SERVER
+# Contexto Exportado do Projeto WorkerDB [v0.4.0] - Modo: SERVER
 
-Gerado automaticamente em: 2026-09-27T23:57:06.814Z
+Gerado automaticamente em: 2026-09-28T17:11:49.557Z
 
 ---
 
@@ -25,9 +25,6 @@ PORT=3000
 name: CI
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
@@ -177,90 +174,22 @@ jobs:
 ## Arquivo: `README.md`
 
 ````md
-# 🚂 @vanaware/wsrouter
+# wsrouter
 
-[![Deno](https://img.shields.io/badge/Deno-1.40+-black?logo=deno)](https://deno.com)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?logo=typescript)](https://www.typescriptlang.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+A high-performance, runtime-agnostic WebSocket and HTTP router for Deno. Fast, secure, and extensible.
 
-**Router HTTP/WebSocket runtime-agnostic para Deno** — Rápido, seguro e extensível.
+## Installation
 
-O `@vanaware/wsrouter` é um router moderno com suporte completo a HTTP e WebSockets, projetado com arquitetura agnóstica que permite execução em múltiplos runtimes JavaScript. Atualmente oferece suporte oficial para **Deno**, com adaptadores para Node.js, Bun e Cloudflare Workers em desenvolvimento.
-
-## ✨ Features Principais
-
-### 🌐 HTTP Routing
-- ✅ Todos os métodos HTTP: `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `OPTIONS`, `HEAD`
-- ✅ Parâmetros de rota nomeados (`:id`) e catch-all (`*`)
-- ✅ **HEAD automático** baseado em rotas GET (semântica HTTP correta)
-- ✅ **405 Method Not Allowed** com header `Allow` quando método não é permitido
-- ✅ Base path configurável com normalização inteligente
-
-### 🔌 WebSockets & Real-Time Suite
-- ✅ Upgrade automático com adaptadores por runtime
-- ✅ **Grupos de WebSocket** com broadcast inteligente
-- ✅ **Dual Params PermissionFn**: filtra por receiver, sender e conteúdo da mensagem
-- ✅ **Last Broadcast automático**: novos membros recebem a última mensagem ao conectar
-- ✅ **🎥 WebRTC Signaling Engine**: streaming P2P de webcam, tela e áudio, ofertas SDP, respostas e candidatos ICE
-- ✅ **👥 Online Presence Tracking**: contagem e roster de usuários online, detecção multi-aba/multi-dispositivo e status customizados
-- ✅ **Reações Flutuantes**: broadcast e overlay de emojis animados em tempo real
-- ✅ Handlers `onclose`/`onerror` não são sobrescritos pelo router
-- ✅ Graceful shutdown com `closeAllWebSockets()`
-
-### 🛡️ Segurança
-- ✅ **Force HTTPS** com redirect automático (ignora localhost)
-- ✅ **HSTS** (HTTP Strict Transport Security) em respostas HTTPS
-- ✅ **Trust Proxy** explícito para headers `X-Forwarded-*`
-- ✅ **Bloqueio de dotfiles** (`.env`, `.git`, etc.) por padrão
-- ✅ **Recusa de symlinks** para evitar vazamento de arquivos
-- ✅ **Path traversal protection** com sanitização e containment real
-- ✅ Headers completos em arquivos estáticos (`ETag`, `Last-Modified`, `Cache-Control`)
-
-### 🎯 Middlewares
-- ✅ Cadeia de middlewares com `next()`
-- ✅ **Rewrite de rotas** via `next(newReq)`
-- ✅ Execução mesmo em 404 (útil para logging e CORS)
-- ✅ Proteção contra múltiplas chamadas de `next()`
-
-### 📂 Arquivos Estáticos
-- ✅ Servir arquivos de diretório local
-- ✅ Fallback automático para `index.html` e `index.htm`
-- ✅ **Redirect 301** para diretórios sem barra final
-- ✅ MIME types modernos (`.webp`, `.avif`, `.webmanifest`, etc.)
-- ✅ Suporte a diretórios embutidos (embedded)
-
----
-
-## 📦 Instalação
-
-### Deno
-
-```typescript
-import { createDenoRouter } from "jsr:@vanaware/wsrouter@0.1.0/deno";
+```bash
+deno add jsr:@vanaware/wsrouter
 ```
 
-Ou via import map no `deno.json`:
+## Usage
 
-```json
-{
-  "imports": {
-    "@vanaware/wsrouter": "jsr:@vanaware/wsrouter@0.1.0"
-  }
-}
-```
+### Simple HTTP Server
 
-```typescript
-import { createDenoRouter } from "@vanaware/wsrouter/deno";
-```
-
----
-
-## 🚀 Quick Start
-
-### Servidor HTTP Simples
-
-```typescript
-import { createDenoRouter } from "@vanaware/wsrouter/deno";
+```ts
+import { createDenoRouter } from "jsr:@vanaware/wsrouter/deno";
 
 const app = createDenoRouter({
   basePath: "/api",
@@ -277,13 +206,13 @@ app.get("/users/:id", (_req, params) => ({
 }));
 
 Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
-console.log("🚀 Servidor rodando em http://localhost:3000");
+console.log("🚀 Server running on http://localhost:3000");
 ```
 
-### Chat WebSocket com Salas
+### WebSocket Chat with Rooms
 
-```typescript
-import { createDenoRouter } from "@vanaware/wsrouter/deno";
+```ts
+import { createDenoRouter } from "jsr:@vanaware/wsrouter/deno";
 
 const app = createDenoRouter({ basePath: "/api" });
 
@@ -297,10 +226,10 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
     return;
   }
   
-  console.log(`✅ ${user} entrou na sala ${room}`);
+  console.log(`✅ ${user} joined room ${room}`);
   
   ws.onmessage = (event) => {
-    // Broadcast apenas para usuários na mesma sala
+    // Broadcast only to users in the same room
     group.broadcast(
       `[${user}]: ${event.data}`,
       (receiver, sender, _msg) => receiver.room === sender.room,
@@ -309,1095 +238,39 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
   };
   
   ws.onclose = () => {
-    console.log(`❌ ${user} saiu da sala ${room}`);
+    console.log(`❌ ${user} left room ${room}`);
   };
 });
 
 Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 ```
 
-### 🎥 WebRTC Live Streaming & Sinalização P2P
+## Features
 
-```typescript
-import { createDenoRouter } from "@vanaware/wsrouter/deno";
+- ✅ **HTTP Routing**: Named parameters, catch-all routes, automatic HEAD support, and 405 Method Not Allowed handling.
+- ✅ **WebSockets**: Automatic upgrades, smart broadcasting with `PermissionFn`, and multi-room support.
+- ✅ **WebRTC Signaling**: High-performance hub for P2P signaling (SDP, ICE candidates) and live stream management.
+- ✅ **Online Presence**: Real-time tracking of users with multi-tab/multi-device deduplication and status updates.
+- ✅ **Middlewares**: Onion-model execution chain with `next()` and route rewriting capabilities.
+- ✅ **Security**: Force HTTPS, HSTS, trust proxy support, dotfile blocking, and path traversal protection.
+- ✅ **Static Files**: Fast serving of local directories with directory indexing and MIME type detection.
 
-const app = createDenoRouter({ basePath: "/api" });
+## Documentation
 
-// Rota de sinalização WebRTC (transmissão de webcam, ofertas SDP, respostas, ICE e reações)
-app.ws("/webrtc/:room", (ws, _req, params) => {
-  const group = app.getWsGroupByPath("/webrtc/:room");
-  if (!group) return;
+For full API reference and advanced guides, visit the
+[JSR package page](https://jsr.io/@vanaware/wsrouter).
 
-  ws.onmessage = (event) => {
-    // Encaminha ofertas SDP, ICE candidates e eventos de stream automaticamente
-    group.handleSignaling(ws, event.data, params);
-  };
-});
+## Guides
 
-Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
-```
+- [WebRTC Live Streaming Guide](./docs/webrtc.md)
+- [Online Presence Tracking Guide](./docs/presence.md)
+- [Security Guide](./docs/security.md)
+- [Middleware Guide](./docs/middleware.md)
 
-### 👥 Rastreamento de Presença Online em Tempo Real
+## License
 
-```typescript
-import { createDenoRouter } from "@vanaware/wsrouter/deno";
+MIT - see [LICENSE](./LICENSE) for details.
 
-const app = createDenoRouter({ basePath: "/api" });
-
-app.ws("/presence-chat/:room", (ws, req, params) => {
-  const group = app.getWsGroupByPath("/presence-chat/:room");
-  if (!group) return;
-
-  const url = new URL(req.url);
-  const userId = url.searchParams.get("userId") || "anon";
-  const name = url.searchParams.get("name") || "Guest";
-
-  // Registra presença do usuário (emite snapshot e broadcasts de join/leave sem duplicar abas)
-  group.track(ws, {
-    userId,
-    name,
-    status: "online",
-    statusMessage: "Programando com WsRouter",
-  });
-
-  ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    if (data.type === "update_status") {
-      group.updatePresence(ws, { status: data.status, statusMessage: data.statusMessage });
-    }
-  };
-});
-
-Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
-```
-
----
-
-## 🌐 Roteamento HTTP
-
-### Métodos Suportados
-
-```typescript
-app.get("/path", handler);
-app.post("/path", handler);
-app.put("/path", handler);
-app.delete("/path", handler);
-app.patch("/path", handler);
-app.options("/path", handler);
-app.head("/path", handler);
-```
-
-### Formato do Handler
-
-Os handlers podem retornar um objeto com `body` (e opcionalmente `init`) ou diretamente uma instância padrão de `Response`:
-
-```typescript
-type HttpHandler = (
-  req: Request,
-  params: RouteParams,
-  ctx?: RequestContext,
-) => 
-  | { body: BodyInit; init?: ResponseInit }
-  | Response
-  | Promise<{ body: BodyInit; init?: ResponseInit } | Response>;
-```
-
-#### Exemplos
-
-**Resposta Direta com `Response`:**
-```typescript
-app.get("/health", () => {
-  return new Response("OK", { status: 200 });
-});
-```
-
-**Resposta JSON:**
-```typescript
-app.get("/api/user/:id", async (_req, params) => {
-  const user = await db.getUser(params.id);
-  return {
-    body: JSON.stringify(user),
-    init: {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    },
-  };
-});
-```
-
-**Resposta de Texto:**
-```typescript
-app.get("/hello", () => ({
-  body: "Hello, World!",
-}));
-```
-
-**Status Customizado:**
-```typescript
-app.post("/users", async (req) => {
-  const data = await req.json();
-  const user = await db.createUser(data);
-  return {
-    body: JSON.stringify(user),
-    init: {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
-    },
-  };
-});
-```
-
-**No Content (204):**
-```typescript
-app.delete("/users/:id", async (_req, params) => {
-  await db.deleteUser(params.id);
-  return {
-    body: "",
-    init: { status: 204 },
-  };
-});
-```
-
-**Redirect:**
-```typescript
-app.get("/old-page", () => ({
-  body: "",
-  init: {
-    status: 301,
-    headers: { "Location": "/new-page" },
-  },
-}));
-```
-
-### Parâmetros de Rota
-
-```typescript
-// Parâmetros nomeados
-app.get("/users/:id/posts/:postId", (_req, params) => {
-  console.log(params.id);      // "123"
-  console.log(params.postId);  // "456"
-  return { body: "OK" };
-});
-
-// Catch-all com *
-app.get("/files/*", (_req, params) => {
-  console.log(params.catch);  // ["path", "to", "file.txt"]
-  return { body: JSON.stringify(params.catch) };
-});
-
-// Combinação
-app.get("/api/:version/*", (_req, params) => {
-  console.log(params.version);  // "v1"
-  console.log(params.catch);    // ["users", "123"]
-  return { body: "OK" };
-});
-```
-
-### HEAD Automático
-
-O router automaticamente suporta `HEAD` para rotas `GET` registradas:
-
-```typescript
-app.get("/resource", () => ({
-  body: "data",
-  init: { headers: { "X-Custom": "value" } },
-}));
-
-// GET /resource → 200 com body "data"
-// HEAD /resource → 200 com headers mas body vazio
-```
-
-### 405 Method Not Allowed
-
-Quando um path existe mas o método não é permitido:
-
-```typescript
-app.get("/resource", () => ({ body: "data" }));
-app.post("/resource", () => ({ body: "created", init: { status: 201 } }));
-
-// PUT /resource → 405 Method Not Allowed
-// Headers: Allow: GET, POST
-```
-
----
-
-## 🎯 Middlewares
-
-Middlewares executam antes do handler final e podem modificar a requisição, abortar o fluxo ou passar controle adiante.
-
-### Básico
-
-```typescript
-app.use(async (req, params, next) => {
-  console.log(`📝 ${req.method} ${req.url}`);
-  return await next();
-});
-```
-
-### Escopo por Caminho (Path-scoped) & Estado Compartilhado (State/Meta)
-
-Middlewares podem ser vinculados a caminhos específicos e compartilhar dados entre si ou com os handlers:
-
-```typescript
-app.use("/admin/*", async (req, params, next, ctx) => {
-  const token = req.headers.get("Authorization");
-  if (!token) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-  if (ctx) {
-    ctx.state.authorizedUser = { id: "user-42", role: "admin" };
-  }
-  return await next();
-});
-```
-
-### Abortar Fluxo
-
-```typescript
-app.use(async (req, _params, next) => {
-  const auth = req.headers.get("authorization");
-  if (!auth) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-  return await next();
-});
-```
-
-### Modificar Resposta
-
-```typescript
-app.use(async (_req, _params, next) => {
-  const res = await next();
-  res.headers.set("X-Custom-Header", "value");
-  return res;
-});
-```
-
-### Rewrite de Rota
-
-Você pode passar uma nova `Request` para `next()` para reescrever a rota:
-
-```typescript
-app.use(async (req, _params, next) => {
-  // Reescreve /old-api/* para /api/*
-  if (req.url.includes("/old-api/")) {
-    const newUrl = req.url.replace("/old-api/", "/api/");
-    const newReq = new Request(newUrl, req);
-    return next(newReq);
-  }
-  return next();
-});
-```
-
-### Logging com Tempo
-
-```typescript
-app.use(async (req, _params, next) => {
-  const start = Date.now();
-  const res = await next();
-  const ms = Date.now() - start;
-  console.log(`${req.method} ${req.url} → ${res.status} (${ms}ms)`);
-  return res;
-});
-```
-
-### CORS
-
-```typescript
-app.use(async (req, _params, next) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Max-Age": "86400",
-      },
-    });
-  }
-  const res = await next();
-  res.headers.set("Access-Control-Allow-Origin", "*");
-  return res;
-});
-```
-
----
-
-## 📂 Arquivos Estáticos
-
-### Configuração Básica
-
-```typescript
-const app = createDenoRouter({
-  basePath: "/api",
-  staticDir: "./public",  // Diretório de arquivos estáticos
-});
-```
-
-### Com Diretório Embutido
-
-```typescript
-const app = createDenoRouter({
-  basePath: "/api",
-  staticDir: "./public",
-  embeddedDir: "./dist",  // Tenta embedded primeiro, depois static
-});
-```
-
-### Comportamento
-
-- Serve arquivos de `staticDir` quando rota HTTP não é encontrada
-- Fallback automático: `/docs` → `/docs.html` → `/docs/index.html`
-- **Redirect 301** para diretórios sem barra final: `/docs` → `/docs/`
-- Apenas métodos `GET` e `HEAD` são servidos
-- Headers completos: `Content-Type`, `Content-Length`, `Last-Modified`, `ETag`, `Cache-Control`
-
-### MIME Types Modernos
-
-Suporte nativo para:
-- Imagens: `.webp`, `.avif`, `.png`, `.jpg`, `.gif`, `.svg`
-- Web: `.html`, `.css`, `.js`, `.mjs`, `.json`, `.webmanifest`
-- Fontes: `.woff`, `.woff2`, `.ttf`, `.otf`
-- Mídia: `.mp3`, `.mp4`, `.webm`
-- Outros: `.pdf`, `.xml`, `.wasm`, `.ts`, `.tsx`, `.jsx`
-
----
-
-## 🔌 WebSockets
-
-### Upgrade Automático
-
-```typescript
-app.ws("/chat/:room", (ws, req, params) => {
-  console.log(`Cliente conectou na sala ${params.room}`);
-  
-  ws.onmessage = (event) => {
-    ws.send(`Echo: ${event.data}`);
-  };
-  
-  ws.onclose = () => {
-    console.log("Cliente desconectou");
-  };
-});
-```
-
-### Grupos de WebSocket
-
-Cada rota WS tem seu próprio grupo automaticamente:
-
-```typescript
-app.ws("/chat/:room/:user", (ws, _req, params) => {
-  const group = app.getWsGroupByPath("/chat/:room/:user");
-  
-  ws.onmessage = (event) => {
-    // Broadcast para todos na mesma rota
-    group.broadcast(event.data);
-  };
-});
-```
-
-### Dual Params PermissionFn
-
-Filtre broadcasts com base em **receiver**, **sender** e **mensagem**:
-
-```typescript
-app.ws("/chat/:room/:user", (ws, _req, params) => {
-  const group = app.getWsGroupByPath("/chat/:room/:user");
-  
-  ws.onmessage = (event) => {
-    group.broadcast(
-      `[${params.user}]: ${event.data}`,
-      (receiver, sender, message) => {
-        // Regra 1: Mesma sala
-        if (receiver.room !== sender.room) return false;
-        
-        // Regra 2: Não enviar para o próprio sender
-        if (receiver.user === sender.user) return false;
-        
-        // Regra 3: Bloquear spam
-        if (message.toLowerCase().includes("spam")) return false;
-        
-        return true;
-      },
-      params  // senderParams
-    );
-  };
-});
-```
-
-### Last Broadcast Automático
-
-Novos membros recebem a última mensagem ao conectar:
-
-```typescript
-// 10:00:00 → User A envia: "Olá a todos!"
-// Router salva: { message: "Olá...", permissionFn: ..., senderParams: { room: "lobby" } }
-
-// 10:00:05 → User B conecta em /chat/lobby/userB
-// Router reavalia: permissionFn({ room: "lobby" }, { room: "lobby" }, "Olá...") → TRUE
-// User B recebe "Olá a todos!" automaticamente!
-
-// 10:00:10 → User C conecta em /chat/vip/userC
-// Router reavalia: permissionFn({ room: "vip" }, { room: "lobby" }, "Olá...") → FALSE
-// User C NÃO recebe (segurança garantida!)
-```
-
-### Fechar Grupos
-
-```typescript
-// Fechar grupo específico
-app.closeGroupByPath("/chat/:room/:user");
-
-// Fechar todos os WebSockets (graceful shutdown)
-app.closeAllWebSockets();
-```
-
----
-
-## 🎥 WebRTC Live Webcam Streaming & Sinalização
-
-O `@vanaware/wsrouter` inclui um hub de sinalização WebRTC de alta performance integrado ao `WebSocketGroup`. Permite streaming peer-to-peer de vídeo/áudio, anúncios de transmissão, encaminhamento de ofertas SDP, respostas, candidatos ICE e reações flutuantes com zero dependências externas.
-
-### Fluxo de Sinalização Simplificado
-
-1. **Broadcaster entra e publica stream**: envia `{ type: "broadcaster_started", broadcasterId, broadcasterName, streamTitle }`.
-2. **Espectadores requisitam transmissão**: enviam `{ type: "request_stream", viewerId, viewerName }`.
-3. **Oferta e Resposta SDP**: O Broadcaster cria um `RTCPeerConnection` para cada espectador e envia `webrtc_offer`; o espectador responde com `webrtc_answer`.
-4. **ICE Candidates**: Ambas as pontas trocam candidatos via `{ type: "webrtc_candidate", to: targetPeerId, candidate }`.
-5. **Mídia Direta P2P**: O fluxo de áudio e vídeo trafega diretamente entre os navegadores sem onerar a CPU do servidor.
-
-```typescript
-import { createDenoRouter } from "@vanaware/wsrouter/deno";
-
-const app = createDenoRouter({ basePath: "/api" });
-
-app.ws("/webrtc/:room", (ws, _req, params) => {
-  const group = app.getWsGroupByPath("/webrtc/:room");
-  if (!group) return;
-
-  // Encaminha ofertas/respostas SDP e candidatos ICE diretamente ao destinatário
-  ws.onmessage = (event) => {
-    group.handleSignaling(ws, event.data, params);
-  };
-});
-```
-
-### Consultas de Streams e Peers via Router e Grupo
-
-```typescript
-// Saber se há live ativa em uma sala
-const isLive = app.isBroadcasting("/webrtc/:room", "gaming");
-
-// Obter dados do transmissor atual
-const broadcaster = app.getActiveStream("/webrtc/:room", "gaming");
-
-// Listar todas as transmissões ativas
-const allLive = app.getAllActiveStreams("/webrtc/:room");
-
-// Enviar reação flutuante programaticamente
-group.sendReaction("gaming", {
-  from: "user_123",
-  fromName: "Dan",
-  emoji: "🔥",
-});
-```
-
-Veja o guia completo em [docs/webrtc.md](./docs/webrtc.md).
-
----
-
-## 👥 Online Presence Tracking Suite
-
-O motor nativo `PresenceTracker` gerencia o ciclo de vida de usuários online, snapshots de estado e atualizações de status.
-
-### Deduplicação Automática de Múltiplas Abas
-
-Quando um mesmo `userId` abre múltiplas abas ou conexões simultâneas, o WsRouter incrementa o contador `connections` sem poluir a sala com múltiplos eventos `presence_join`. O evento `presence_leave` só é emitido aos pares quando a **última conexão** daquele usuário é encerrada.
-
-```typescript
-app.ws("/presence/:room", (ws, req, params) => {
-  const group = app.getWsGroupByPath("/presence/:room");
-  if (!group) return;
-
-  // Registra presença com metadados customizados
-  group.track(ws, {
-    userId: "user_42",
-    name: "Alice",
-    status: "online", // "online" | "away" | "busy" | "meeting"
-    statusMessage: "Em reunião de design",
-  });
-
-  ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    if (data.type === "set_status") {
-      // Atualiza status e emite broadcast `presence_update`
-      group.updatePresence(ws, {
-        status: data.status,
-        statusMessage: data.statusMessage,
-      });
-    }
-  };
-});
-
-// API REST: inspecionar usuários online em qualquer rota
-app.get("/api/online-users", () => {
-  const users = app.getPresence("/presence/:room");
-  return {
-    body: JSON.stringify({ count: users.length, users }),
-    init: { headers: { "Content-Type": "application/json" } },
-  };
-});
-```
-
-Veja o guia completo em [docs/presence.md](./docs/presence.md).
-
----
-
-## 🛡️ Segurança
-
-### Force HTTPS
-
-Redireciona HTTP → HTTPS automaticamente em produção:
-
-```typescript
-const app = createDenoRouter({
-  forceHttps: true,
-});
-```
-
-**Comportamento:**
-- Redireciona com status `301 Moved Permanently`
-- Ignora automaticamente `localhost`, `127.0.0.1` e `[::1]` (IPv6)
-- Adiciona header `Strict-Transport-Security` (HSTS)
-
-### Trust Proxy
-
-Quando atrás de proxy reverso (nginx, Cloudflare, etc.):
-
-```typescript
-const app = createDenoRouter({
-  forceHttps: true,
-  trustProxy: true,  // ⚠️ Apenas se estiver atrás de proxy confiável
-});
-```
-
-Com `trustProxy: true`, o router respeita o header `X-Forwarded-Proto`.
-
-**⚠️ AVISO:** Nunca ative `trustProxy` se o servidor estiver exposto diretamente à internet.
-
-### Bloqueio de Dotfiles
-
-Por padrão, arquivos que começam com `.` são bloqueados:
-
-```typescript
-const app = createDenoRouter({
-  staticDir: "./public",
-  allowDotfiles: false,  // Default: false
-});
-```
-
-**Bloqueados:** `.env`, `.git/config`, `.DS_Store`, `.htaccess`, etc.
-
-Se precisar servir dotfiles (não recomendado):
-
-```typescript
-const app = createDenoRouter({
-  staticDir: "./public",
-  allowDotfiles: true,  // ⚠️ Risco de segurança
-});
-```
-
-### Proteção contra Path Traversal
-
-O router sanitiza caminhos e verifica containment real:
-
-```typescript
-// Requisição maliciosa
-GET /../../etc/passwd
-GET /..%2F..%2Fetc%2Fpasswd
-
-// Resultado: 404 (caminho sanitizado e verificado)
-```
-
-### Recusa de Symlinks
-
-O adaptador Deno recusa symlinks por padrão para evitar vazamento:
-
-```bash
-# Se existir: public/secret -> /etc/passwd
-# Requisição: GET /secret
-# Resultado: 404 (symlink recusado)
-```
-
-### Headers de Segurança
-
-Adicione via middleware:
-
-```typescript
-app.use(async (_req, _params, next) => {
-  const res = await next();
-  res.headers.set("X-Frame-Options", "DENY");
-  res.headers.set("X-Content-Type-Options", "nosniff");
-  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.headers.set(
-    "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline'"
-  );
-  return res;
-});
-```
-
----
-
-## 🔌 Adaptadores
-
-### Deno (Oficial)
-
-Suporte completo e testado:
-
-```typescript
-import { createDenoRouter } from "@vanaware/wsrouter/deno";
-
-const app = createDenoRouter({
-  basePath: "/api",
-  staticDir: "./public",
-  forceHttps: true,
-  trustProxy: true,
-  allowDotfiles: false,
-});
-```
-
-**Features:**
-- ✅ HTTP Routing
-- ✅ WebSockets (via `Deno.upgradeWebSocket`)
-- ✅ Static Files (via `Deno.open` + `Deno.stat`)
-- ✅ Containment real e recusa de symlinks
-- ✅ Headers completos (ETag, Last-Modified, etc.)
-
-### Outros Runtimes (Roadmap)
-
-O core é runtime-agnostic. Adaptadores para outros runtimes estão em desenvolvimento:
-
-#### Node.js (Planejado)
-
-```typescript
-// Futuro
-import { createNodeRouter } from "@vanaware/wsrouter/node";
-```
-
-**Desafios:**
-- URLPattern disponível apenas em Node 18.17+
-- WebSocket requer biblioteca externa (`ws`, `uWebSockets.js`)
-- Static files via módulo `fs`
-
-#### Bun (Planejado)
-
-```typescript
-// Futuro
-import { createBunRouter } from "@vanaware/wsrouter/bun";
-```
-
-**Vantagens:**
-- Compatível com APIs Node.js
-- Suporte nativo a WebSocket via `Bun.serve`
-- Performance excelente
-
-#### Cloudflare Workers (Removido do Core)
-
-Os adaptadores Cloudflare foram **removidos do core** na versão 1.0 devido a limitações de estado compartilhado. Para WebSockets em Cloudflare, use **Durable Objects**.
-
-Para static files, use a nova feature **Static Assets** do Cloudflare Workers.
-
-Veja [docs/roadmap-adapters.md](./docs/roadmap-adapters.md) para detalhes.
-
-### Criando seu Próprio Adaptador
-
-Implemente as interfaces:
-
-```typescript
-interface WebSocketUpgrader {
-  upgrade(req: Request): { socket: WebSocket; response: Response };
-}
-
-interface StaticFileHandler {
-  handle(path: string): Promise<Response | null>;
-}
-```
-
-Use o core diretamente:
-
-```typescript
-import { Router } from "@vanaware/wsrouter";
-
-const app = new Router({
-  basePath: "/api",
-  webSocketUpgrader: myCustomUpgrader,
-  staticFileHandler: myCustomStaticHandler,
-});
-```
-
----
-
-## 📚 API Reference
-
-### `createDenoRouter(options)`
-
-```typescript
-interface DenoRouterOptions {
-  basePath?: string;           // Prefixo para todas as rotas
-  staticDir?: string | null;   // Diretório de arquivos estáticos (default: null)
-  embeddedDir?: string | null; // Diretório embutido (opcional)
-  forceHttps?: boolean;        // Redirecionar HTTP → HTTPS
-  trustProxy?: boolean;        // Confiar em X-Forwarded-*
-  allowDotfiles?: boolean;     // Permitir arquivos .env, .git, etc.
-  lastBroadcastDelay?: number; // Delay antes de enviar last broadcast (default: 0ms)
-}
-```
-
-### `Router` Methods
-
-```typescript
-// Registro de rotas
-app.get(path, handler)
-app.post(path, handler)
-app.put(path, handler)
-app.delete(path, handler)
-app.patch(path, handler)
-app.options(path, handler)
-app.head(path, handler)
-app.ws(path, handler)
-app.worker(handlerOrRoute, name?)
-
-// Middlewares
-app.use(middleware)
-app.use(pathPattern, middleware)
-
-// Sub-routers
-app.mount(prefix, subRouter)
-
-// WebSockets
-app.broadcast(pathOrPattern, message, permissionFn?, senderParams?): boolean
-app.getWsGroupByPath(pattern): WebSocketGroup | undefined
-app.closeGroupByPath(pattern): boolean
-app.closeAllWebSockets(): void
-
-// WebRTC Signaling & Streaming
-app.getSignaling(pathOrPattern): WebRTCSignalingHub | undefined
-app.getActiveStream(pathOrPattern, room): ActiveStreamInfo | undefined
-app.getAllActiveStreams(pathOrPattern): ActiveStreamInfo[]
-app.isBroadcasting(pathOrPattern, room): boolean
-app.startBroadcasting(pathOrPattern, broadcasterId, name, room, title?, params?): ActiveStreamInfo | undefined
-app.stopBroadcasting(pathOrPattern, broadcasterId, room, params?): boolean
-app.sendReaction(pathOrPattern, room, reaction, params?): boolean
-app.getPeerCount(pathOrPattern): number
-app.getPeers(pathOrPattern): string[]
-app.sendToPeer(pathOrPattern, peerId, message): boolean
-
-// Presence Tracking
-app.getPresence(pathOrPattern): PresenceUser[]
-app.getPresenceUser(pathOrPattern, userId): PresenceUser | undefined
-app.updatePresence(pathOrPattern, wsOrUserId, partialData, params?): PresenceUser | undefined
-
-// Inspeção & Rotas Modulares
-app.getHttpRoutes(): readonly HttpRoute[]
-app.getWsRoutes(): readonly WsRoute[]
-app.getMiddlewares(): readonly MiddlewareRoute[]
-app.getMiddlewareChain(): MiddlewareChain
-app.getWorkers(): readonly WorkerRoute[]
-app.getHttpRouteByPath(method, path): HttpRoute | undefined
-app.getWsRouteByPath(path): WsRoute | undefined
-
-// Handler principal
-app.handleRequest(req: Request): Promise<Response>
-```
-
-### `WebSocketGroup` Methods, Presence & WebRTC
-
-```typescript
-group.addSocket(ws, params)
-group.removeSocket(ws)
-group.size: number
-
-group.broadcast(message, permissionFn?, senderParams?)
-group.sendLastBroadcastTo(ws, receiverParams)
-group.closeGroup()
-
-// Online Presence Tracking
-group.presence: PresenceTracker
-group.track(ws, user)
-group.untrack(ws)
-group.updatePresence(wsOrUserId, partialData)
-group.getPresenceList(): PresenceUser[]
-group.getPresenceUser(userId): PresenceUser | undefined
-group.presenceSize: number
-
-// WebRTC Live Signaling
-group.signaling: WebRTCSignalingHub
-group.handleSignaling(ws, rawData, params?)
-group.registerPeer(ws, peerId)
-group.unregisterPeer(ws)
-group.startBroadcasting(broadcasterId, name, room, title?, params?)
-group.stopBroadcasting(broadcasterId, room, params?)
-group.getActiveStream(room)
-group.getAllActiveStreams()
-group.isBroadcasting(room)
-group.sendReaction(room, reaction, params?)
-group.sendToPeer(peerId, message)
-group.peerCount: number
-group.getPeers(): string[]
-
-// Event Hooks & Lifecycle
-group.onConnect((ws, params) => void)
-group.onDisconnect((ws, params) => void)
-group.on(event, listener)
-group.off(event, listener)
-group.emit(event, ...args)
-```
-
-### Modular Routing Classes
-
-- **`HttpRoute`**: Encapsula métodos HTTP (`GET`, `POST`, etc.), compilação de `URLPattern`, correspondência e execução de handlers.
-- **`WsRoute`**: Encapsula endpoints WebSocket, seu respectivo `WebSocketGroup`, `URLPattern` e ciclo de conexões.
-- **`MiddlewareRoute`**: Encapsula funções de middleware com suporte a escopo de caminho opcional.
-- **`MiddlewareChain`**: Executa a pilha em modelo cebola (onion), provendo `RequestContext` e `state`.
-- **`WorkerRoute`**: Encapsula handlers de fallback e workers executados antes de arquivos estáticos.
-```
-
-### `PermissionFn`
-
-```typescript
-type PermissionFn = (
-  receiverParams: RouteParams,
-  senderParams: RouteParams,
-  message: string,
-) => boolean;
-```
-
----
-
-## 📖 Exemplos Completos
-
-### Autenticação JWT
-
-```typescript
-import { createDenoRouter } from "@vanaware/wsrouter/deno";
-import { SignJWT, jwtVerify } from "jose";
-
-const JWT_SECRET = new TextEncoder().encode(Deno.env.get("JWT_SECRET"));
-
-const app = createDenoRouter({
-  basePath: "/api",
-  staticDir: "./public",
-});
-
-// Rota de login
-app.post("/login", async (req) => {
-  const { username, password } = await req.json();
-  
-  if (username === "admin" && password === "secret") {
-    const token = await new SignJWT({ userId: "1", username })
-      .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("1h")
-      .sign(JWT_SECRET);
-    
-    return {
-      body: JSON.stringify({ token }),
-      init: { headers: { "Content-Type": "application/json" } },
-    };
-  }
-  
-  return {
-    body: JSON.stringify({ error: "Invalid credentials" }),
-    init: { status: 401 },
-  };
-});
-
-// Middleware de autenticação WebSocket
-app.use(async (req, _params, next) => {
-  if (req.headers.get("upgrade")?.toLowerCase() !== "websocket") {
-    return await next();
-  }
-  
-  const protocol = req.headers.get("sec-websocket-protocol") ?? "";
-  const protocols = protocol.split(",").map(p => p.trim());
-  const bearerIndex = protocols.findIndex(p => p === "Bearer");
-  const token = bearerIndex !== -1 ? protocols[bearerIndex + 1] : null;
-  
-  if (!token) {
-    return new Response("Token required", { status: 401 });
-  }
-  
-  try {
-    await jwtVerify(token, JWT_SECRET, { algorithms: ["HS256"] });
-    return await next();
-  } catch {
-    return new Response("Invalid token", { status: 403 });
-  }
-});
-
-// Rota WebSocket protegida
-app.ws("/chat/:room", (ws, _req, params) => {
-  const group = app.getWsGroupByPath("/chat/:room");
-  
-  ws.onmessage = (event) => {
-    group.broadcast(
-      `[${params.room}]: ${event.data}`,
-      (receiver, sender, _msg) => receiver.room === sender.room,
-      params
-    );
-  };
-});
-```
-
-### Rate Limiting
-
-```typescript
-const requestCounts = new Map<string, { count: number; resetTime: number }>();
-
-app.use(async (req, _params, next) => {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
-  const now = Date.now();
-  const windowMs = 60000; // 1 minuto
-  const maxRequests = 100;
-  
-  const record = requestCounts.get(ip) ?? { count: 0, resetTime: now + windowMs };
-  
-  if (now > record.resetTime) {
-    record.count = 0;
-    record.resetTime = now + windowMs;
-  }
-  
-  record.count++;
-  requestCounts.set(ip, record);
-  
-  if (record.count > maxRequests) {
-    return new Response("Too Many Requests", {
-      status: 429,
-      headers: {
-        "Retry-After": Math.ceil((record.resetTime - now) / 1000).toString(),
-        "X-RateLimit-Limit": maxRequests.toString(),
-        "X-RateLimit-Remaining": "0",
-      },
-    });
-  }
-  
-  const res = await next();
-  res.headers.set("X-RateLimit-Limit", maxRequests.toString());
-  res.headers.set("X-RateLimit-Remaining", (maxRequests - record.count).toString());
-  return res;
-});
-```
-
----
-
-## 🧪 Testes
-
-Execute a suíte completa de testes:
-
-```bash
-deno task tests
-```
-
-Ou separadamente:
-
-```bash
-# Type checking
-deno task check
-
-# Testes unitários
-deno task test
-
-# Formatação
-deno task fmt
-
-# Linting
-deno task lint
-```
-
----
-
-## 📚 Documentação
-
-- [Guia WebRTC Live Streaming](./docs/webrtc.md)
-- [Rastreamento de Presença Online](./docs/presence.md)
-- [Guia de Segurança](./docs/security.md)
-- [Roadmap de Adaptadores](./docs/roadmap-adapters.md)
-- [Roadmap de Rate Limiting](./docs/roadmap-rate-limiting.md)
-- [Arquitetura Runtime-Agnostic](./docs/runtime-agnostic.md)
-- [Middlewares](./docs/middleware.md)
-- [Permissões WebSocket](./docs/websocket-permissions.md)
-- [Retorno de Handlers](./docs/return.md)
-
----
-
-## 🗺️ Roadmap
-
-### Versão 1.0 (Atual)
-- ✅ Core agnóstico estável
-- ✅ Adaptador Deno completo
-- ✅ Sistema de permissões Dual Params
-- ✅ Segurança reforçada (HSTS, trustProxy, dotfiles, symlinks)
-
-### Versão 1.1 (Planejado)
-- ⏳ Adaptador Node.js oficial
-- ⏳ Adaptador Bun oficial
-- ⏳ Suporte a Range Requests para arquivos grandes
-- ⏳ Validação de Origin em WebSockets
-
-### Versão 2.0 (Futuro)
-- ⏳ Rate limiting nativo no core
-- ⏳ Integração com OpenTelemetry
-- ⏳ Suporte a HTTP/2 Server Push
-- ⏳ Compressão automática (gzip, brotli)
-
----
-
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Por favor:
-
-1. Faça fork do repositório
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-### Desenvolvimento Local / AI Studio
-
-Devido às restrições do ambiente AI Studio e para compatibilidade com a plataforma, o projeto utiliza a porta `3000` para o servidor de desenvolvimento. A infraestrutura inclui um arquivo `package.json` ponte que executa o `install-script.sh` antes de invocar o `deno task`. Isso garante que o Deno seja baixado e configurado se não estiver no ambiente.
-
-```bash
-# Iniciar o servidor de desenvolvimento
-npm run dev
-
-# Rodar a checagem completa de testes, tipos e linting
-npm run test
-```
-
-Caso esteja rodando localmente (fora do AI Studio) com o Deno já instalado:
-
-```bash
-# Clone o repositório
-git clone https://github.com/vanaware/wsrouter.git
-cd wsrouter
-
-# Execute testes
-deno task check-all
-
-# Execute exemplo principal
-deno task dev
-```
-
----
-
-## 📄 Licença
-
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](./LICENSE) para detalhes.
-
-
-<!-- START:changelog -->
-<!-- END:changelog -->
 ````
 
 ---
@@ -1435,16 +308,24 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](./LI
     "include": [
       "src/**/*.ts",
       "README.md",
-      "docs/**/*.md",
+      "LICENSE",
       "deno.jsonc"
     ],
     "exclude": [
-      "tests",
-      "example"
+      "**/*_test.ts",
+      "**/*.test.ts",
+      "tests/",
+      "example/",
+      "scripts/",
+      "docs/",
+      "planning/",
+      "AGENTS.md",
+      "CURRENT.md",
+      ".github/"
     ]
   },
   "name": "@vanaware/wsrouter",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "MIT",
   "author": "Vanaware",
   "description": "A WebSocket router for Deno",
@@ -1661,18 +542,31 @@ async function tryServeWithStd(
 ## Arquivo: `src/adapters/deno.ts`
 
 ```ts
-// monorepo/router/src/adapters/deno.ts
-// 🦕 Adaptadores para Deno Runtime — Fase 3: Segurança reforçada
+// src/adapters/deno.ts
+/**
+ * @file deno.ts
+ * @description Deno-specific adapters for WebSocket upgrading and static file serving.
+ */
 
 import { join, resolve } from "@std/path";
 import type { WebSocketUpgrader, StaticFileHandler } from "../mod.ts";
 
+/**
+ * WebSocket upgrader implementation using the native Deno.upgradeWebSocket API.
+ */
 export const denoWebSocketUpgrader: WebSocketUpgrader = {
   upgrade(req: Request): { socket: WebSocket; response: Response } {
     return Deno.upgradeWebSocket(req);
   },
 };
 
+/**
+ * Factory function to create a static file handler using Deno's file system APIs.
+ *
+ * @param staticDir - Local directory to serve files from.
+ * @param embeddedDir - Optional additional directory for embedded assets.
+ * @returns A StaticFileHandler implementation.
+ */
 export function createDenoStaticFileHandler(
   staticDir: string | null,
   embeddedDir: string | null = null,
@@ -1692,10 +586,14 @@ export function createDenoStaticFileHandler(
   };
 }
 
+/**
+ * Internal helper to attempt serving a file from a base directory.
+ * Implements security checks for containment, symlinks, and dotfiles.
+ */
 async function tryServeDir(baseDir: string, pathname: string): Promise<Response | null> {
   const fullPath = join(baseDir, pathname);
   
-  // 🚀 CONTAINMENT: Resolver caminho absoluto e verificar que está dentro de baseDir
+  // 🚀 CONTAINMENT: Resolve absolute path and verify it stays within baseDir
   let resolvedPath: string;
   try {
     resolvedPath = await Deno.realPath(fullPath);
@@ -1712,18 +610,18 @@ async function tryServeDir(baseDir: string, pathname: string): Promise<Response 
   const candidates = buildFileCandidates(baseDir, pathname);
   for (const candidate of candidates) {
     try {
-      // 🚀 SYMLINKS: Usar lstat para recusar symlinks diretos
+      // 🚀 SYMLINKS: Use lstat to reject direct symlinks
       const info = await Deno.lstat(candidate);
       
       if (info.isSymlink) {
-        console.warn(`[Static] Symlink recusado: ${candidate}`);
+        console.warn(`[Static] Symlink rejected: ${candidate}`);
         continue;
       }
 
-      // 🚀 CONTAINMENT: Verificar que o path real está contido no diretório base (previne symlinks intermediários)
+      // 🚀 CONTAINMENT: Verify that the real path is contained in the base directory (prevents intermediate symlinks)
       const realCandidate = await Deno.realPath(candidate).catch(() => null);
       if (!realCandidate || (!realCandidate.startsWith(resolvedBase + "/") && realCandidate !== resolvedBase)) {
-        console.warn(`[Static] Path fora do diretório base recusado: ${candidate}`);
+        console.warn(`[Static] Path outside base directory rejected: ${candidate}`);
         continue;
       }
       
@@ -1732,7 +630,7 @@ async function tryServeDir(baseDir: string, pathname: string): Promise<Response 
         const mimeType = defaultDenoMimeTypeResolver(ext) ?? "application/octet-stream";
         const file = await Deno.open(candidate);
         
-        // 🚀 HEADERS: Adicionar metadata completa e segurança
+        // 🚀 HEADERS: Add complete metadata and security headers
         const headers: HeadersInit = {
           "Content-Type": mimeType,
           "Content-Length": info.size.toString(),
@@ -1741,7 +639,7 @@ async function tryServeDir(baseDir: string, pathname: string): Promise<Response 
           "X-Content-Type-Options": "nosniff",
         };
         
-        // Adicionar ETag baseado em size + mtime
+        // Add ETag based on size + mtime
         if (info.mtime) {
           const etag = `"${info.size.toString(16)}-${info.mtime.getTime().toString(16)}"`;
           headers["ETag"] = etag;
@@ -1750,7 +648,7 @@ async function tryServeDir(baseDir: string, pathname: string): Promise<Response 
         return new Response(file.readable, { headers });
       }
       
-      // 🚀 REDIRECT: Se é diretório sem barra final, redirecionar
+      // 🚀 REDIRECT: If it's a directory without a trailing slash, redirect
       if (info.isDirectory && !pathname.endsWith("/")) {
         return new Response(null, {
           status: 301,
@@ -1767,6 +665,10 @@ async function tryServeDir(baseDir: string, pathname: string): Promise<Response 
   return null;
 }
 
+/**
+ * Generates an array of potential file path candidates based on the requested pathname.
+ * Handles automatic extension appending (.html, .htm) and index file resolution.
+ */
 function buildFileCandidates(baseDir: string, pathname: string): string[] {
   const fullPath = join(baseDir, pathname);
   const candidates: string[] = [fullPath];
@@ -1779,6 +681,9 @@ function buildFileCandidates(baseDir: string, pathname: string): string[] {
   return candidates;
 }
 
+/**
+ * Maps common file extensions to their corresponding standard MIME types.
+ */
 function defaultDenoMimeTypeResolver(ext: string): string | undefined {
   const map: Record<string, string> = {
     html: "text/html; charset=utf-8", htm: "text/html; charset=utf-8",
@@ -1789,7 +694,7 @@ function defaultDenoMimeTypeResolver(ext: string): string | undefined {
     pdf: "application/pdf", xml: "application/xml", woff: "font/woff",
     woff2: "font/woff2", ttf: "font/ttf", otf: "font/otf",
     mp3: "audio/mpeg", mp4: "video/mp4", webm: "video/webm", wasm: "application/wasm",
-    // 🚀 EXTENSÕES MODERNAS
+    // 🚀 MODERN EXTENSIONS
     webp: "image/webp", avif: "image/avif", webmanifest: "application/manifest+json",
     ts: "application/typescript", tsx: "application/typescript",
     jsx: "application/javascript", map: "application/json",
@@ -1903,21 +808,53 @@ export {
 
 ## Arquivo: `src/deno.ts`
 
-```ts
-// monorepo/router/src/deno.ts
+````ts
+// src/deno.ts
+/**
+ * @file deno.ts
+ * @description Entry point for the Deno-specific router factory.
+ */
 import { Router } from "./mod.ts";
 import { denoWebSocketUpgrader, createDenoStaticFileHandler } from "./adapters/deno.ts";
 
+/**
+ * Options for configuring a Deno-specific Router.
+ */
 export interface DenoRouterOptions {
+  /** Optional base prefix path for all routes. */
   basePath?: string;
+  /** Optional local directory path for serving static files. */
   staticDir?: string | null;
+  /** Optional directory path for serving embedded assets. */
   embeddedDir?: string | null;
+  /** When enabled, redirects unencrypted HTTP traffic to HTTPS. */
   forceHttps?: boolean;
+  /** When enabled, inspects `X-Forwarded-Proto` header from reverse proxies. */
   trustProxy?: boolean;
+  /** When enabled, allows serving hidden dotfiles. */
   allowDotfiles?: boolean;
+  /** Default debounce delay (in ms) for replaying last broadcast to joining sockets. */
   lastBroadcastDelay?: number;
 }
 
+/**
+ * Factory function to create a Router pre-configured for the Deno runtime.
+ *
+ * @param basePathOrOptions - Base path string or full options object.
+ * @param staticDir - Directory to serve static files from (default: "public").
+ * @param embeddedDir - Optional directory for embedded assets.
+ * @param forceHttps - Whether to enforce HTTPS redirects.
+ * @param lastBroadcastDelay - Optional delay for last broadcast replay.
+ * @returns A Router instance configured with Deno-native adapters.
+ *
+ * @example
+ * ```ts
+ * const app = createDenoRouter({
+ *   basePath: "/api",
+ *   staticDir: "./public"
+ * });
+ * ```
+ */
 export function createDenoRouter(
   basePathOrOptions: string | DenoRouterOptions = "",
   staticDir: string | null = "public",
@@ -1956,7 +893,7 @@ export function createDenoRouter(
 
 export * from "./mod.ts";
 export { denoWebSocketUpgrader, createDenoStaticFileHandler } from "./adapters/deno.ts";
-```
+````
 
 ---
 
@@ -2261,6 +1198,7 @@ export class MiddlewareRoute {
 
 export * from "./types.ts";
 export {
+  /** High-performance engine for tracking online users and broadcasting presence diffs. */
   PresenceTracker,
   type PresenceEvent,
   type PresenceListener,
@@ -2271,17 +1209,25 @@ export {
   type ActiveStreamInfo,
   type SerializedIceCandidate,
   type SerializedSessionDescription,
+  /** Signaling hub for managing WebRTC peer-to-peer connection coordination. */
   WebRTCSignalingHub,
   type WebRTCSignalingEvents,
   type WebRTCSignalingHubOptions,
   type WebRTCSignalingMessage,
 } from "./webrtc.ts";
+/** Logic for managing groups of connected WebSocket clients and filtered broadcasts. */
 export { WebSocketGroup, type WebSocketGroupListener } from "./websocket-group.ts";
+/** Representation of a middleware associated with an optional path pattern. */
 export { MiddlewareRoute } from "./middleware-route.ts";
+/** Pipeline executor for middleware execution using the onion architecture. */
 export { MiddlewareChain } from "./middleware-chain.ts";
+/** Handler route for worker fallback execution tiers. */
 export { WorkerRoute } from "./worker-route.ts";
+/** Encapsulation of an HTTP route with method, path matching, and handlers. */
 export { HttpRoute, type HttpRouteOptions } from "./http-route.ts";
+/** Encapsulation of a WebSocket route with path matching and its associated group. */
 export { WsRoute, type WsRouteOptions } from "./ws-route.ts";
+/** Core Router class for registering and dispatching HTTP and WebSocket requests. */
 export { Router } from "./router.ts";
 
 ```
@@ -2829,6 +1775,8 @@ export class Router {
 
   /**
    * Initializes a new Router instance with the specified options.
+   *
+   * @param options - Configuration options for the router.
    */
   constructor(options: RouterOptions = {}) {
     this.basePath = this.normalizeBasePath(options.basePath ?? "");
@@ -2843,6 +1791,9 @@ export class Router {
 
   /**
    * Configures the WebSocket upgrader implementation.
+   *
+   * @param upgrader - The upgrader instance to use.
+   * @returns The router instance for chaining.
    */
   setWebSocketUpgrader(upgrader: WebSocketUpgrader): this {
     this.webSocketUpgrader = upgrader;
@@ -2851,6 +1802,9 @@ export class Router {
 
   /**
    * Configures the static file handler implementation.
+   *
+   * @param handler - The handler instance to use.
+   * @returns The router instance for chaining.
    */
   setStaticFileHandler(handler: StaticFileHandler): this {
     this.staticFileHandler = handler;
@@ -2986,6 +1940,10 @@ export class Router {
 
   /**
    * Registers global or path-scoped middleware functions or nested MiddlewareChain instances.
+   *
+   * @param middlewareOrPathOrChain - A middleware function, a MiddlewareRoute, a MiddlewareChain, or a path pattern.
+   * @param handler - The middleware function or chain if a path pattern was provided as the first argument.
+   * @returns The router instance for chaining.
    */
   use(
     middlewareOrPathOrChain:
@@ -3027,8 +1985,24 @@ export class Router {
     return this;
   }
 
-  /** Registers a GET route. */
+  /**
+   * Registers a GET route.
+   *
+   * @param path - The URL pattern for the route.
+   * @param handler - The HTTP handler function.
+   * @param options - Optional route configuration.
+   * @returns The router instance for chaining.
+   */
   get(path: string, handler: HttpHandler, options?: HttpRouteOptions): this;
+  /**
+   * Registers a GET route with route-specific middlewares.
+   *
+   * @param path - The URL pattern for the route.
+   * @param middlewares - Array of middlewares to execute for this route.
+   * @param handler - The HTTP handler function.
+   * @param options - Optional route configuration.
+   * @returns The router instance for chaining.
+   */
   get(
     path: string,
     middlewares: (Middleware | MiddlewareRoute)[],
@@ -3770,7 +2744,8 @@ export class Router {
   /**
    * Retrieves the list of online users tracked in the WebSocketGroup of a specific path pattern.
    *
-   * @param pathOrPattern The route pattern (e.g. "/chat/:room").
+   * @param pathOrPattern - The route pattern (e.g. "/chat/:room").
+   * @returns Array of online users with their associated metadata.
    */
   getPresence<T = Record<string, unknown>>(
     pathOrPattern: string,
@@ -3955,7 +2930,7 @@ export class Router {
 
 ## Arquivo: `src/types.ts`
 
-```ts
+````ts
 // src/types.ts
 /**
  * @file types.ts
@@ -3975,6 +2950,14 @@ export type RouteParams = Record<string, string | string[]>;
  * Request execution context passed to handlers and middlewares.
  * Contains the original/modified Request, extracted parameters, mutable shared state,
  * and optional reference to the matched route instance.
+ *
+ * @example
+ * ```ts
+ * app.get("/user/:id", (req, params, ctx) => {
+ *   ctx.state.startTime = Date.now();
+ *   return { body: `Hello ${params.id}` };
+ * });
+ * ```
  */
 export interface RequestContext {
   /** The incoming HTTP Request object. Can be substituted or enriched by middlewares. */
@@ -3991,6 +2974,11 @@ export interface RequestContext {
  * HTTP handler function signature.
  * Can return a raw standard Response object or a lightweight `{ body, init }` structure,
  * synchronously or wrapped in a Promise.
+ *
+ * @param req - The incoming standard Request object.
+ * @param params - Extracted route parameters (e.g., `{ id: "123" }`).
+ * @param ctx - Optional request execution context.
+ * @returns A Response object or a simplified body/init object.
  */
 export type HttpHandler = (
   req: Request,
@@ -4003,6 +2991,10 @@ export type HttpHandler = (
 
 /**
  * WebSocket handler callback invoked when an incoming connection is upgraded successfully.
+ *
+ * @param ws - The upgraded WebSocket instance.
+ * @param req - The original upgrade Request object.
+ * @param params - Extracted route parameters.
  */
 export type WsHandler = (
   ws: WebSocket,
@@ -4014,10 +3006,10 @@ export type WsHandler = (
  * Granular broadcast filtering function.
  * Determines if a particular message should be delivered to a recipient socket.
  *
- * @param receiverParams Parameters associated with the receiving socket.
- * @param senderParams Parameters associated with the message sender.
- * @param message The serialized broadcast payload.
- * @returns boolean `true` if the message should be delivered, `false` to discard.
+ * @param receiverParams - Parameters associated with the receiving socket.
+ * @param senderParams - Parameters associated with the message sender.
+ * @param message - The serialized broadcast payload.
+ * @returns `true` if the message should be delivered, `false` to discard.
  */
 export type PermissionFn = (
   receiverParams: RouteParams,
@@ -4027,6 +3019,12 @@ export type PermissionFn = (
 
 /**
  * Middleware function with standard onion architecture (`next()` pipeline).
+ *
+ * @param req - The incoming Request.
+ * @param params - Extracted route parameters.
+ * @param next - Callback to proceed to the next middleware or handler.
+ * @param ctx - Optional request execution context.
+ * @returns A Response object or Promise resolving to one.
  */
 export type Middleware = (
   req: Request,
@@ -4038,6 +3036,9 @@ export type Middleware = (
 /**
  * Worker handler function that handles Requests and produces Responses.
  * Useful for integrating Cloudflare Workers, edge worker scripts, or fallback fetchers.
+ *
+ * @param req - The incoming Request.
+ * @returns A Promise resolving to a Response.
  */
 export type WorkerHandler = (req: Request) => Promise<Response>;
 
@@ -4045,6 +3046,12 @@ export type WorkerHandler = (req: Request) => Promise<Response>;
  * WebSocket upgrader abstraction interface to decouple environment-specific upgrade logic.
  */
 export interface WebSocketUpgrader {
+  /**
+   * Performs the environment-specific upgrade from HTTP to WebSocket.
+   *
+   * @param req - The incoming upgrade Request.
+   * @returns An object containing the new socket and the upgrade response.
+   */
   upgrade(req: Request): { socket: WebSocket; response: Response };
 }
 
@@ -4052,6 +3059,12 @@ export interface WebSocketUpgrader {
  * Static file handler abstraction interface for serving local or embedded static assets.
  */
 export interface StaticFileHandler {
+  /**
+   * Attempts to resolve and serve a static file from a given relative path.
+   *
+   * @param path - The relative file path to serve.
+   * @returns A Response if the file was found, or `null` otherwise.
+   */
   handle(path: string): Promise<Response | null>;
 }
 
@@ -4064,13 +3077,13 @@ export const DEFAULT_LAST_BROADCAST_DELAY = 0;
 export interface RouterOptions {
   /** Optional base prefix path for all routes registered on this router (e.g., "/api"). */
   basePath?: string;
-  /** When enabled, redirects unencrypted HTTP traffic to HTTPS (ignoring localhost). */
+  /** When enabled, redirects unencrypted HTTP traffic to HTTPS (ignoring localhost). Defaults to `false`. */
   forceHttps?: boolean;
-  /** When enabled, inspects `X-Forwarded-Proto` header from reverse proxies when determining HTTPS. */
+  /** When enabled, inspects `X-Forwarded-Proto` header from reverse proxies when determining HTTPS. Defaults to `false`. */
   trustProxy?: boolean;
   /** When enabled, allows serving hidden dotfiles (e.g. `.well-known`). Defaults to `false`. */
   allowDotfiles?: boolean;
-  /** Default debounce delay (in ms) for replaying last broadcast to joining sockets. */
+  /** Default debounce delay (in ms) for replaying last broadcast to joining sockets. Defaults to `0`. */
   lastBroadcastDelay?: number;
   /** Custom WebSocket upgrader instance. */
   webSocketUpgrader?: WebSocketUpgrader;
@@ -4078,7 +3091,7 @@ export interface RouterOptions {
   staticFileHandler?: StaticFileHandler;
 }
 
-```
+````
 
 ---
 
