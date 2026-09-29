@@ -5,9 +5,9 @@
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB [v0.4.0] - Modo: EXAMPLE
+# Contexto Exportado do Projeto WorkerDB [v0.4.1] - Modo: EXAMPLE
 
-Gerado automaticamente em: 2026-09-29T00:13:12.000Z
+Gerado automaticamente em: 2026-09-29T01:24:30.510Z
 
 ---
 
@@ -15,7 +15,6 @@ Gerado automaticamente em: 2026-09-29T00:13:12.000Z
 
 ```ts
 // example/main.ts
-console.log("Starting WsRouter Example Server v0.4.0");
 /**
  * @file main.ts
  * @description Unified WsRouter example server showcasing WebRTC live streaming,
@@ -24,6 +23,10 @@ console.log("Starting WsRouter Example Server v0.4.0");
 
 import { createDenoRouter } from "../src/deno.ts";
 import { SignJWT, jwtVerify } from "https://deno.land/x/jose@v5.2.0/index.ts";
+
+import { APP_VERSION } from "./version.ts"
+console.log(`Starting WsRouter Example Server v${APP_VERSION}`);
+
 
 /**
  * Procura o primeiro diretório válido entre os candidatos.
@@ -169,7 +172,7 @@ app.get("/api/health", () => {
     body: JSON.stringify({
       status: "ok",
       server: "WsRouter",
-      version: "0.4.0",
+      version: APP_VERSION,
       runtime: "Deno",
       timestamp: Date.now(),
       uptime: Math.round(performance.now() / 1000),
@@ -1254,7 +1257,7 @@ export function EntryGate({ initialName, initialAvatar, initialRoom, onSubmit, i
 // example/public/components/Header.js
 import { html } from 'https://esm.sh/htm/preact';
 import { useState, useEffect } from 'https://esm.sh/preact/hooks';
-import { APP_VERSION } from './version.js';
+import { APP_VERSION } from '../version.js';
 import { subscribeBackendHealth, isHostedOnDenoServer } from './config.js';
 
 export function Header({
@@ -3876,16 +3879,6 @@ setInterval(() => {
 
 ---
 
-## Arquivo: `example/public/components/version.js`
-
-```js
-// example/public/components/version.js
-export const APP_VERSION = '0.4.0';
-
-```
-
----
-
 ## Arquivo: `example/public/index.html`
 
 ```html
@@ -3894,8 +3887,8 @@ export const APP_VERSION = '0.4.0';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WsRouter v0.4.0 • WebRTC & Real-time Showcase</title>
-  <meta name="description" content="WsRouter v0.4.0: Unified example showcase featuring WebRTC live webcam streaming, online presence tracking, JWT authentication, and REST routing.">
+  <title>WsRouter • WebRTC & Real-time Showcase</title>
+  <meta name="description" content="WsRouter : Unified example showcase featuring WebRTC live webcam streaming, online presence tracking, JWT authentication, and REST routing.">
   
   <!-- BeerCSS CDN & Material Symbols -->
   <link href="https://cdn.jsdelivr.net/npm/beercss@3.9.4/dist/cdn/beer.min.css" rel="stylesheet">
@@ -4156,6 +4149,10 @@ export const APP_VERSION = '0.4.0';
   <script type="module">
     import { h, render } from 'https://esm.sh/preact';
     import { App } from './components/App.js';
+    import { APP_VERSION } from './version.js';
+
+    // Título dinâmico
+    document.title = `WsRouter v${APP_VERSION} • WebRTC & Real-time Showcase`;
 
     render(h(App, null), document.getElementById('app'));
 
@@ -4208,7 +4205,10 @@ export const APP_VERSION = '0.4.0';
 
 ```js
 // example/public/sw.js
-const CACHE_NAME = 'wsrouter-v0.4.0';
+
+import { APP_VERSION } from "./version.js"
+
+const CACHE_NAME = 'wsrouter-v' + APP_VERSION;
 const ASSETS = [
   './',
   './index.html',
@@ -4289,6 +4289,41 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+```
+
+---
+
+## Arquivo: `example/public/version.js`
+
+```js
+// Automatically generated file during build
+
+/**
+ * Current library/application version.
+ * @type {string}
+ */
+export const APP_VERSION = typeof "0.4.1" !== "undefined"
+  ? "0.4.1"
+  : "";
+
+```
+
+---
+
+## Arquivo: `example/version.ts`
+
+```ts
+// Automatically generated file during build
+
+/**
+ * Current library/application version.
+ * @type {string}
+ */
+// @ts-ignore: Identifier '"0.4.1"' is replaced by a string literal at build time
+export const APP_VERSION: string = typeof "0.4.1" !== "undefined"
+  ? "0.4.1"
+  : "";
 
 ```
 

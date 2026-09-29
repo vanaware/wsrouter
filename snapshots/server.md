@@ -5,9 +5,9 @@
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB [v0.4.0] - Modo: SERVER
+# Contexto Exportado do Projeto WorkerDB [v0.4.1] - Modo: SERVER
 
-Gerado automaticamente em: 2026-09-29T00:13:12.044Z
+Gerado automaticamente em: 2026-09-29T01:24:30.539Z
 
 ---
 
@@ -325,7 +325,7 @@ MIT - see [LICENSE](./LICENSE) for details.
     ]
   },
   "name": "@vanaware/wsrouter",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "license": "MIT",
   "author": "Vanaware",
   "description": "A WebSocket router for Deno",
@@ -348,10 +348,10 @@ MIT - see [LICENSE](./LICENSE) for details.
     "@std/http": "jsr:@std/http@^1",
     "@std/media-types": "jsr:@std/media-types@^1", //uso futuro
     "@std/path": "jsr:@std/path@^1",
-    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.3"
+    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.4"
   },
      // 📦 Gerenciamento de Dependências
-  "minimumDependencyAge": 10,
+  "minimumDependencyAge": 1,
   "nodeModulesDir": "auto",
   "vendor": true,
   "lint": {
@@ -1229,6 +1229,7 @@ export { HttpRoute, type HttpRouteOptions } from "./http-route.ts";
 export { WsRoute, type WsRouteOptions } from "./ws-route.ts";
 /** Core Router class for registering and dispatching HTTP and WebSocket requests. */
 export { Router } from "./router.ts";
+export { APP_VERSION as version } from "./version.ts"
 
 ```
 
@@ -3092,6 +3093,24 @@ export interface RouterOptions {
 }
 
 ````
+
+---
+
+## Arquivo: `src/version.ts`
+
+```ts
+// Automatically generated file during build
+
+/**
+ * Current library/application version.
+ * @type {string}
+ */
+// @ts-ignore: Identifier '"0.4.1"' is replaced by a string literal at build time
+export const APP_VERSION: string = typeof "0.4.1" !== "undefined"
+  ? "0.4.1"
+  : "";
+
+```
 
 ---
 

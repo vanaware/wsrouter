@@ -94,3 +94,15 @@ For full API reference and advanced guides, visit the
 ## License
 
 MIT - see [LICENSE](./LICENSE) for details.
+
+
+## 📦 Últimas Atualizações
+
+<!-- START:changelog -->
+### 📦 Últimas atualizações
+
+- b711734 versão derivada pelo deno.jsonc
+- e6a69c0 chore: update default remote backend URL
+- ee1f71d build: remove unused dependencies and optimize CORS
+- 8d5722b static dir on example to deno deploy test
+<!-- END:changelog -->
