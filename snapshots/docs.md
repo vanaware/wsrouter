@@ -7,7 +7,7 @@
 
 # Contexto Exportado do Projeto WorkerDB - Modo: DOCS
 
-Gerado automaticamente em: 2026-09-28T17:11:49.543Z
+Gerado automaticamente em: 2026-09-29T00:13:12.020Z
 
 ---
 

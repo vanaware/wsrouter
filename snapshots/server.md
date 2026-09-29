@@ -7,7 +7,7 @@
 
 # Contexto Exportado do Projeto WorkerDB [v0.4.0] - Modo: SERVER
 
-Gerado automaticamente em: 2026-09-28T17:11:49.557Z
+Gerado automaticamente em: 2026-09-29T00:13:12.044Z
 
 ---
 
@@ -293,7 +293,7 @@ MIT - see [LICENSE](./LICENSE) for details.
     "export": "deno run --allow-read --allow-write ./export.ts",
     "sanitize-version": "deno run -A ./sanitize-version.ts",
     "tag-version": "deno run -A ./tag-version.ts",
-    "bump": "deno install --frozen=false && deno run -A ./tag-version.ts"
+    "bump": "deno install --frozen=false && deno run -A ./tag-version.ts --changelog --update-readme"
   },
   "exports": {
     ".": "./src/mod.ts",
@@ -348,7 +348,7 @@ MIT - see [LICENSE](./LICENSE) for details.
     "@std/http": "jsr:@std/http@^1",
     "@std/media-types": "jsr:@std/media-types@^1", //uso futuro
     "@std/path": "jsr:@std/path@^1",
-    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.1"
+    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.3"
   },
      // 📦 Gerenciamento de Dependências
   "minimumDependencyAge": 10,

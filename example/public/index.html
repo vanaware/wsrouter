@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WsRouter v0.4.0 • WebRTC & Real-time Showcase</title>
-  <meta name="description" content="WsRouter v0.4.0: Unified example showcase featuring WebRTC live webcam streaming, online presence tracking, JWT authentication, and REST routing.">
+  <title>WsRouter • WebRTC & Real-time Showcase</title>
+  <meta name="description" content="WsRouter : Unified example showcase featuring WebRTC live webcam streaming, online presence tracking, JWT authentication, and REST routing.">
   
   <!-- BeerCSS CDN & Material Symbols -->
   <link href="https://cdn.jsdelivr.net/npm/beercss@3.9.4/dist/cdn/beer.min.css" rel="stylesheet">
@@ -265,6 +265,10 @@
   <script type="module">
     import { h, render } from 'https://esm.sh/preact';
     import { App } from './components/App.js';
+    import { APP_VERSION } from './version.js';
+
+    // Título dinâmico
+    document.title = `WsRouter v${APP_VERSION} • WebRTC & Real-time Showcase`;
 
     render(h(App, null), document.getElementById('app'));
 

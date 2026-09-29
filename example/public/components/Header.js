@@ -1,7 +1,7 @@
 // example/public/components/Header.js
 import { html } from 'https://esm.sh/htm/preact';
 import { useState, useEffect } from 'https://esm.sh/preact/hooks';
-import { APP_VERSION } from './version.js';
+import { APP_VERSION } from '../version.js';
 import { subscribeBackendHealth, isHostedOnDenoServer } from './config.js';
 
 export function Header({

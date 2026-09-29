@@ -1,5 +1,8 @@
 // example/public/sw.js
-const CACHE_NAME = 'wsrouter-v0.4.0';
+
+import { APP_VERSION } from "./version.js"
+
+const CACHE_NAME = 'wsrouter-v' + APP_VERSION;
 const ASSETS = [
   './',
   './index.html',

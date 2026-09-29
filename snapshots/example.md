@@ -7,7 +7,7 @@
 
 # Contexto Exportado do Projeto WorkerDB [v0.4.0] - Modo: EXAMPLE
 
-Gerado automaticamente em: 2026-09-28T17:11:49.529Z
+Gerado automaticamente em: 2026-09-29T00:13:12.000Z
 
 ---
 
@@ -82,6 +82,8 @@ const app = createDenoRouter({
 app.use(async (req, _params, next) => {
   const origin = req.headers.get("origin") || "*";
   const method = req.method;
+  const url = req.url;
+  const acrHeaders = req.headers.get("access-control-request-headers");
 
   // Preflight request
   if (method === "OPTIONS") {
@@ -90,7 +92,7 @@ app.use(async (req, _params, next) => {
       headers: {
         "Access-Control-Allow-Origin": origin,
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-        "Access-Control-Allow-Headers": req.headers.get("access-control-request-headers") || "*",
+        "Access-Control-Allow-Headers": acrHeaders || "*",
         "Access-Control-Max-Age": "86400",
         "Access-Control-Allow-Credentials": "true",
       },
@@ -110,7 +112,6 @@ app.use(async (req, _params, next) => {
   headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
   headers.set("Access-Control-Allow-Credentials", "true");
   
-  const acrHeaders = req.headers.get("access-control-request-headers");
   if (acrHeaders) {
     headers.set("Access-Control-Allow-Headers", acrHeaders);
   } else {
@@ -118,8 +119,8 @@ app.use(async (req, _params, next) => {
   }
 
   // Debug log to confirm middleware is running
-  if (req.url.includes("/api/")) {
-    console.log(`[CORS] ${method} ${req.url} -> Status ${response.status} (Origin: ${origin})`);
+  if (url.includes("/api/")) {
+    console.log(`[CORS] ${method} ${url} -> Status ${response.status} (Origin: ${origin})`);
   }
 
   return new Response(response.body, {
@@ -3640,7 +3641,7 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
  * 
  * Example: export const DEFAULT_REMOTE_BACKEND = 'https://my-wsrouter.deno.dev';
  */
-export const DEFAULT_REMOTE_BACKEND = '';
+export const DEFAULT_REMOTE_BACKEND = 'https://wsrouter.vanaware.deno.net';
 
 /**
  * Detects if the current client is hosted on GitHub Pages static hosting

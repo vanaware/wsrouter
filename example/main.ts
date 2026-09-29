@@ -1,5 +1,4 @@
 // example/main.ts
-console.log("Starting WsRouter Example Server v0.4.0");
 /**
  * @file main.ts
  * @description Unified WsRouter example server showcasing WebRTC live streaming,
@@ -8,6 +7,10 @@ console.log("Starting WsRouter Example Server v0.4.0");
 
 import { createDenoRouter } from "../src/deno.ts";
 import { SignJWT, jwtVerify } from "https://deno.land/x/jose@v5.2.0/index.ts";
+
+import { APP_VERSION } from "./version.ts"
+console.log(`Starting WsRouter Example Server v${APP_VERSION}`);
+
 
 /**
  * Procura o primeiro diretório válido entre os candidatos.
@@ -153,7 +156,7 @@ app.get("/api/health", () => {
     body: JSON.stringify({
       status: "ok",
       server: "WsRouter",
-      version: "0.4.0",
+      version: APP_VERSION,
       runtime: "Deno",
       timestamp: Date.now(),
       uptime: Math.round(performance.now() / 1000),

@@ -37,3 +37,4 @@ export { HttpRoute, type HttpRouteOptions } from "./http-route.ts";
 export { WsRoute, type WsRouteOptions } from "./ws-route.ts";
 /** Core Router class for registering and dispatching HTTP and WebSocket requests. */
 export { Router } from "./router.ts";
+export { APP_VERSION as version } from "./version.ts"
