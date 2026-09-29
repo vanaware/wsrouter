@@ -13,6 +13,7 @@
     "export": "deno run --allow-read --allow-write ./export.ts",
     "sanitize-version": "deno run -A ./sanitize-version.ts",
     "tag-version": "deno run -A ./tag-version.ts",
+    "update-version": "deno run -A ./update-version.ts",
     "bump": "deno install --frozen=false && deno run -A ./tag-version.ts --changelog --update-readme"
   },
   "exports": {
@@ -45,7 +46,7 @@
     ]
   },
   "name": "@vanaware/wsrouter",
-  "version": "0.4.1",
+  "version": "0.4.2#mun7c937",
   "license": "MIT",
   "author": "Vanaware",
   "description": "A WebSocket router for Deno",
@@ -68,7 +69,7 @@
     "@std/http": "jsr:@std/http@^1",
     "@std/media-types": "jsr:@std/media-types@^1", //uso futuro
     "@std/path": "jsr:@std/path@^1",
-    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.4"
+    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.5"
   },
      // 📦 Gerenciamento de Dependências
   "minimumDependencyAge": 1,

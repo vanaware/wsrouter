@@ -1,5 +1,9 @@
 ## v0.4 (2026-09-29)
 
+- Sem alterações relevantes
+
+## v0.4 (2026-09-29)
+
 - b711734 versão derivada pelo deno.jsonc
 - e6a69c0 chore: update default remote backend URL
 - ee1f71d build: remove unused dependencies and optimize CORS

@@ -5,9 +5,9 @@
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB [v0.4.1] - Modo: SERVER
+# Contexto Exportado do Projeto WorkerDB [v0.4.2#mun7c937] - Modo: SERVER
 
-Gerado automaticamente em: 2026-09-29T01:24:30.539Z
+Gerado automaticamente em: 2026-09-29T21:43:57.976Z
 
 ---
 
@@ -271,6 +271,18 @@ For full API reference and advanced guides, visit the
 
 MIT - see [LICENSE](./LICENSE) for details.
 
+
+## 📦 Últimas Atualizações
+
+<!-- START:changelog -->
+### 📦 Últimas atualizações
+
+- b711734 versão derivada pelo deno.jsonc
+- e6a69c0 chore: update default remote backend URL
+- ee1f71d build: remove unused dependencies and optimize CORS
+- 8d5722b static dir on example to deno deploy test
+<!-- END:changelog -->
+
 ````
 
 ---
@@ -325,7 +337,7 @@ MIT - see [LICENSE](./LICENSE) for details.
     ]
   },
   "name": "@vanaware/wsrouter",
-  "version": "0.4.1",
+  "version": "0.4.2#mun7c937",
   "license": "MIT",
   "author": "Vanaware",
   "description": "A WebSocket router for Deno",
@@ -348,7 +360,7 @@ MIT - see [LICENSE](./LICENSE) for details.
     "@std/http": "jsr:@std/http@^1",
     "@std/media-types": "jsr:@std/media-types@^1", //uso futuro
     "@std/path": "jsr:@std/path@^1",
-    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.4"
+    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.5"
   },
      // 📦 Gerenciamento de Dependências
   "minimumDependencyAge": 1,
@@ -3105,9 +3117,9 @@ export interface RouterOptions {
  * Current library/application version.
  * @type {string}
  */
-// @ts-ignore: Identifier '"0.4.1"' is replaced by a string literal at build time
-export const APP_VERSION: string = typeof "0.4.1" !== "undefined"
-  ? "0.4.1"
+// @ts-ignore: Identifier '"0.4.2#mun7c937"' is replaced by a string literal at build time
+export const APP_VERSION: string = typeof "0.4.2#mun7c937" !== "undefined"
+  ? "0.4.2#mun7c937"
   : "";
 
 ```

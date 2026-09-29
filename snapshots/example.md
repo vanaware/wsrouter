@@ -5,9 +5,9 @@
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB [v0.4.1] - Modo: EXAMPLE
+# Contexto Exportado do Projeto WorkerDB [v0.4.2#mun7c937] - Modo: EXAMPLE
 
-Gerado automaticamente em: 2026-09-29T01:24:30.510Z
+Gerado automaticamente em: 2026-09-29T21:43:57.950Z
 
 ---
 
@@ -4303,8 +4303,8 @@ self.addEventListener('fetch', (event) => {
  * Current library/application version.
  * @type {string}
  */
-export const APP_VERSION = typeof "0.4.1" !== "undefined"
-  ? "0.4.1"
+export const APP_VERSION = typeof "0.4.2#mun7c937" !== "undefined"
+  ? "0.4.2#mun7c937"
   : "";
 
 ```
@@ -4320,9 +4320,9 @@ export const APP_VERSION = typeof "0.4.1" !== "undefined"
  * Current library/application version.
  * @type {string}
  */
-// @ts-ignore: Identifier '"0.4.1"' is replaced by a string literal at build time
-export const APP_VERSION: string = typeof "0.4.1" !== "undefined"
-  ? "0.4.1"
+// @ts-ignore: Identifier '"0.4.2#mun7c937"' is replaced by a string literal at build time
+export const APP_VERSION: string = typeof "0.4.2#mun7c937" !== "undefined"
+  ? "0.4.2#mun7c937"
   : "";
 
 ```

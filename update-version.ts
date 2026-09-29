@@ -1,10 +1,17 @@
 import {
     ensureVersionFiles,
     processFilesWithDefines,
-    readProjectVersion
+    readProjectVersion,
+    incrementProjectVersion
 } from "@vanaware/buildit"
 import { join } from "@std/path/join";
 
+async function newProjectVersion(denoJsonPath : string, baseDir: string) { 
+    return incrementProjectVersion({
+        denoJsonPath,
+        baseDir
+    });
+}
 async function syncVersionFiles() {
     const baseDir = "./"
     const lista = [
@@ -29,7 +36,7 @@ async function syncVersionFiles() {
         baseDir,
         "__APP_VERSION__"
     );
-    const version = await readProjectVersion("deno.jsonc",baseDir)
+    const version = await newProjectVersion("deno.jsonc",baseDir)
     console.log(`\n📦 Sincronizando versão "${version}" em ${arquivos.length} arquivo(s)...\n`);
     const results = await processFilesWithDefines(
         arquivos,
