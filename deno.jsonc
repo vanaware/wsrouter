@@ -7,14 +7,14 @@
     "lint-fix": "deno lint --fix",
     "check-all": "deno task check && deno task lint && deno task fmt --check && deno task test",
     "tests": "deno task check && deno task test",
-    "check": "deno check src/**/*.ts tests/**/*.ts example/**/*.ts",
+    "check": "deno check src/**/*.ts tests/**/*.ts example/**/*.ts scripts/**/*.ts",
     "start": "deno run --allow-read --allow-net --allow-env --env-file example/main.ts",
     "dev": "deno run --allow-read --allow-net --allow-env --env-file --watch example/main.ts",
     "export": "deno run --allow-read --allow-write ./export.ts",
-    "sanitize-version": "deno run -A ./sanitize-version.ts",
-    "tag-version": "deno run -A ./tag-version.ts",
-    "update-version": "deno run -A ./update-version.ts",
-    "bump": "deno install --frozen=false && deno run -A ./tag-version.ts --changelog --update-readme"
+    "sanitize-version": "deno run -A ./scripts/sanitize-version.ts",
+    "tag-version": "deno run -A ./scripts/tag-version.ts",
+    "update-version": "deno run -A ./scripts/update-version.ts",
+    "bump": "deno install --frozen=false && deno task tag-version --changelog --update-readme"
   },
   "exports": {
     ".": "./src/mod.ts",
@@ -69,7 +69,7 @@
     "@std/http": "jsr:@std/http@^1",
     "@std/media-types": "jsr:@std/media-types@^1", //uso futuro
     "@std/path": "jsr:@std/path@^1",
-    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.5"
+    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.9"
   },
      // 📦 Gerenciamento de Dependências
   "minimumDependencyAge": 1,
@@ -84,6 +84,7 @@
     "include": [
       "export.ts",
       "src/**/*.{ts,tsx}",
+      "scripts/**/*.{ts,tsx}",
       "tests/**/*test.ts"
     ]
   },
@@ -123,6 +124,7 @@
     "include": [
       "export.ts",
       "example/**/*.{ts,tsx}",
+      "scripts/**/*.{ts,tsx}",
       "src/**/*.{ts,tsx}",
       "tests/**/*test.ts"
     ]
@@ -134,6 +136,7 @@
       "vendor",
       "node_modules",
       "snapshots",
-      "docs"
+      "docs",
+      "scripts"
     ]
 }
