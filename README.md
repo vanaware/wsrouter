@@ -101,6 +101,6 @@ MIT - see [LICENSE](./LICENSE) for details.
 <!-- START:changelog -->
 ### 📦 Últimas atualizações
 
-- Sem alterações relevantes
+- af663a0 pasta scripts
 
 <!-- END:changelog -->

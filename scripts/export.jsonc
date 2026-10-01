@@ -33,7 +33,7 @@
       "arquivoSaida": "snapshots/server.md",
       "includes": [
         "{src,tests}/**/*.{tsx,jsx,js,ts,css,html,json,jsonc,yaml,yml,md}",
-        "{deno.json,deno.jsonc,README.md,.env.example}",
+        "{deno.json,deno.jsonc,README.md,.env.example,.tools-versions,CHANGELOG.md}",
         ".github/workflows/**/*.{yaml,yml}"
       ],
       "excludes": [
@@ -47,11 +47,7 @@
     "utils": {
       "arquivoSaida": "snapshots/utils.md",
       "includes": [
-        "export.{ts.jsonc}", 
-        "esbuild.{ts.jsonc}", 
-        "denobuild.{ts.jsonc}", 
-        "watch.{ts.jsonc}",
-        "{sanitize-version.ts,tag-version.ts}"
+        "scripts/**/*.{ts,jsonc}"
       ],
       "excludes": [
         "**/node_modules/**",

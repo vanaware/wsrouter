@@ -1,3 +1,7 @@
+## v0.4 (2026-10-01)
+
+- af663a0 pasta scripts
+
 ## v0.4 (2026-09-29)
 
 - Sem alterações relevantes

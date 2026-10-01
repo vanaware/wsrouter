@@ -7,7 +7,7 @@
 
 # Contexto Exportado do Projeto WorkerDB - Modo: DOCS
 
-Gerado automaticamente em: 2026-09-29T21:43:57.963Z
+Gerado automaticamente em: 2026-10-01T22:35:55.033Z
 
 ---
 
@@ -22,6 +22,10 @@ deno 2.9.7
 ## Arquivo: `CHANGELOG.md`
 
 ```md
+## v0.4 (2026-09-29)
+
+- Sem alterações relevantes
+
 ## v0.4 (2026-09-29)
 
 - b711734 versão derivada pelo deno.jsonc
@@ -173,10 +177,8 @@ MIT - see [LICENSE](./LICENSE) for details.
 <!-- START:changelog -->
 ### 📦 Últimas atualizações
 
-- b711734 versão derivada pelo deno.jsonc
-- e6a69c0 chore: update default remote backend URL
-- ee1f71d build: remove unused dependencies and optimize CORS
-- 8d5722b static dir on example to deno deploy test
+- Sem alterações relevantes
+
 <!-- END:changelog -->
 
 ````

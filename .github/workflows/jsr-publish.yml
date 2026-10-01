@@ -31,7 +31,7 @@ jobs:
 
       - name: Sanitize Version
         run: |
-          deno run -A ./scripts/sanitize-version.ts ./deno.jsonc
+          deno task sanitize-version ./deno.jsonc
 
       - name: Publish WsRouter to JSR
         run: |

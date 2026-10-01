@@ -10,7 +10,7 @@
     "check": "deno check src/**/*.ts tests/**/*.ts example/**/*.ts scripts/**/*.ts",
     "start": "deno run --allow-read --allow-net --allow-env --env-file example/main.ts",
     "dev": "deno run --allow-read --allow-net --allow-env --env-file --watch example/main.ts",
-    "export": "deno run --allow-read --allow-write ./export.ts",
+    "export": "deno run --allow-read --allow-write ./scripts/export.ts",
     "sanitize-version": "deno run -A ./scripts/sanitize-version.ts",
     "tag-version": "deno run -A ./scripts/tag-version.ts",
     "update-version": "deno run -A ./scripts/update-version.ts",
@@ -46,7 +46,7 @@
     ]
   },
   "name": "@vanaware/wsrouter",
-  "version": "0.4.2#mun7c937",
+  "version": "0.4.5#muq4b3ay",
   "license": "MIT",
   "author": "Vanaware",
   "description": "A WebSocket router for Deno",

@@ -7,7 +7,7 @@
 
 # Contexto Exportado do Projeto WorkerDB [v0.4.2#mun7c937] - Modo: SERVER
 
-Gerado automaticamente em: 2026-09-29T21:43:57.976Z
+Gerado automaticamente em: 2026-10-01T22:35:55.044Z
 
 ---
 
@@ -92,7 +92,7 @@ jobs:
 
       - name: Sanitize Version
         run: |
-          deno run -A ./sanitize-version.ts ./deno.jsonc
+          deno run -A ./scripts/sanitize-version.ts ./deno.jsonc
 
       - name: Publish WsRouter to JSR
         run: |
@@ -277,10 +277,8 @@ MIT - see [LICENSE](./LICENSE) for details.
 <!-- START:changelog -->
 ### 📦 Últimas atualizações
 
-- b711734 versão derivada pelo deno.jsonc
-- e6a69c0 chore: update default remote backend URL
-- ee1f71d build: remove unused dependencies and optimize CORS
-- 8d5722b static dir on example to deno deploy test
+- Sem alterações relevantes
+
 <!-- END:changelog -->
 
 ````
@@ -299,13 +297,14 @@ MIT - see [LICENSE](./LICENSE) for details.
     "lint-fix": "deno lint --fix",
     "check-all": "deno task check && deno task lint && deno task fmt --check && deno task test",
     "tests": "deno task check && deno task test",
-    "check": "deno check src/**/*.ts tests/**/*.ts example/**/*.ts",
+    "check": "deno check src/**/*.ts tests/**/*.ts example/**/*.ts scripts/**/*.ts",
     "start": "deno run --allow-read --allow-net --allow-env --env-file example/main.ts",
     "dev": "deno run --allow-read --allow-net --allow-env --env-file --watch example/main.ts",
-    "export": "deno run --allow-read --allow-write ./export.ts",
-    "sanitize-version": "deno run -A ./sanitize-version.ts",
-    "tag-version": "deno run -A ./tag-version.ts",
-    "bump": "deno install --frozen=false && deno run -A ./tag-version.ts --changelog --update-readme"
+    "export": "deno run --allow-read --allow-write ./scripts/export.ts",
+    "sanitize-version": "deno run -A ./scripts/sanitize-version.ts",
+    "tag-version": "deno run -A ./scripts/tag-version.ts",
+    "update-version": "deno run -A ./scripts/update-version.ts",
+    "bump": "deno install --frozen=false && deno task tag-version --changelog --update-readme"
   },
   "exports": {
     ".": "./src/mod.ts",
@@ -360,7 +359,7 @@ MIT - see [LICENSE](./LICENSE) for details.
     "@std/http": "jsr:@std/http@^1",
     "@std/media-types": "jsr:@std/media-types@^1", //uso futuro
     "@std/path": "jsr:@std/path@^1",
-    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.5"
+    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.9"
   },
      // 📦 Gerenciamento de Dependências
   "minimumDependencyAge": 1,
@@ -375,6 +374,7 @@ MIT - see [LICENSE](./LICENSE) for details.
     "include": [
       "export.ts",
       "src/**/*.{ts,tsx}",
+      "scripts/**/*.{ts,tsx}",
       "tests/**/*test.ts"
     ]
   },
@@ -414,6 +414,7 @@ MIT - see [LICENSE](./LICENSE) for details.
     "include": [
       "export.ts",
       "example/**/*.{ts,tsx}",
+      "scripts/**/*.{ts,tsx}",
       "src/**/*.{ts,tsx}",
       "tests/**/*test.ts"
     ]
@@ -425,7 +426,8 @@ MIT - see [LICENSE](./LICENSE) for details.
       "vendor",
       "node_modules",
       "snapshots",
-      "docs"
+      "docs",
+      "scripts"
     ]
 }
 
