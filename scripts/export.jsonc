@@ -1,9 +1,9 @@
 {
   "$schema": "https://vanaware.github.io/buildit/schema/export.json",
-  "projeto": "WorkerDB",
-  "modos": {
+  "project": "WorkerDB",
+  "modes": {
     "example": {
-      "arquivoSaida": "snapshots/example.md",
+      "outputFile": "snapshots/example.md",
       "includes": [
         "example/**/*.{tsx,jsx,js,ts,css,html,manifest,json,jsonc,md}"
       ],
@@ -11,12 +11,12 @@
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": true,
-      "instrucaoCustomizada": "O texto abaixo contém os arquivos de CÓDIGO FONTE principais da aplicação exemplo (example).",
+      "includeVersion": true,
+      "customInstruction": "O texto abaixo contém os arquivos de CÓDIGO FONTE principais da aplicação exemplo (example).",
       "default": true
     },
     "docs": {
-      "arquivoSaida": "snapshots/docs.md",
+      "outputFile": "snapshots/docs.md",
       "includes": [
         "docs/**/*.{md,txt}",
         "{README.md,LICENSE,.tool-versions,CHANGELOG.md}"
@@ -25,12 +25,12 @@
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": false,
-      "instrucaoCustomizada": "O texto abaixo contém a DOCUMENTAÇÃO e diretrizes arquiteturais do projeto.",
+      "includeVersion": false,
+      "customInstruction": "O texto abaixo contém a DOCUMENTAÇÃO e diretrizes arquiteturais do projeto.",
       "default": true
     },
     "server": {
-      "arquivoSaida": "snapshots/server.md",
+      "outputFile": "snapshots/server.md",
       "includes": [
         "{src,tests}/**/*.{tsx,jsx,js,ts,css,html,json,jsonc,yaml,yml,md}",
         "{deno.json,deno.jsonc,README.md,.env.example,.tools-versions,CHANGELOG.md}",
@@ -40,12 +40,12 @@
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": true,
-      "instrucaoCustomizada": "O texto abaixo contém os arquivos de configuração e execução do WSROUTER @vanaware/wsrouter e CI/CD.",
+      "includeVersion": true,
+      "customInstruction": "O texto abaixo contém os arquivos de configuração e execução do WSROUTER @vanaware/wsrouter e CI/CD.",
       "default": true
     },
     "utils": {
-      "arquivoSaida": "snapshots/utils.md",
+      "outputFile": "snapshots/utils.md",
       "includes": [
         "scripts/**/*.{ts,jsonc}"
       ],
@@ -53,8 +53,8 @@
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": false,
-      "instrucaoCustomizada": "O texto abaixo contém o código da biblioteca @vanaware/buildit",
+      "includeVersion": false,
+      "customInstruction": "O texto abaixo contém o código da biblioteca @vanaware/buildit",
       "default": true
     }
   }

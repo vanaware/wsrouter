@@ -37,7 +37,11 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: "v2.x"
+          deno-version-file: .tool-versions
+          cache: true
+      
+      - name: Install dependencies
+        run: deno ci
 
       - name: Verify code integrity
         run: deno task check
