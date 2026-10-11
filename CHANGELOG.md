@@ -1,3 +1,10 @@
+## v0.5 (2026-10-11)
+
+- 801cdb1 refactor: improve path normalization and typing
+- 40ec155 refactor: update dependencies and improve JSDoc
+- 9d6df15 erros doc --lint
+- db12ae8 ajustes tasks e deno.jsonc
+
 ## v0.4 (2026-10-01)
 
 - af663a0 pasta scripts

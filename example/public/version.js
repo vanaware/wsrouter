@@ -4,6 +4,6 @@
  * Current library/application version.
  * @type {string}
  */
-export const APP_VERSION = typeof "0.4.5#muq4b3ay" !== "undefined"
-  ? "0.4.5#muq4b3ay"
+export const APP_VERSION = typeof "0.5.1#mv39h36q" !== "undefined"
+  ? "0.5.1#mv39h36q"
   : "";
