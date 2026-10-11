@@ -93,7 +93,7 @@ export class HttpRoute {
     req: Request,
     params: RouteParams,
     ctx?: RequestContext,
-  ): Response | Promise<Response> {
+  ): ReturnType<HttpHandler> {
     return this.handler(req, params, ctx);
   }
 }

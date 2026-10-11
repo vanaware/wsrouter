@@ -94,15 +94,31 @@ export class Router {
     return this;
   }
 
+  /**
+   * Normalizes the base path string.
+   * @param p - The base path string.
+   * @returns Normalized base path.
+   */
   private normalizeBasePath(p: string): string {
     if (!p || p === "/") return "";
     return "/" + p.replace(/^\/+|\/+$/g, "");
   }
 
+  /**
+   * Normalizes a route path string.
+   * @param p - The path string.
+   * @returns Normalized path string.
+   */
   private normalizePath(p: string): string {
     return p.startsWith("/") ? p : "/" + p;
   }
 
+  /**
+   * Combines a prefix and a path string.
+   * @param prefix - Route prefix.
+   * @param path - Route path.
+   * @returns Combined path string.
+   */
   private combinePaths(prefix: string, path?: string): string {
     const normPrefix = prefix
       ? (prefix.startsWith("/") ? prefix : "/" + prefix).replace(/\/+$/, "")
@@ -115,6 +131,11 @@ export class Router {
     return normPrefix + normPath;
   }
 
+  /**
+   * Strips the base path from a pathname.
+   * @param pathname - Request pathname.
+   * @returns Stripped pathname.
+   */
   private stripBase(pathname: string): string {
     if (!this.basePath) return pathname;
     if (pathname === this.basePath) return "/";
@@ -124,6 +145,11 @@ export class Router {
     return pathname;
   }
 
+  /**
+   * Checks if the request originates from localhost.
+   * @param req - The HTTP request.
+   * @returns True if localhost, false otherwise.
+   */
   private isLocalhost(req: Request): boolean {
     const url = new URL(req.url);
     const hostname = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
@@ -131,6 +157,11 @@ export class Router {
       hostname === "::1";
   }
 
+  /**
+   * Determines if HTTPS should be forced for the request.
+   * @param req - The HTTP request.
+   * @returns True if HTTPS should be enforced.
+   */
   private shouldForceHttps(req: Request): boolean {
     if (!this.forceHttps) return false;
     if (this.isLocalhost(req)) return false;
@@ -147,6 +178,11 @@ export class Router {
     return true;
   }
 
+  /**
+   * Builds an HTTPS URL from an incoming HTTP request.
+   * @param req - The HTTP request.
+   * @returns The HTTPS URL string.
+   */
   private buildHttpsUrl(req: Request): string {
     const url = new URL(req.url);
     url.protocol = "https:";
@@ -165,6 +201,14 @@ export class Router {
     return url.toString();
   }
 
+  /**
+   * Adds an internal HTTP route definition.
+   * @param method - HTTP method.
+   * @param path - Route path.
+   * @param handler - HTTP handler.
+   * @param options - Route options.
+   * @returns The created HttpRoute instance.
+   */
   private addHttpRoute(
     method: string,
     path: string,
@@ -177,6 +221,13 @@ export class Router {
     return route;
   }
 
+  /**
+   * Adds an internal WebSocket route definition.
+   * @param path - WebSocket route path.
+   * @param handler - WebSocket handler.
+   * @param optionsOrDelay - Options or broadcast delay.
+   * @returns The created WsRoute instance.
+   */
   private addWsRoute(
     path: string,
     handler: WsHandler,
@@ -240,6 +291,15 @@ export class Router {
     return this;
   }
 
+  /**
+   * Internal helper to register an HTTP method route.
+   * @param method - HTTP method name.
+   * @param path - Route path.
+   * @param handlerOrMiddlewares - Handler function or middleware array.
+   * @param maybeHandlerOrOptions - Handler function or route options.
+   * @param maybeOptions - Route options.
+   * @returns The router instance for chaining.
+   */
   private registerMethod(
     method: string,
     path: string,
@@ -309,6 +369,14 @@ export class Router {
 
   /** Registers a POST route. */
   post(path: string, handler: HttpHandler, options?: HttpRouteOptions): this;
+  /**
+   * Registers a POST route with route-specific middlewares.
+   * @param path - Route path.
+   * @param middlewares - Route middlewares.
+   * @param handler - HTTP handler.
+   * @param options - Route options.
+   * @returns The router instance for chaining.
+   */
   post(
     path: string,
     middlewares: (Middleware | MiddlewareRoute)[],
@@ -332,6 +400,14 @@ export class Router {
 
   /** Registers a PUT route. */
   put(path: string, handler: HttpHandler, options?: HttpRouteOptions): this;
+  /**
+   * Registers a PUT route with route-specific middlewares.
+   * @param path - Route path.
+   * @param middlewares - Route middlewares.
+   * @param handler - HTTP handler.
+   * @param options - Route options.
+   * @returns The router instance for chaining.
+   */
   put(
     path: string,
     middlewares: (Middleware | MiddlewareRoute)[],
@@ -355,6 +431,14 @@ export class Router {
 
   /** Registers a DELETE route. */
   delete(path: string, handler: HttpHandler, options?: HttpRouteOptions): this;
+  /**
+   * Registers a DELETE route with route-specific middlewares.
+   * @param path - Route path.
+   * @param middlewares - Route middlewares.
+   * @param handler - HTTP handler.
+   * @param options - Route options.
+   * @returns The router instance for chaining.
+   */
   delete(
     path: string,
     middlewares: (Middleware | MiddlewareRoute)[],
@@ -378,6 +462,14 @@ export class Router {
 
   /** Registers a PATCH route. */
   patch(path: string, handler: HttpHandler, options?: HttpRouteOptions): this;
+  /**
+   * Registers a PATCH route with route-specific middlewares.
+   * @param path - Route path.
+   * @param middlewares - Route middlewares.
+   * @param handler - HTTP handler.
+   * @param options - Route options.
+   * @returns The router instance for chaining.
+   */
   patch(
     path: string,
     middlewares: (Middleware | MiddlewareRoute)[],
@@ -401,6 +493,14 @@ export class Router {
 
   /** Registers an OPTIONS route. */
   options(path: string, handler: HttpHandler, options?: HttpRouteOptions): this;
+  /**
+   * Registers an OPTIONS route with route-specific middlewares.
+   * @param path - Route path.
+   * @param middlewares - Route middlewares.
+   * @param handler - HTTP handler.
+   * @param options - Route options.
+   * @returns The router instance for chaining.
+   */
   options(
     path: string,
     middlewares: (Middleware | MiddlewareRoute)[],
@@ -424,6 +524,14 @@ export class Router {
 
   /** Registers a HEAD route. */
   head(path: string, handler: HttpHandler, options?: HttpRouteOptions): this;
+  /**
+   * Registers a HEAD route with route-specific middlewares.
+   * @param path - Route path.
+   * @param middlewares - Route middlewares.
+   * @param handler - HTTP handler.
+   * @param options - Route options.
+   * @returns The router instance for chaining.
+   */
   head(
     path: string,
     middlewares: (Middleware | MiddlewareRoute)[],
@@ -546,6 +654,11 @@ export class Router {
     return this;
   }
 
+  /**
+   * Finds matching HTTP route for a request.
+   * @param req - The HTTP request.
+   * @returns Matched route and parameters or null.
+   */
   private findHttpRoute(
     req: Request,
   ): { route: HttpRoute; params: RouteParams } | null {
@@ -561,6 +674,11 @@ export class Router {
     return null;
   }
 
+  /**
+   * Finds matching WebSocket route for a request.
+   * @param req - The HTTP request.
+   * @returns Matched WebSocket route and parameters or null.
+   */
   private findWsRoute(
     req: Request,
   ): { route: WsRoute; params: RouteParams } | null {
@@ -575,6 +693,11 @@ export class Router {
     return null;
   }
 
+  /**
+   * Tries executing registered worker routes.
+   * @param req - The HTTP request.
+   * @returns Response from worker or null.
+   */
   private async tryWorkers(req: Request): Promise<Response | null> {
     for (const worker of this.workers) {
       try {
@@ -587,6 +710,15 @@ export class Router {
     return null;
   }
 
+  /**
+   * Executes an HTTP route handler.
+   * @param req - The HTTP request.
+   * @param route - The HttpRoute instance.
+   * @param params - Route parameters.
+   * @param isHeadFromGet - Whether HEAD was generated from GET.
+   * @param ctx - Optional request context.
+   * @returns The resulting Response.
+   */
   private async executeHttpHandler(
     req: Request,
     route: HttpRoute,
@@ -627,6 +759,13 @@ export class Router {
     }
   }
 
+  /**
+   * Executes a WebSocket route handler and upgrades connection.
+   * @param req - The HTTP request.
+   * @param route - The WsRoute instance.
+   * @param params - Route parameters.
+   * @returns The upgrade response.
+   */
   private async executeWsHandler(
     req: Request,
     route: WsRoute,
@@ -778,6 +917,15 @@ export class Router {
     });
   }
 
+  /**
+   * Executes the final HTTP or WebSocket route handler.
+   * @param req - The HTTP request.
+   * @param isWs - Whether request is WebSocket.
+   * @param found - Found route and parameters or null.
+   * @param extraHeaders - Extra headers to attach.
+   * @param ctx - Optional request context.
+   * @returns The resulting Response.
+   */
   private async executeFinalHandler(
     req: Request,
     isWs: boolean,
@@ -907,6 +1055,11 @@ export class Router {
     return new Response("Not Found", { status: 404, headers: extraHeaders });
   }
 
+  /**
+   * Handles serving static files.
+   * @param req - The HTTP request.
+   * @returns The resulting Response.
+   */
   private async handleStaticFile(req: Request): Promise<Response> {
     if (!this.staticFileHandler) {
       return new Response("Not Found", { status: 404 });
@@ -1192,6 +1345,11 @@ export class Router {
     return group.stopBroadcasting(broadcasterId, room, params);
   }
 
+  /**
+   * Extracts route parameters from regex URL pattern match groups.
+   * @param groups - RegExp match groups dictionary.
+   * @returns Extracted RouteParams object.
+   */
   private extractParams(
     groups: Record<string, string | undefined>,
   ): RouteParams {
