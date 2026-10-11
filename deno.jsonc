@@ -5,7 +5,7 @@
     "fmt": "deno fmt",
     "fmt-check": "deno fmt --check",
     "lint-fix": "deno lint --fix",
-    "lint:doc": "deno task --recursive lint:doc",
+    "lint:doc": "deno doc --lint src/{mod,deno,presence,webrtc,deno-serve-dir,adapters/deno,adapters/deno-serve-dir}.ts",
     "tests": "deno task check && deno task lint && deno task fmt:check && deno task lint:doc && deno task test",
     "check": "deno check src/**/*.ts tests/**/*.ts example/**/*.ts scripts/**/*.ts",
     "start": "deno run --allow-read --allow-net --allow-env --env-file example/main.ts",
