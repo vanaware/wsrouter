@@ -419,20 +419,45 @@ export class PresenceTracker<T = Record<string, unknown>> {
   }
 
   /**
-   * Attaches an event listener for presence events.
+   * Attaches an event listener for presence 'join' events.
+   *
+   * @param event - Event name 'join'.
+   * @param listener - Handler called when a user joins presence.
+   * @returns This hub instance for chaining.
    */
   on(
     event: "join",
     listener: (user: PresenceUser<T>, ws: WebSocket) => void,
   ): this;
+  /**
+   * Attaches an event listener for presence 'leave' events.
+   *
+   * @param event - Event name 'leave'.
+   * @param listener - Handler called when a user leaves presence.
+   * @returns This hub instance for chaining.
+   */
   on(
     event: "leave",
     listener: (user: PresenceUser<T>, ws: WebSocket) => void,
   ): this;
+  /**
+   * Attaches an event listener for presence 'update' events.
+   *
+   * @param event - Event name 'update'.
+   * @param listener - Handler called when a user's presence data is updated.
+   * @returns This hub instance for chaining.
+   */
   on(
     event: "update",
     listener: (user: PresenceUser<T>, oldData: T) => void,
   ): this;
+  /**
+   * Attaches an event listener for presence connection/disconnection events.
+   *
+   * @param event - Event name 'connection' or 'disconnection'.
+   * @param listener - Handler called when a connection state changes.
+   * @returns This hub instance for chaining.
+   */
   on(
     event: "connection" | "disconnection",
     listener: (user: PresenceUser<T>, ws: WebSocket) => void,

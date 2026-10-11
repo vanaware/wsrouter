@@ -13,9 +13,13 @@ import type { WebSocketGroup } from "./websocket-group.ts";
  * Standard ICE candidate format compatible with browser RTCIceCandidateInit.
  */
 export interface SerializedIceCandidate {
+  /** The candidate-attribute string. */
   candidate?: string;
+  /** The media stream identification tag. */
   sdpMid?: string | null;
+  /** The index of the media description in the SDP. */
   sdpMLineIndex?: number | null;
+  /** A fragment of the username used in ICE communication. */
   usernameFragment?: string | null;
 }
 
@@ -23,7 +27,9 @@ export interface SerializedIceCandidate {
  * Standard SDP format compatible with browser RTCSessionDescriptionInit.
  */
 export interface SerializedSessionDescription {
+  /** The SDP description type. */
   type: "offer" | "answer" | "pranswer" | "rollback";
+  /** The SDP string content. */
   sdp?: string;
 }
 
@@ -83,10 +89,15 @@ export type WebRTCSignalingMessage =
  * Broadcaster stream state tracked by the signaling hub.
  */
 export interface ActiveStreamInfo {
+  /** The broadcaster peer ID. */
   broadcasterId: string;
+  /** The broadcaster display name. */
   broadcasterName: string;
+  /** Optional title or topic of the stream. */
   streamTitle?: string;
+  /** The room identifier where the stream is active. */
   room: string;
+  /** Unix timestamp in milliseconds when the stream started. */
   startedAt: number;
 }
 
@@ -94,10 +105,15 @@ export interface ActiveStreamInfo {
  * Event map for WebRTC signaling hub lifecycle events.
  */
 export interface WebRTCSignalingEvents {
+  /** Emitted when a new stream broadcast begins. */
   "stream_start": (stream: ActiveStreamInfo) => void;
+  /** Emitted when a stream broadcast ends. */
   "stream_stop": (broadcasterId: string, room: string) => void;
+  /** Emitted when a peer registers on the signaling hub. */
   "peer_register": (peerId: string, ws: WebSocket) => void;
+  /** Emitted when a peer unregisters from the signaling hub. */
   "peer_unregister": (peerId: string, ws: WebSocket) => void;
+  /** Emitted when a viewer sends a reaction. */
   "reaction": (reaction: { from: string; fromName: string; emoji: string; room: string }) => void;
 }
 
@@ -124,6 +140,12 @@ export class WebRTCSignalingHub {
   private listeners = new Map<string, Set<(...args: any[]) => void>>();
   private serialize: (msg: WebRTCSignalingMessage) => string;
 
+  /**
+   * Creates a new WebRTCSignalingHub instance.
+   *
+   * @param group - Optional WebSocketGroup to bind immediately.
+   * @param options - Signaling hub configuration options.
+   */
   constructor(group?: WebSocketGroup, options?: WebRTCSignalingHubOptions) {
     this.group = group;
     this.serialize = options?.serialize ?? ((msg) => JSON.stringify(msg));

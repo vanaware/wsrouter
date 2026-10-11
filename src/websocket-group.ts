@@ -311,20 +311,45 @@ export class WebSocketGroup {
   }
 
   /**
-   * Attaches an event listener for group events ('connect', 'disconnect', 'message', 'broadcast').
+   * Attaches an event listener for group 'connect' events.
+   *
+   * @param event - Event name 'connect'.
+   * @param listener - Handler called when a WebSocket connects.
+   * @returns This group instance for chaining.
    */
   on(
     event: "connect",
     listener: (ws: WebSocket, params: RouteParams) => void,
   ): this;
+  /**
+   * Attaches an event listener for group 'disconnect' events.
+   *
+   * @param event - Event name 'disconnect'.
+   * @param listener - Handler called when a WebSocket disconnects.
+   * @returns This group instance for chaining.
+   */
   on(
     event: "disconnect",
     listener: (ws: WebSocket, params: RouteParams) => void,
   ): this;
+  /**
+   * Attaches an event listener for group 'message' events.
+   *
+   * @param event - Event name 'message'.
+   * @param listener - Handler called when a WebSocket receives a message.
+   * @returns This group instance for chaining.
+   */
   on(
     event: "message",
     listener: (ws: WebSocket, data: unknown, params: RouteParams) => void,
   ): this;
+  /**
+   * Attaches an event listener for group 'broadcast' events.
+   *
+   * @param event - Event name 'broadcast'.
+   * @param listener - Handler called when a broadcast message is emitted.
+   * @returns This group instance for chaining.
+   */
   on(
     event: "broadcast",
     listener: (message: string, senderParams?: RouteParams) => void,

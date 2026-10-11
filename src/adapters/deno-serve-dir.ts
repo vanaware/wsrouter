@@ -1,38 +1,35 @@
-// monorepo/router/src/adapters/deno-serve-dir.ts
-// 🦕 Adaptador Deno ALTERNATIVO — usa serveDir do @std/http/file-server
-// Mantém containment + recusa de symlinks, mas delega o serving para o std.
-// Ganhos: Range Requests, ETag/If-None-Match (304), HEAD nativo, menos código.
+// src/adapters/deno-serve-dir.ts
+/**
+ * @file deno-serve-dir.ts
+ * @description Alternative Deno static file adapter using @std/http/file-server serveDir.
+ */
 
 import { serveDir } from "@std/http/file-server";
 import { resolve } from "@std/path";
 import type { StaticFileHandler } from "../mod.ts";
 
-// Re-exporta o mesmo upgrader WebSocket do adaptador principal
+// Re-export standard WebSocket upgrader from primary adapter
 export { denoWebSocketUpgrader } from "./deno.ts";
 
+/**
+ * Options for configuring the Deno serveDir static file adapter.
+ */
 export interface DenoServeDirOptions {
-  /** Permitir arquivos que começam com '.' (default: false) */
+  /** Whether to allow serving dotfiles (files starting with '.') (default: false). */
   allowDotfiles?: boolean;
-  /** Mostrar listagem de diretórios (default: false) */
+  /** Whether to display directory listings (default: false). */
   showDirListing?: boolean;
-  /** Habilitar CORS nos arquivos estáticos (default: false) */
+  /** Whether to enable CORS headers on served static files (default: false). */
   enableCors?: boolean;
 }
 
 /**
- * Cria um handler de arquivos estáticos usando serveDir do @std/http.
+ * Creates a static file handler leveraging @std/http/file-server serveDir.
  *
- * Vantagens sobre o adaptador manual (deno.ts):
- * - Range Requests (vídeo, áudio, PDFs grandes)
- * - ETag + If-None-Match → 304 Not Modified
- * - Last-Modified + If-Modified-Since → 304
- * - HEAD automático
- * - Menos código para manter
- *
- * Desvantagens:
- * - Cache-Control fixo (não customizável por arquivo)
- * - Formato do ETag é interno do std
- * - Dependência extra: @std/http
+ * @param staticDir - Primary directory to serve static files from.
+ * @param embeddedDir - Optional embedded fallback directory.
+ * @param options - Additional serveDir options.
+ * @returns Configured StaticFileHandler instance.
  */
 export function createDenoServeDirStaticFileHandler(
   staticDir: string | null,

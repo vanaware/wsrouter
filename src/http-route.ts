@@ -83,8 +83,17 @@ export class HttpRoute {
 
   /**
    * Invokes the HTTP route handler.
+   *
+   * @param req - The incoming HTTP request.
+   * @param params - Extracted route parameters.
+   * @param ctx - Optional request context.
+   * @returns The handler response or promise of response.
    */
-  execute(req: Request, params: RouteParams, ctx?: RequestContext) {
+  execute(
+    req: Request,
+    params: RouteParams,
+    ctx?: RequestContext,
+  ): Response | Promise<Response> {
     return this.handler(req, params, ctx);
   }
 }
