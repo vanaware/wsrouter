@@ -1,5 +1,9 @@
 ## v0.5 (2026-10-11)
 
+- No relevant changes
+
+## v0.5 (2026-10-11)
+
 - 801cdb1 refactor: improve path normalization and typing
 - 40ec155 refactor: update dependencies and improve JSDoc
 - 9d6df15 erros doc --lint

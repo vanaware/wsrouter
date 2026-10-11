@@ -2,12 +2,6 @@ name: Deploy Example to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'example/**'
-      - 'src/**'
-      - '.github/workflows/pages.yml'
     tags:
       - 'v*.*'
   workflow_dispatch:
@@ -44,7 +38,7 @@ jobs:
         run: deno ci
 
       - name: Verify code integrity
-        run: deno task check
+        run: deno task tests
 
       - name: Prepare static assets for GitHub Pages
         run: |

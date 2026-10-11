@@ -101,8 +101,6 @@ MIT - see [LICENSE](./LICENSE) for details.
 <!-- START:changelog -->
 ### 📦 Latest updates
 
-- 801cdb1 refactor: improve path normalization and typing
-- 40ec155 refactor: update dependencies and improve JSDoc
-- 9d6df15 erros doc --lint
-- db12ae8 ajustes tasks e deno.jsonc
+- No relevant changes
+
 <!-- END:changelog -->

@@ -27,7 +27,7 @@ jobs:
         run: deno ci
 
       - name: Verify code integrity
-        run: deno task check-all
+        run: deno task tests
 
       - name: Sanitize Version
         run: |
