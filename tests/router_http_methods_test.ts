@@ -3,10 +3,10 @@ import { assertEquals, assertExists, } from "@std/assert";
 import { createDenoRouter, } from "../src/deno.ts";
 
 // ============================================================
-// Testes para método OPTIONS (CORS preflight)
+// Tests for the OPTIONS method (CORS preflight)
 // ============================================================
 
-Deno.test("OPTIONS retorna headers CORS corretos", async () => {
+Deno.test("OPTIONS returns correct CORS headers", async () => {
   const app = createDenoRouter("", null, null,);
 
   const corsHeaders = {
@@ -35,7 +35,7 @@ Deno.test("OPTIONS retorna headers CORS corretos", async () => {
   assertEquals(res.headers.get("Access-Control-Max-Age",), "86400",);
 });
 
-Deno.test("OPTIONS com rota específica", async () => {
+Deno.test("OPTIONS with a specific route", async () => {
   const app = createDenoRouter("", null, null,);
 
   app.options("/users/:id", (_req, params,) => ({
@@ -63,10 +63,10 @@ Deno.test("OPTIONS com rota específica", async () => {
 });
 
 // ============================================================
-// Testes para método PUT
+// Tests for the PUT method
 // ============================================================
 
-Deno.test("PUT atualiza recurso completo", async () => {
+Deno.test("PUT updates the full resource", async () => {
   const app = createDenoRouter("", null, null,);
 
   app.put("/users/:id", async (req, params,) => {
@@ -83,7 +83,7 @@ Deno.test("PUT atualiza recurso completo", async () => {
 
   const req = new Request("http://localhost/users/42", {
     method: "PUT",
-    body: JSON.stringify({ name: "João", email: "joao@example.com", },),
+    body: JSON.stringify({ name: "John", email: "john@example.com", },),
     headers: { "Content-Type": "application/json", },
   },);
   const res = await app.handleRequest(req,);
@@ -92,10 +92,10 @@ Deno.test("PUT atualiza recurso completo", async () => {
   const data = await res.json();
   assertEquals(data.updated, true,);
   assertEquals(data.id, "42",);
-  assertEquals(data.data.name, "João",);
+  assertEquals(data.data.name, "John",);
 });
 
-Deno.test("PUT sem body funciona", async () => {
+Deno.test("PUT without body works", async () => {
   const app = createDenoRouter("", null, null,);
 
   app.put("/status", () => ({
@@ -113,10 +113,10 @@ Deno.test("PUT sem body funciona", async () => {
 });
 
 // ============================================================
-// Testes para método DELETE
+// Tests for the DELETE method
 // ============================================================
 
-Deno.test("DELETE remove recurso", async () => {
+Deno.test("DELETE removes the resource", async () => {
   const app = createDenoRouter("", null, null,);
 
   app.delete("/users/:id", (_req, params,) => ({
@@ -138,7 +138,7 @@ Deno.test("DELETE remove recurso", async () => {
   assertEquals(data.id, "42",);
 });
 
-Deno.test("DELETE retorna 204 No Content", async () => {
+Deno.test("DELETE returns 204 No Content", async () => {
   const app = createDenoRouter("", null, null,);
 
   app.delete("/items/:id", (_req, params,) => ({
@@ -156,10 +156,10 @@ Deno.test("DELETE retorna 204 No Content", async () => {
 });
 
 // ============================================================
-// Testes para método PATCH
+// Tests for the PATCH method
 // ============================================================
 
-Deno.test("PATCH atualiza recurso parcialmente", async () => {
+Deno.test("PATCH updates the resource partially", async () => {
   const app = createDenoRouter("", null, null,);
 
   app.patch("/users/:id", async (req, params,) => {
@@ -176,7 +176,7 @@ Deno.test("PATCH atualiza recurso parcialmente", async () => {
 
   const req = new Request("http://localhost/users/42", {
     method: "PATCH",
-    body: JSON.stringify({ email: "novo@email.com", },),
+    body: JSON.stringify({ email: "new@email.com", },),
     headers: { "Content-Type": "application/json", },
   },);
   const res = await app.handleRequest(req,);
@@ -185,10 +185,10 @@ Deno.test("PATCH atualiza recurso parcialmente", async () => {
   const data = await res.json();
   assertEquals(data.patched, true,);
   assertEquals(data.id, "42",);
-  assertEquals(data.updates.email, "novo@email.com",);
+  assertEquals(data.updates.email, "new@email.com",);
 });
 
-Deno.test("PATCH com múltiplos campos", async () => {
+Deno.test("PATCH with multiple fields", async () => {
   const app = createDenoRouter("", null, null,);
 
   app.patch("/products/:id", async (req, params,) => {
@@ -220,14 +220,14 @@ Deno.test("PATCH com múltiplos campos", async () => {
 });
 
 // ============================================================
-// Testes para método HEAD
+// Tests for the HEAD method
 // ============================================================
 
-Deno.test("HEAD retorna headers sem body", async () => {
+Deno.test("HEAD returns headers without body", async () => {
   const app = createDenoRouter("", null, null,);
 
   app.head("/users/:id", (_req, params,) => ({
-    body: JSON.stringify({ id: params.id, name: "João", },),
+    body: JSON.stringify({ id: params.id, name: "John", },),
     init: {
       headers: {
         "Content-Type": "application/json",
@@ -245,12 +245,12 @@ Deno.test("HEAD retorna headers sem body", async () => {
   assertEquals(res.headers.get("Content-Type",), "application/json",);
   assertEquals(res.headers.get("X-Custom-Header",), "test-value",);
 
-  // HEAD não deve ter body (ou body vazio)
+  // HEAD should have no body (or an empty body)
   const text = await res.text();
   assertEquals(text, "",);
 });
 
-Deno.test("HEAD para verificar existência de recurso", async () => {
+Deno.test("HEAD to check resource existence", async () => {
   const app = createDenoRouter("", null, null,);
 
   app.head("/files/:name", (_req, params,) => ({
@@ -275,11 +275,11 @@ Deno.test("HEAD para verificar existência de recurso", async () => {
 });
 
 // ============================================================
-// Testes de métodos não permitidos
+// Tests for disallowed methods
 // ============================================================
 
-// 🚀 CORREÇÃO: Agora retorna 405 Method Not Allowed
-Deno.test("Método não registrado retorna 405", async () => {
+// 🚀 FIX: Now returns 405 Method Not Allowed
+Deno.test("Unregistered method returns 405", async () => {
   const app = createDenoRouter("", null, null,);
   app.get("/only-get", () => ({ body: "ok", }),);
   const req = new Request("http://localhost/only-get", {
@@ -290,8 +290,8 @@ Deno.test("Método não registrado retorna 405", async () => {
   assertEquals(res.headers.get("Allow",), "GET",);
 });
 
-// 🚀 CORREÇÃO: Agora retorna 405 Method Not Allowed
-Deno.test("PUT em rota GET retorna 405", async () => {
+// 🚀 FIX: Now returns 405 Method Not Allowed
+Deno.test("PUT on a GET route returns 405", async () => {
   const app = createDenoRouter("", null, null,);
   app.get("/resource", () => ({ body: "data", }),);
   const req = new Request("http://localhost/resource", {
@@ -304,10 +304,10 @@ Deno.test("PUT em rota GET retorna 405", async () => {
 });
 
 // ============================================================
-// Testes com basePath
+// Tests with basePath
 // ============================================================
 
-Deno.test("OPTIONS com basePath funciona", async () => {
+Deno.test("OPTIONS with basePath works", async () => {
   const app = createDenoRouter("/api", null, null,);
 
   app.options("/*", () => ({
@@ -327,7 +327,7 @@ Deno.test("OPTIONS com basePath funciona", async () => {
   assertEquals(res.headers.get("Access-Control-Allow-Origin",), "*",);
 });
 
-Deno.test("PUT com basePath e parâmetros", async () => {
+Deno.test("PUT with basePath and parameters", async () => {
   const app = createDenoRouter("/api/v1", null, null,);
 
   app.put("/users/:id", async (req, params,) => {
@@ -352,10 +352,10 @@ Deno.test("PUT com basePath e parâmetros", async () => {
 });
 
 // ============================================================
-// Testes de combinação de métodos
+// Method combination tests
 // ============================================================
 
-Deno.test("Mesma rota com métodos diferentes", async () => {
+Deno.test("Same route with different methods", async () => {
   const app = createDenoRouter("", null, null,);
 
   app.get("/resource", () => ({ body: "GET response", }),);
@@ -369,7 +369,7 @@ Deno.test("Mesma rota com métodos diferentes", async () => {
   app.options("/resource", () => ({ body: "", init: { status: 204, }, }),);
   app.head("/resource", () => ({ body: "", }),);
 
-  // Testa cada método
+  // Tests each method
   const methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD",];
 
   for (const method of methods) {

@@ -1,3 +1,7 @@
+## v0.6 (2026-10-24)
+
+- No relevant changes
+
 ## v0.5 (2026-10-11)
 
 - No relevant changes
@@ -15,7 +19,7 @@
 
 ## v0.4 (2026-09-29)
 
-- Sem alterações relevantes
+- No relevant changes
 
 ## v0.4 (2026-09-29)
 

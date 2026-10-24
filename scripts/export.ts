@@ -2,9 +2,9 @@
 
 /**
  * @file export.ts
- * @description CLI de consolidação de contexto para IAs no projeto BuildIt.
- * Delega a execução e regras para a biblioteca @vanaware/buildit
- * e carrega as configurações declarativas de export.jsonc.
+ * @description Context consolidation CLI for AIs in the BuildIt project.
+ * Delegates execution and rules to the @vanaware/buildit library
+ * and loads the declarative settings from export.jsonc.
  */
 
 import { exportCli, } from "@vanaware/buildit/cli/export";

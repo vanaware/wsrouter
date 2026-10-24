@@ -3,7 +3,7 @@ import { assertEquals, } from "@std/assert";
 import { createDenoRouter, } from "../src/deno.ts";
 import { join, } from "@std/path";
 
-Deno.test("trustProxy: X-Forwarded-Proto é ignorado por padrão", async () => {
+Deno.test("trustProxy: X-Forwarded-Proto is ignored by default", async () => {
   const app = createDenoRouter({
     basePath: "",
     forceHttps: true,
@@ -17,11 +17,11 @@ Deno.test("trustProxy: X-Forwarded-Proto é ignorado por padrão", async () => {
   assertEquals(
     res.status,
     301,
-    "Deve redirecionar mesmo com X-Forwarded-Proto",
+    "Should redirect even with X-Forwarded-Proto",
   );
 });
 
-Deno.test("trustProxy: X-Forwarded-Proto é respeitado quando ativo", async () => {
+Deno.test("trustProxy: X-Forwarded-Proto is respected when enabled", async () => {
   const app = createDenoRouter({
     basePath: "",
     forceHttps: true,
@@ -32,10 +32,10 @@ Deno.test("trustProxy: X-Forwarded-Proto é respeitado quando ativo", async () =
     headers: { "x-forwarded-proto": "https", },
   },);
   const res = await app.handleRequest(req,);
-  assertEquals(res.status, 200, "Deve aceitar X-Forwarded-Proto",);
+  assertEquals(res.status, 200, "Should accept X-Forwarded-Proto",);
 });
 
-Deno.test("HSTS está presente em respostas HTTPS quando forceHttps ativo", async () => {
+Deno.test("HSTS is present in HTTPS responses when forceHttps is active", async () => {
   const app = createDenoRouter({ basePath: "", forceHttps: true, },);
   app.get("/ping", () => ({ body: "pong", }),);
   const req = new Request("https://example.com/ping",);
@@ -47,7 +47,7 @@ Deno.test("HSTS está presente em respostas HTTPS quando forceHttps ativo", asyn
   );
 });
 
-Deno.test("Dotfiles são bloqueados por padrão", async () => {
+Deno.test("Dotfiles are blocked by default", async () => {
   const tmpDir = await Deno.makeTempDir();
   await Deno.writeTextFile(join(tmpDir, ".env",), "SECRET=123",);
   await Deno.writeTextFile(join(tmpDir, "public.txt",), "ok",);
@@ -60,16 +60,16 @@ Deno.test("Dotfiles são bloqueados por padrão", async () => {
 
   const req1 = new Request("http://localhost/.env",);
   const res1 = await app.handleRequest(req1,);
-  assertEquals(res1.status, 404, "Dotfile deve ser bloqueado",);
+  assertEquals(res1.status, 404, "Dotfile should be blocked",);
 
   const req2 = new Request("http://localhost/public.txt",);
   const res2 = await app.handleRequest(req2,);
-  assertEquals(res2.status, 200, "Arquivo normal deve ser servido",);
+  assertEquals(res2.status, 200, "Regular file should be served",);
 
   await Deno.remove(tmpDir, { recursive: true, },);
 });
 
-Deno.test("Dotfiles são permitidos quando allowDotfiles é true", async () => {
+Deno.test("Dotfiles are allowed when allowDotfiles is true", async () => {
   const tmpDir = await Deno.makeTempDir();
   await Deno.writeTextFile(join(tmpDir, ".env",), "SECRET=123",);
 
@@ -81,13 +81,13 @@ Deno.test("Dotfiles são permitidos quando allowDotfiles é true", async () => {
 
   const req = new Request("http://localhost/.env",);
   const res = await app.handleRequest(req,);
-  assertEquals(res.status, 200, "Dotfile deve ser servido",);
+  assertEquals(res.status, 200, "Dotfile should be served",);
   assertEquals(await res.text(), "SECRET=123",);
 
   await Deno.remove(tmpDir, { recursive: true, },);
 });
 
-Deno.test("Symlinks são recusados", async () => {
+Deno.test("Symlinks are rejected", async () => {
   const tmpRoot = await Deno.makeTempDir();
   const publicDir = join(tmpRoot, "public",);
   const secretDir = join(tmpRoot, "secret",);
@@ -104,12 +104,12 @@ Deno.test("Symlinks são recusados", async () => {
 
   const req = new Request("http://localhost/leak.txt",);
   const res = await app.handleRequest(req,);
-  assertEquals(res.status, 404, "Symlink deve ser recusado",);
+  assertEquals(res.status, 404, "Symlink should be rejected",);
 
   await Deno.remove(tmpRoot, { recursive: true, },);
 });
 
-Deno.test("Headers de arquivo estático incluem Content-Length e ETag", async () => {
+Deno.test("Static file headers include Content-Length and ETag", async () => {
   const tmpDir = await Deno.makeTempDir();
   await Deno.writeTextFile(join(tmpDir, "test.txt",), "hello world",);
 
@@ -126,7 +126,7 @@ Deno.test("Headers de arquivo estático incluem Content-Length e ETag", async ()
   await Deno.remove(tmpDir, { recursive: true, },);
 });
 
-Deno.test("Diretório sem barra final redireciona para com barra", async () => {
+Deno.test("Directory without trailing slash redirects to one with slash", async () => {
   const tmpDir = await Deno.makeTempDir();
   const subDir = join(tmpDir, "docs",);
   await Deno.mkdir(subDir,);

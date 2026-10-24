@@ -3,9 +3,9 @@ import { assert, assertEquals, } from "@std/assert";
 import { createDenoRouter, } from "../src/deno.ts";
 
 // ============================================================
-// 1. WORKER BÁSICO
+// 1. BASIC WORKER
 // ============================================================
-Deno.test("Worker: trata request quando rota não existe", async () => {
+Deno.test("Worker: handles a request when the route does not exist", async () => {
   const app = createDenoRouter({ basePath: "", staticDir: null, },);
 
   app.worker(async (req,) => {
@@ -25,7 +25,7 @@ Deno.test("Worker: trata request quando rota não existe", async () => {
   assertEquals(data.message, "from worker",);
 });
 
-Deno.test("Worker: retorna 404 quando worker não trata", async () => {
+Deno.test("Worker: returns 404 when the worker does not handle it", async () => {
   const app = createDenoRouter({ basePath: "", staticDir: null, },);
 
   app.worker(async (_req,) => {
@@ -38,13 +38,13 @@ Deno.test("Worker: retorna 404 quando worker não trata", async () => {
 });
 
 // ============================================================
-// 2. MÚLTIPLOS WORKERS (CADEIA DE FALLBACK)
+// 2. MULTIPLE WORKERS (FALLBACK CHAIN)
 // ============================================================
-Deno.test("Worker: múltiplos workers em cadeia", async () => {
+Deno.test("Worker: multiple workers in chain", async () => {
   const app = createDenoRouter({ basePath: "", staticDir: null, },);
   const order: string[] = [];
 
-  // Worker 1: trata /api/v1
+  // Worker 1: handles /api/v1
   app.worker(async (req,) => {
     const url = new URL(req.url,);
     if (url.pathname.startsWith("/api/v1",)) {
@@ -55,7 +55,7 @@ Deno.test("Worker: múltiplos workers em cadeia", async () => {
     return new Response("Not Found", { status: 404, },);
   },);
 
-  // Worker 2: trata /api/v2
+  // Worker 2: handles /api/v2
   app.worker(async (req,) => {
     const url = new URL(req.url,);
     if (url.pathname.startsWith("/api/v2",)) {
@@ -66,36 +66,36 @@ Deno.test("Worker: múltiplos workers em cadeia", async () => {
     return new Response("Not Found", { status: 404, },);
   },);
 
-  // Testa /api/v1 → worker1 trata
+  // Tests /api/v1 → worker1 handles it
   const req1 = new Request("http://localhost/api/v1/data",);
   const res1 = await app.handleRequest(req1,);
   assertEquals(res1.status, 200,);
   assertEquals(await res1.text(), "v1 response",);
 
-  // Testa /api/v2 → worker1 pula, worker2 trata
+  // Tests /api/v2 → worker1 skips, worker2 handles it
   const req2 = new Request("http://localhost/api/v2/data",);
   const res2 = await app.handleRequest(req2,);
   assertEquals(res2.status, 200,);
   assertEquals(await res2.text(), "v2 response",);
 
-  // Testa /unknown → ambos pulam → 404
+  // Tests /unknown → both skip → 404
   const req3 = new Request("http://localhost/unknown",);
   const res3 = await app.handleRequest(req3,);
   assertEquals(res3.status, 404,);
 });
 
 // ============================================================
-// 3. WORKER COM ROTAS HTTP (PRIORIDADE)
+// 3. WORKER WITH HTTP ROUTES (PRIORITY)
 // ============================================================
-Deno.test("Worker: rotas HTTP têm prioridade sobre workers", async () => {
+Deno.test("Worker: HTTP routes have priority over workers", async () => {
   const app = createDenoRouter({ basePath: "", staticDir: null, },);
 
-  // Rota HTTP registrada
+  // Registered HTTP route
   app.get("/api/data", () => ({
     body: "from route",
   }),);
 
-  // Worker que também trataria /api/data
+  // Worker that would also handle /api/data
   app.worker(async (req,) => {
     const url = new URL(req.url,);
     if (url.pathname === "/api/data") {
@@ -107,20 +107,20 @@ Deno.test("Worker: rotas HTTP têm prioridade sobre workers", async () => {
   const req = new Request("http://localhost/api/data",);
   const res = await app.handleRequest(req,);
   assertEquals(res.status, 200,);
-  // A rota HTTP deve ganhar, não o worker
+  // The HTTP route should win, not the worker
   assertEquals(await res.text(), "from route",);
 });
 
 // ============================================================
-// 4. WORKER COM STATIC FILES (ORDEM)
+// 4. WORKER WITH STATIC FILES (ORDER)
 // ============================================================
-Deno.test("Worker: workers executam ANTES de static files", async () => {
+Deno.test("Worker: workers run BEFORE static files", async () => {
   const tmpDir = await Deno.makeTempDir();
   await Deno.writeTextFile(`${tmpDir}/test.txt`, "from static",);
 
   const app = createDenoRouter({ basePath: "", staticDir: tmpDir, },);
 
-  // Worker que trata /test.txt (mesmo path do arquivo estático)
+  // Worker that handles /test.txt (same path as the static file)
   app.worker(async (req,) => {
     const url = new URL(req.url,);
     if (url.pathname === "/test.txt") {
@@ -132,19 +132,19 @@ Deno.test("Worker: workers executam ANTES de static files", async () => {
   const req = new Request("http://localhost/test.txt",);
   const res = await app.handleRequest(req,);
   assertEquals(res.status, 200,);
-  // Worker deve ganhar sobre static
+  // Worker should win over static
   assertEquals(await res.text(), "from worker",);
 
   await Deno.remove(tmpDir, { recursive: true, },);
 });
 
-Deno.test("Worker: se worker retorna 404, static é tentado", async () => {
+Deno.test("Worker: if the worker returns 404, static is attempted", async () => {
   const tmpDir = await Deno.makeTempDir();
   await Deno.writeTextFile(`${tmpDir}/hello.txt`, "from static",);
 
   const app = createDenoRouter({ basePath: "", staticDir: tmpDir, },);
 
-  // Worker que NÃO trata /hello.txt
+  // Worker that does NOT handle /hello.txt
   app.worker(async (_req,) => {
     return new Response("Not Found", { status: 404, },);
   },);
@@ -158,17 +158,17 @@ Deno.test("Worker: se worker retorna 404, static é tentado", async () => {
 });
 
 // ============================================================
-// 5. WORKER COM ERRO (RESILIÊNCIA)
+// 5. WORKER WITH ERRORS (RESILIENCE)
 // ============================================================
-Deno.test("Worker: erro em worker não quebra a cadeia", async () => {
+Deno.test("Worker: an error in a worker does not break the chain", async () => {
   const app = createDenoRouter({ basePath: "", staticDir: null, },);
 
-  // Worker 1: lança erro
+  // Worker 1: throws an error
   app.worker(async (_req,) => {
     throw new Error("Worker exploded!",);
   },);
 
-  // Worker 2: funciona normalmente
+  // Worker 2: works normally
   app.worker(async (req,) => {
     const url = new URL(req.url,);
     if (url.pathname === "/safe") {
@@ -184,9 +184,9 @@ Deno.test("Worker: erro em worker não quebra a cadeia", async () => {
 });
 
 // ============================================================
-// 6. WORKER COM MIDDLEWARES
+// 6. WORKER WITH MIDDLEWARES
 // ============================================================
-Deno.test("Worker: middlewares executam antes de workers", async () => {
+Deno.test("Worker: middlewares run before workers", async () => {
   const app = createDenoRouter({ basePath: "", staticDir: null, },);
   let middlewareCalled = false;
 
@@ -212,20 +212,20 @@ Deno.test("Worker: middlewares executam antes de workers", async () => {
   assertEquals(
     middlewareCalled,
     true,
-    "Middleware deve executar antes do worker",
+    "Middleware should run before the worker",
   );
   assertEquals(res.headers.get("X-Middleware",), "applied",);
 });
 
 // ============================================================
-// 7. WORKER COM BASEPATH
+// 7. WORKER WITH BASEPATH
 // ============================================================
-Deno.test("Worker: funciona com basePath", async () => {
+Deno.test("Worker: works with basePath", async () => {
   const app = createDenoRouter({ basePath: "/api", staticDir: null, },);
 
   app.worker(async (req,) => {
     const url = new URL(req.url,);
-    // O worker recebe a URL completa (com basePath)
+    // The worker receives the full URL (with basePath)
     if (url.pathname === "/api/proxy/data") {
       return new Response("proxied data",);
     }
@@ -239,12 +239,12 @@ Deno.test("Worker: funciona com basePath", async () => {
 });
 
 // ============================================================
-// 8. WORKER SIMULANDO workerHandler.fetch (CASO DE USO REAL)
+// 8. WORKER SIMULATING workerHandler.fetch (REAL USE CASE)
 // ============================================================
-Deno.test("Worker: simula integração com workerHandler.fetch", async () => {
+Deno.test("Worker: simulates integration with workerHandler.fetch", async () => {
   const app = createDenoRouter({ basePath: "", staticDir: null, },);
 
-  // Simula um workerHandler no estilo Cloudflare Worker
+  // Simulates a Cloudflare Worker-style workerHandler
   const workerHandler = {
     async fetch(request: Request, _env?: any, _ctx?: any,): Promise<Response> {
       const url = new URL(request.url,);
@@ -267,12 +267,12 @@ Deno.test("Worker: simula integração com workerHandler.fetch", async () => {
     },
   };
 
-  // Registra o worker usando closure para capturar env/ctx
+  // Registers the worker using a closure to capture env/ctx
   const env = { SOME_KEY: "value", };
   const ctx = { waitUntil: (_p: Promise<unknown>,) => {}, };
   app.worker((req,) => workerHandler.fetch(req, env, ctx,));
 
-  // Testa /ping
+  // Tests /ping
   const req1 = new Request("http://localhost/ping", { method: "POST", },);
   const res1 = await app.handleRequest(req1,);
   assertEquals(res1.status, 200,);
@@ -280,21 +280,21 @@ Deno.test("Worker: simula integração com workerHandler.fetch", async () => {
   assertEquals(data1.success, true,);
   assertEquals(data1.service, "loco-proxy",);
 
-  // Testa /push
+  // Tests /push
   const req2 = new Request("http://localhost/push", { method: "POST", },);
   const res2 = await app.handleRequest(req2,);
   assertEquals(res2.status, 200,);
 
-  // Testa rota inexistente
+  // Tests a nonexistent route
   const req3 = new Request("http://localhost/unknown",);
   const res3 = await app.handleRequest(req3,);
   assertEquals(res3.status, 404,);
 });
 
 // ============================================================
-// 9. WORKER COM FORCE HTTPS
+// 9. WORKER WITH FORCE HTTPS
 // ============================================================
-Deno.test("Worker: forceHttps redireciona antes de workers", async () => {
+Deno.test("Worker: forceHttps redirects before workers", async () => {
   const app = createDenoRouter({
     basePath: "",
     staticDir: null,

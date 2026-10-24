@@ -12,7 +12,7 @@
         "**/.git/**"
       ],
       "includeVersion": true,
-      "customInstruction": "O texto abaixo contém os arquivos de CÓDIGO FONTE principais da aplicação exemplo (example).",
+      "customInstruction": "The text below contains the main SOURCE CODE files of the example application (example).",
       "default": true
     },
     "docs": {
@@ -26,7 +26,7 @@
         "**/.git/**"
       ],
       "includeVersion": false,
-      "customInstruction": "O texto abaixo contém a DOCUMENTAÇÃO e diretrizes arquiteturais do projeto.",
+      "customInstruction": "The text below contains the project DOCUMENTATION and architectural guidelines.",
       "default": true
     },
     "server": {
@@ -41,7 +41,7 @@
         "**/.git/**"
       ],
       "includeVersion": true,
-      "customInstruction": "O texto abaixo contém os arquivos de configuração e execução do WSROUTER @vanaware/wsrouter e CI/CD.",
+      "customInstruction": "The text below contains the configuration and runtime files of WSROUTER @vanaware/wsrouter and CI/CD.",
       "default": true
     },
     "utils": {
@@ -54,7 +54,7 @@
         "**/.git/**"
       ],
       "includeVersion": false,
-      "customInstruction": "O texto abaixo contém o código da biblioteca @vanaware/buildit",
+      "customInstruction": "The text below contains the code of the @vanaware/buildit library",
       "default": true
     }
   }

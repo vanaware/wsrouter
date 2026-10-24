@@ -1,17 +1,17 @@
-> **INSTRUÇÃO PARA A IA:** 
-> O texto abaixo contém a DOCUMENTAÇÃO e diretrizes arquiteturais do projeto.
-> Cada arquivo começa com um título indicando seu caminho relativo exato (ex: `## Arquivo: src/main.ts`).
-> Sempre que sugerir alterações, indique claramente qual arquivo deve ser modificado com base nesses caminhos e forneça o novo código completo do arquivo.
+> **AI INSTRUCTION:** 
+> The text below contains the project DOCUMENTATION and architectural guidelines.
+> Each file starts with a title indicating its exact relative path (e.g., `## File: src/main.ts`).
+> Whenever suggesting changes, clearly indicate which file should be modified based on these paths and provide the complete new code for the file.
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB - Modo: DOCS
+# Exported Context from Project WorkerDB - Mode: DOCS
 
-Gerado automaticamente em: 2026-10-01T22:35:55.033Z
+Automatically generated at: 2026-10-24T20:20:08.322Z
 
 ---
 
-## Arquivo: `.tool-versions`
+## File: `.tool-versions`
 
 ```tool-versions
 deno 2.9.7
@@ -19,12 +19,27 @@ deno 2.9.7
 
 ---
 
-## Arquivo: `CHANGELOG.md`
+## File: `CHANGELOG.md`
 
 ```md
+## v0.5 (2026-10-11)
+
+- No relevant changes
+
+## v0.5 (2026-10-11)
+
+- 801cdb1 refactor: improve path normalization and typing
+- 40ec155 refactor: update dependencies and improve JSDoc
+- 9d6df15 erros doc --lint
+- db12ae8 ajustes tasks e deno.jsonc
+
+## v0.4 (2026-10-01)
+
+- af663a0 pasta scripts
+
 ## v0.4 (2026-09-29)
 
-- Sem alterações relevantes
+- No relevant changes
 
 ## v0.4 (2026-09-29)
 
@@ -42,7 +57,7 @@ Initial release
 
 ---
 
-## Arquivo: `LICENSE`
+## File: `LICENSE`
 
 ```license
 MIT License
@@ -71,7 +86,7 @@ SOFTWARE.
 
 ---
 
-## Arquivo: `README.md`
+## File: `README.md`
 
 ````md
 # wsrouter
@@ -172,12 +187,12 @@ For full API reference and advanced guides, visit the
 MIT - see [LICENSE](./LICENSE) for details.
 
 
-## 📦 Últimas Atualizações
+## 📦 Latest Updates
 
 <!-- START:changelog -->
-### 📦 Últimas atualizações
+### 📦 Latest updates
 
-- Sem alterações relevantes
+- No relevant changes
 
 <!-- END:changelog -->
 
@@ -185,40 +200,40 @@ MIT - see [LICENSE](./LICENSE) for details.
 
 ---
 
-## Arquivo: `docs/adapter-deno-serve-dir.md`
+## File: `docs/adapter-deno-serve-dir.md`
 
 ````md
-# 🦕 Adaptador Alternativo: `deno-serve-dir`
+# 🦕 Alternative Adapter: `deno-serve-dir`
 
-O `@vanaware/wsrouter` oferece **dois adaptadores de arquivos estáticos** para Deno. Este documento descreve o adaptador alternativo baseado em `serveDir` do `@std/http/file-server`.
-
----
-
-## 🎯 Motivação
-
-O adaptador principal (`adapters/deno.ts`) implementa serving de arquivos manualmente com `Deno.open`, `Deno.lstat` e `Deno.realPath`. Isso dá controle total sobre headers e comportamento, mas:
-
-- **Não suporta Range Requests** (necessário para vídeo/áudio/PDFs grandes)
-- **Não processa `If-None-Match` / `If-Modified-Since`** (304 Not Modified)
-- **~100 linhas de código** para manter
-
-O `serveDir` do `@std/http` resolve tudo isso nativamente, pois é a implementação oficial do Deno para file serving.
+`@vanaware/wsrouter` offers **two static file adapters** for Deno. This document describes the alternative adapter based on `serveDir` from `@std/http/file-server`.
 
 ---
 
-## 📐 Arquitetura: Dois Adaptadores
+## 🎯 Motivation
+
+The primary adapter (`adapters/deno.ts`) implements file serving manually with `Deno.open`, `Deno.lstat` and `Deno.realPath`. This gives full control over headers and behavior, but:
+
+- **Does not support Range Requests** (required for large video/audio/PDF files)
+- **Does not handle `If-None-Match` / `If-Modified-Since`** (304 Not Modified)
+- **~100 lines of code** to maintain
+
+`serveDir` from `@std/http` solves all of this natively, since it is Deno's official implementation for file serving.
+
+---
+
+## 📐 Architecture: Two Adapters
 
 ```
 src/adapters/
-├── deno.ts              ← Manual: controle total, zero dependências extras
-└── deno-serve-dir.ts    ← serveDir: Range, 304, HEAD nativos
+├── deno.ts              ← Manual: full control, zero extra dependencies
+└── deno-serve-dir.ts    ← serveDir: native Range, 304, HEAD
 
 src/
 ├── deno.ts              ← Entry point: createDenoRouter()
 └── deno-serve-dir.ts    ← Entry point: createDenoServeDirRouter()
 ```
 
-**Ambos compartilham o mesmo upgrader WebSocket** (`denoWebSocketUpgrader`), re-exportado via:
+**Both share the same WebSocket upgrader** (`denoWebSocketUpgrader`), re-exported via:
 
 ```typescript
 export { denoWebSocketUpgrader } from "./deno.ts";
@@ -226,31 +241,31 @@ export { denoWebSocketUpgrader } from "./deno.ts";
 
 ---
 
-## 📊 Comparação
+## 📊 Comparison
 
-| Aspecto | `deno.ts` (Manual) | `deno-serve-dir.ts` (serveDir) |
+| Aspect | `deno.ts` (Manual) | `deno-serve-dir.ts` (serveDir) |
 |---|:---:|:---:|
-| **Linhas de código** | ~100 | ~50 |
-| **Range Requests** | ❌ | ✅ Nativo |
-| **ETag / 304** | ✅ Custom (size+mtime) | ✅ Nativo (mais robusto) |
-| **HEAD automático** | ✅ Via core | ✅ Via serveDir |
-| **Cache-Control** | ✅ Customizável | ⚠️ Fixo |
-| **Formato do ETag** | Custom: `"size-mtime"` | Interno do std |
-| **Dependência extra** | Nenhuma | `@std/http` |
-| **Manutenção** | Manual | Comunitária (std) |
+| **Lines of code** | ~100 | ~50 |
+| **Range Requests** | ❌ | ✅ Native |
+| **ETag / 304** | ✅ Custom (size+mtime) | ✅ Native (more robust) |
+| **Automatic HEAD** | ✅ Via core | ✅ Via serveDir |
+| **Cache-Control** | ✅ Customizable | ⚠️ Fixed |
+| **ETag format** | Custom: `"size-mtime"` | std internal |
+| **Extra dependency** | None | `@std/http` |
+| **Maintenance** | Manual | Community (std) |
 | **Containment** | ✅ `Deno.realPath` | ✅ `resolve` |
-| **Symlinks** | ✅ Recusados | ✅ Recusados |
-| **Dotfiles** | ✅ Bloqueados | ✅ Bloqueados |
+| **Symlinks** | ✅ Rejected | ✅ Rejected |
+| **Dotfiles** | ✅ Blocked | ✅ Blocked |
 
-### Quando usar cada um?
+### When to use each one?
 
-| Cenário | Adaptador |
+| Scenario | Adapter |
 |---|---|
-| Serve vídeo/áudio/PDFs grandes | `deno-serve-dir` |
-| Precisa de 304 Not Modified | `deno-serve-dir` |
-| Precisa de Cache-Control custom por arquivo | `deno` (manual) |
-| Não quer dependência `@std/http` | `deno` (manual) |
-| Quer menos código para manter | `deno-serve-dir` |
+| Serving large video/audio/PDF files | `deno-serve-dir` |
+| Need 304 Not Modified | `deno-serve-dir` |
+| Need per-file custom Cache-Control | `deno` (manual) |
+| Don't want the `@std/http` dependency | `deno` (manual) |
+| Want less code to maintain | `deno-serve-dir` |
 
 ---
 
@@ -273,7 +288,7 @@ interface DenoServeDirRouterOptions {
   trustProxy?: boolean;
   allowDotfiles?: boolean;
   lastBroadcastDelay?: number;
-  /** Opções específicas do serveDir */
+  /** serveDir-specific options */
   serveDir?: {
     showDirListing?: boolean;  // Default: false
     enableCors?: boolean;      // Default: false
@@ -283,7 +298,7 @@ interface DenoServeDirRouterOptions {
 
 ### `createDenoServeDirStaticFileHandler(staticDir, embeddedDir, options)`
 
-Cria apenas o `StaticFileHandler` sem instanciar o Router completo:
+Creates only the `StaticFileHandler` without instantiating the full Router:
 
 ```typescript
 interface DenoServeDirOptions {
@@ -295,9 +310,9 @@ interface DenoServeDirOptions {
 
 ---
 
-## 🌍 Exemplos
+## 🌍 Examples
 
-### Básico
+### Basic
 
 ```typescript
 import { createDenoServeDirRouter } from "@vanaware/wsrouter/deno-serve-dir";
@@ -312,20 +327,20 @@ app.get("/hello", () => ({ body: "Hello!" }));
 Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 ```
 
-### Com CORS e dir listing
+### With CORS and dir listing
 
 ```typescript
 const app = createDenoServeDirRouter({
   basePath: "",
   staticDir: "./public",
   serveDir: {
-    showDirListing: true,   // Mostra listagem de diretórios
-    enableCors: true,       // Adiciona headers CORS
+    showDirListing: true,   // Shows directory listing
+    enableCors: true,       // Adds CORS headers
   },
 });
 ```
 
-### Usando apenas o handler (sem entry point)
+### Using only the handler (no entry point)
 
 ```typescript
 import { Router } from "@vanaware/wsrouter";
@@ -342,12 +357,12 @@ const app = new Router({
 });
 ```
 
-### Integração com server/main.ts do Loco
+### Integration with the Loco server/main.ts
 
-Substituindo o `serveDir` manual do `main.ts`:
+Replacing the manual `serveDir` in `main.ts`:
 
 ```typescript
-// ANTES (main.ts manual):
+// BEFORE (manual main.ts):
 import { serveDir } from "@std/http/file-server";
 const staticResponse = await serveDir(req, {
   fsRoot: "./build/dist",
@@ -355,7 +370,7 @@ const staticResponse = await serveDir(req, {
   quiet: true,
 });
 
-// DEPOIS (com router):
+// AFTER (with router):
 import { createDenoServeDirRouter } from "@vanaware/wsrouter/deno-serve-dir";
 import workerHandler from "./worker.ts";
 
@@ -374,65 +389,65 @@ Deno.serve({ port: Number(env.PORT || 3000) }, app.handleRequest.bind(app));
 
 ---
 
-## 🔒 Segurança
+## 🔒 Security
 
-O adaptador `deno-serve-dir` mantém as **mesmas políticas de segurança** do adaptador manual:
+The `deno-serve-dir` adapter keeps the **same security policies** as the manual adapter:
 
 ### Containment
 
-Antes de delegar para o `serveDir`, o caminho é resolvido e verificado:
+Before delegating to `serveDir`, the path is resolved and verified:
 
 ```typescript
 const fullPath = resolve(baseDir, "." + pathname);
 const resolvedBase = resolve(baseDir);
 
 if (!fullPath.startsWith(resolvedBase + "/") && fullPath !== resolvedBase) {
-  return null; // Path tenta escapar do diretório
+  return null; // Path attempts to escape the directory
 }
 ```
 
 ### Symlinks
 
-Symlinks são recusados com `Deno.lstat` antes de chegar ao `serveDir`:
+Symlinks are rejected with `Deno.lstat` before reaching `serveDir`:
 
 ```typescript
 const info = await Deno.lstat(fullPath);
 if (info.isSymlink) {
-  console.warn(`[Static] Symlink recusado: ${fullPath}`);
+  console.warn(`[Static] Symlink rejected: ${fullPath}`);
   return null;
 }
 ```
 
 ### Dotfiles
 
-Controlados pela opção `allowDotfiles` (default: `false`), que é passada como `showDotfiles` para o `serveDir`.
+Controlled by the `allowDotfiles` option (default: `false`), which is passed as `showDotfiles` to `serveDir`.
 
 ---
 
-## 🧪 Testes
+## 🧪 Tests
 
-O adaptador possui testes dedicados em `tests/adapters_serve_dir_test.ts`:
+The adapter has dedicated tests in `tests/adapters_serve_dir_test.ts`:
 
 ```bash
 deno test tests/adapters_serve_dir_test.ts --allow-read --allow-write --allow-net --allow-env
 ```
 
-Testes atuais:
-- ✅ Serve arquivos existentes
-- ✅ Bloqueia dotfiles por padrão
+Current tests:
+- ✅ Serves existing files
+- ✅ Blocks dotfiles by default
 
-Testes recomendados para adicionar:
-- ⏳ Range Request retorna 206 Partial Content
-- ⏳ If-None-Match retorna 304
-- ⏳ HEAD retorna headers sem body
-- ⏳ Symlink é recusado
-- ⏳ Path traversal é bloqueado
+Recommended tests to add:
+- ⏳ Range Request returns 206 Partial Content
+- ⏳ If-None-Match returns 304
+- ⏳ HEAD returns headers without body
+- ⏳ Symlink is rejected
+- ⏳ Path traversal is blocked
 
 ---
 
-## 📋 Dependências
+## 📋 Dependencies
 
-Este adaptador requer `@std/http` no `deno.jsonc`:
+This adapter requires `@std/http` in `deno.jsonc`:
 
 ```jsonc
 {
@@ -442,69 +457,70 @@ Este adaptador requer `@std/http` no `deno.jsonc`:
 }
 ```
 
-O adaptador manual (`deno.ts`) **não requer** essa dependência.
+The manual adapter (`deno.ts`) **does not require** this dependency.
 
 ---
 
-## 📋 Resumo
+## 📋 Summary
 
-| Item | Valor |
+| Item | Value |
 |---|---|
-| **Arquivo do adaptador** | `src/adapters/deno-serve-dir.ts` |
+| **Adapter file** | `src/adapters/deno-serve-dir.ts` |
 | **Entry point** | `src/deno-serve-dir.ts` |
-| **Export no deno.jsonc** | `"./adapters/deno-serve-dir"` |
-| **Função principal** | `createDenoServeDirRouter()` |
+| **Export in deno.jsonc** | `"./adapters/deno-serve-dir"` |
+| **Main function** | `createDenoServeDirRouter()` |
 | **Handler factory** | `createDenoServeDirStaticFileHandler()` |
-| **Dependência** | `@std/http` |
-| **Upgrader WS** | Re-exportado de `deno.ts` |
-| **Segurança** | Containment + Symlinks + Dotfiles |
-| **Vantagem principal** | Range Requests + 304 nativos |
+| **Dependency** | `@std/http` |
+| **WS Upgrader** | Re-exported from `deno.ts` |
+| **Security** | Containment + Symlinks + Dotfiles |
+| **Main advantage** | Native Range Requests + 304 |
+
 ````
 
 ---
 
-## Arquivo: `docs/middleware.md`
+## File: `docs/middleware.md`
 
 ````md
-# 🎯 Sim, Middleware cabe perfeitamente no WebSocket!
+# 🎯 Yes, Middleware Fits WebSocket Perfectly!
 
-Na verdade, é **onde ele brilha mais**, pois permite autenticar **antes** do upgrade (evitando criar conexões não autorizadas), em vez de validar dentro do handler quando o socket já está aberto.
+In fact, that is **where it shines the most**, because it lets you authenticate **before** the upgrade (avoiding the creation of unauthorized connections), instead of validating inside the handler when the socket is already open.
 
-## 📊 Como Funciona o Fluxo
+## 📊 How the Flow Works
 
 ```
-Request → Force HTTPS? → Rota encontrada? → MIDDLEWARES → Handler final
+Request → Force HTTPS? → Route found? → MIDDLEWARES → Final handler
                 ↓                                    ↓
-              301                          Se retornar Response → ABORTA
-                                           Se chamar next() → continua
+              301                          If it returns a Response → ABORTS
+                                           If it calls next() → continues
 ```
 
-**Para HTTP:** `next()` executa o handler da rota.
-**Para WS:** `next()` faz o `Deno.upgradeWebSocket` e inicia o grupo.
+**For HTTP:** `next()` executes the route handler.
+**For WS:** `next()` performs the `Deno.upgradeWebSocket` and starts the group.
 
-Se um middleware retornar uma `Response` (ex: `401`), o upgrade **nunca acontece**.
+If a middleware returns a `Response` (e.g. `401`), the upgrade **never happens**.
 
 
 ---
 
-## 🌍 Exemplos Práticos
+## 🌍 Practical Examples
 
-### Exemplo 1: Autenticação JWT via Subprotocol (agora como middleware!)
+### Example 1: JWT Authentication via Subprotocol (now as middleware!)
 
-O exemplo do `jwt/main.ts` fica **muito mais limpo**. Toda a validação sai do handler:
+The `jwt/main.ts` example becomes **much cleaner**. All validation moves out of the handler:
 
 ```typescript
 import { Router } from "../../src/mod.ts";
 import { SignJWT, jwtVerify } from "jose";
 
-const JWT_SECRET = "meu-segredo-super-secreto-123";
+const JWT_SECRET = "my-super-secret-key-123";
 const encoder = new TextEncoder();
 
 const app = new Router({ basePath: "/api" });
 
-// ✅ Middleware de autenticação: bloqueia ANTES do upgrade
+// ✅ Authentication middleware: blocks BEFORE the upgrade
 app.use(async (req, _params, next) => {
-  // Só aplica em rotas WebSocket
+  // Only applies to WebSocket routes
   if (req.headers.get("upgrade")?.toLowerCase() !== "websocket") {
     return await next();
   }
@@ -515,21 +531,21 @@ app.use(async (req, _params, next) => {
   const token = bearerIndex !== -1 ? protocols[bearerIndex + 1] : null;
 
   if (!token) {
-    console.error("[Middleware] ❌ Token ausente");
+    console.error("[Middleware] ❌ Token missing");
     return new Response("Token required", { status: 401 });
   }
 
   try {
     await jwtVerify(token, encoder.encode(JWT_SECRET));
-    console.log("[Middleware] ✅ Token válido, permitindo upgrade");
-    return await next(); // Prossegue com o upgrade
+    console.log("[Middleware] ✅ Token valid, allowing upgrade");
+    return await next(); // Proceeds with the upgrade
   } catch {
-    console.error("[Middleware] ❌ Token inválido");
+    console.error("[Middleware] ❌ Invalid token");
     return new Response("Invalid token", { status: 403 });
   }
 });
 
-// Handler WS agora fica limpo — só lógica de negócio
+// The WS handler is now clean — only business logic
 app.ws("/chat/:room", (ws, _req, params) => {
   const room = params.room as string;
   const group = app.getWsGroupByPath("/chat/:room");
@@ -547,10 +563,10 @@ app.ws("/chat/:room", (ws, _req, params) => {
 Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 ```
 
-### Exemplo 2: Logging + Rate Limiting
+### Example 2: Logging + Rate Limiting
 
 ```typescript
-// Logging de todas as requisições (HTTP + WS)
+// Log every request (HTTP + WS)
 app.use(async (req, params, next) => {
   const start = Date.now();
   const res = await next();
@@ -560,7 +576,7 @@ app.use(async (req, params, next) => {
   return res;
 });
 
-// Rate limiting por IP (simples, em memória)
+// Rate limiting by IP (simple, in-memory)
 const requestCounts = new Map<string, { count: number; resetAt: number }>();
 
 app.use(async (req, _params, next) => {
@@ -581,14 +597,14 @@ app.use(async (req, _params, next) => {
 });
 ```
 
-### Exemplo 3: Manutenção Programada
+### Example 3: Scheduled Maintenance
 
 ```typescript
 let maintenanceMode = false;
 
 app.use(async (_req, _params, next) => {
   if (maintenanceMode) {
-    return new Response("🔧 Em manutenção", {
+    return new Response("🔧 Under maintenance", {
       status: 503,
       headers: { "Retry-After": "300" },
     });
@@ -597,18 +613,18 @@ app.use(async (_req, _params, next) => {
 });
 ```
 
-### Exemplo 4: Middleware Escopado por Path e State/Meta
+### Example 4: Path-Scoped Middleware and State/Meta
 
-Você pode aplicar middlewares apenas a caminhos específicos e compartilhar metadados (como usuário autenticado) através do terceiro parâmetro de contexto ou headers:
+You can apply middlewares only to specific paths and share metadata (such as the authenticated user) through the third context parameter or headers:
 
 ```typescript
-// Executa apenas para rotas que iniciam com /admin/*
+// Runs only for routes starting with /admin/*
 app.use("/admin/*", async (req, params, next, ctx) => {
   const token = req.headers.get("Authorization");
   if (!token) {
     return new Response("Unauthorized", { status: 401 });
   }
-  // Anexa metadados ao state compartilhado
+  // Attach metadata to the shared state
   if (ctx) {
     ctx.state.authorizedUser = { id: "user-123", role: "admin" };
   }
@@ -618,42 +634,42 @@ app.use("/admin/*", async (req, params, next, ctx) => {
 
 ---
 
-## 🏗️ Arquitetura Modular Interna
+## 🏗️ Internal Modular Architecture
 
-A engine de middlewares foi modularizada em classes dedicadas:
-- **`MiddlewareRoute`** (`src/middleware-route.ts`): Encapsula a função de middleware e o padrão opcional de rota (como `/api/*` ou wildcard global).
-- **`MiddlewareChain`** (`src/middleware-chain.ts`): Executa o padrão Onion (cebola), passando requisições recursivamente com suporte a `RequestContext` (`req`, `params`, `state`).
+The middleware engine was modularized into dedicated classes:
+- **`MiddlewareRoute`** (`src/middleware-route.ts`): Encapsulates the middleware function and the optional route pattern (such as `/api/*` or a global wildcard).
+- **`MiddlewareChain`** (`src/middleware-chain.ts`): Executes the Onion pattern, passing requests recursively with `RequestContext` support (`req`, `params`, `state`).
 
 ---
 
-## 📊 Comparação: Middleware vs PermissionFn
+## 📊 Comparison: Middleware vs PermissionFn
 
-| Aspecto | `app.use()` (Middleware) | `permissionFn` (Broadcast) |
+| Aspect | `app.use()` (Middleware) | `permissionFn` (Broadcast) |
 |---|---|---|
-| **Quando roda** | No momento da conexão/requisição | A cada mensagem broadcastada |
-| **O que controla** | Se a conexão/requisição é aceita | Quem recebe cada mensagem |
-| **Acesso ao WebSocket** | ❌ Não (ainda não foi criado) | ✅ Sim (sockets já conectados) |
-| **Acesso à Request** | ✅ Sim (headers, URL, method) | ❌ Não |
-| **Caso de uso** | Auth, rate limit, logging, CORS | Isolamento de salas, filtros de conteúdo |
+| **When it runs** | At connection/request time | For every broadcasted message |
+| **What it controls** | Whether the connection/request is accepted | Who receives each message |
+| **Access to the WebSocket** | ❌ No (it hasn't been created yet) | ✅ Yes (sockets already connected) |
+| **Access to the Request** | ✅ Yes (headers, URL, method) | ❌ No |
+| **Use case** | Auth, rate limiting, logging, CORS | Room isolation, content filters |
 
-**Eles se complementam:** Middleware controla **quem entra**, `permissionFn` controla **quem ouve o quê**.
+**They complement each other:** the middleware controls **who gets in**, the `permissionFn` controls **who hears what**.
 
 ---
 
-## ⚠️ Pontos Importantes
+## ⚠️ Important Points
 
-1. **Ordem importa:** Middlewares são executados na ordem em que foram registrados com `app.use()`.
-2. **Executam em todas as requisições:** Middlewares rodam para todas as 
-   requisições, incluindo 404, arquivos estáticos e rotas não encontradas.
-   Isso permite logging global, CORS e rate limiting universais.
-3. **Abortar o upgrade:** Se um middleware retornar `Response` sem chamar `next()` em uma rota WS, o upgrade nunca acontece — o cliente recebe uma resposta HTTP normal (ex: 401).
-4. **Params disponíveis:** O middleware recebe os `params` já extraídos da rota, permitindo lógica como "bloquear acesso à sala X".
+1. **Order matters:** Middlewares run in the order they were registered with `app.use()`.
+2. **They run on every request:** Middlewares run for every
+   request, including 404s, static files, and unmatched routes.
+   This enables global logging, CORS, and universal rate limiting.
+3. **Aborting the upgrade:** If a middleware returns a `Response` without calling `next()` on a WS route, the upgrade never happens — the client receives a regular HTTP response (e.g. 401).
+4. **Params available:** The middleware receives the `params` already extracted from the route, enabling logic such as "block access to room X".
 
 ````
 
 ---
 
-## Arquivo: `docs/presence.md`
+## File: `docs/presence.md`
 
 ````md
 # 👥 Online Presence Tracking Suite
@@ -797,171 +813,171 @@ Sent when user metadata is updated:
 
 ---
 
-## Arquivo: `docs/publish-jsr-rules.md`
+## File: `docs/publish-jsr-rules.md`
 
 `````md
-# Diretrizes de Documentação e Publicação no JSR
+# Documentation and JSR Publishing Guidelines
 
-> **Nota para Agentes de IA:** Este documento define os padrões obrigatórios para documentação (README.md e JSDoc) e as regras de configuração do `deno.json` para publicação no JSR. Siga estas diretrizes rigorosamente ao gerar ou refatorar código neste repositório.
-
----
-
-## 📌 Sumário
-
-1. [Visão Geral](#-visão-geral)
-2. [Padrões para o README.md](#-padrões-para-o-readmemd)
-3. [Padrões para Comentários JSDoc](#-padrões-para-comentários-jsdoc)
-4. [Recomendações de Uso e Qualidade](#-recomendações-de-uso-e-qualidade)
-5. [Configuração de `publish: false` em Workspaces](#-configuração-de-publish-false-em-workspaces)
-6. [Configuração de `publish.include` e `publish.exclude`](#-configuração-de-publishinclude-e-publishexclude)
-7. [Checklist Antes de Publicar](#-checklist-antes-de-publicar)
+> **Note for AI Agents:** This document defines the mandatory standards for documentation (README.md and JSDoc) and the `deno.json` configuration rules for publishing to JSR. Follow these guidelines rigorously when generating or refactoring code in this repository.
 
 ---
 
-## 🎯 Visão Geral
+## 📌 Table of Contents
 
-Todo pacote publicado no JSR deve ter **duas camadas de documentação**:
+1. [Overview](#-overview)
+2. [README.md Standards](#-readmemd-standards)
+3. [JSDoc Comment Standards](#-jsdoc-comment-standards)
+4. [Usage and Quality Recommendations](#-usage-and-quality-recommendations)
+5. [`publish: false` Configuration in Workspaces](#-publish-false-configuration-in-workspaces)
+6. [`publish.include` and `publish.exclude` Configuration](#-publishinclude-and-publishexclude-configuration)
+7. [Pre-Publish Checklist](#-pre-publish-checklist)
 
-| Camada | Arquivo/Local | Propósito | Público-Alvo |
+---
+
+## 🎯 Overview
+
+Every package published to JSR must have **two documentation layers**:
+
+| Layer | File/Location | Purpose | Target Audience |
 | :--- | :--- | :--- | :--- |
-| **Guia Rápido** | `README.md` na raiz | Explicar *por que* usar o pacote e como começar. | Desenvolvedores avaliando adotar o pacote. |
-| **Referência da API** | Comentários JSDoc no código | Documentar *como* usar cada símbolo exportado. | Desenvolvedores que já usam o pacote. |
+| **Quick Guide** | `README.md` at the root | Explain *why* to use the package and how to get started. | Developers evaluating whether to adopt the package. |
+| **API Reference** | JSDoc comments in the code | Document *how* to use each exported symbol. | Developers already using the package. |
 
-Ambas as camadas impactam diretamente a **pontuação de qualidade do JSR** e a experiência do usuário final (incluindo autocompletar no editor).
+Both layers directly impact the **JSR quality score** and the end-user experience (including editor autocompletion).
 
 ---
 
-## 📝 Padrões para o README.md
+## 📝 README.md Standards
 
-### Localização e Formato
-- **Arquivo:** `README.md` 
-- **Localização:** Obrigatório, na raiz do pacote, não é o mesmo README da raiz do worspace, cada pacote a ser publicado precisa de seu próprio README.
-- **Sintaxe:** Markdown padrão (GFM - GitHub Flavored Markdown).
-- **Idioma:** Inglês (mantenha consistência e use o mesmo idioma em toda a documentação a ser publicada).
+### Location and Format
+- **File:** `README.md` 
+- **Location:** Mandatory, at the package root. It is not the same README as the workspace root — each package to be published needs its own README.
+- **Syntax:** Standard Markdown (GFM - GitHub Flavored Markdown).
+- **Language:** English (maintain consistency and use the same language across all documentation to be published).
 
-### Estrutura Obrigatória
+### Mandatory Structure
 
-O README **deve** conter, no mínimo, as seguintes seções nesta ordem:
+The README **must** contain, at minimum, the following sections in this order:
 
-1. **Título** (`# Nome do Pacote`) — usar o nome real do pacote, sem o escopo.
-2. **Descrição curta** — uma ou duas frases explicando o que o pacote faz.
-3. **Instalação** — bloco de código com o comando `deno add`.
-4. **Uso Básico** — **obrigatório** um bloco de código funcional mostrando import + uso real.
-5. **Documentação** — link para a página do pacote no JSR (referência da API).
+1. **Title** (`# Package Name`) — use the real package name, without the scope.
+2. **Short description** — one or two sentences explaining what the package does.
+3. **Installation** — code block with the `deno add` command.
+4. **Basic Usage** — a functional code block showing import + real usage is **mandatory**.
+5. **Documentation** — link to the package page on JSR (API reference).
 
-### Estrutura Recomendada (Adicional)
+### Recommended Structure (Additional)
 
-- **Features** — lista de bullets com os principais recursos.
-- **API Overview** — tabela ou lista dos principais exports.
-- **Exemplos Avançados** — casos de uso além do "hello world".
+- **Features** — bullet list of the main capabilities.
+- **API Overview** — table or list of the main exports.
+- **Advanced Examples** — use cases beyond "hello world".
 
-### Exemplo de Template
+### Template Example
 
 ````markdown
-# nome-do-pacote
+# package-name
 
-Uma breve descrição de uma ou duas frases sobre o que este pacote faz.
+A brief one- or two-sentence description of what this package does.
 
-## Instalação
+## Installation
 
 ```bash
-deno add jsr:@seu-escopo/nome-do-pacote
+deno add jsr:@your-scope/package-name
 ```
 
-## Uso
+## Usage
 
 ```ts
-import { funcaoPrincipal } from "jsr:@seu-escopo/nome-do-pacote";
+import { mainFunction } from "jsr:@your-scope/package-name";
 
-const resultado = funcaoPrincipal({ opcao: "valor" });
-console.log(resultado);
+const result = mainFunction({ option: "value" });
+console.log(result);
 ```
 
 ## Features
 
-- ✅ Recurso A
-- ✅ Recurso B
-- ✅ Recurso C
+- ✅ Feature A
+- ✅ Feature B
+- ✅ Feature C
 
-## Documentação
+## Documentation
 
-Para a referência completa da API, visite a
-[página do pacote no JSR](https://jsr.io/@vanaware/nome-do-pacote).
+For the complete API reference, visit the
+[package page on JSR](https://jsr.io/@vanaware/package-name).
 
 ````
 
-### ⚠️ Regras Críticas
-- **NUNCA** deixe o README vazio ou com apenas o título.
-- **SEMPRE** inclua um bloco de código no README — o JSR usa isso para pontuar o pacote.
-- **NÃO** duplique toda a documentação JSDoc aqui; o README é visão geral, não referência.
+### ⚠️ Critical Rules
+- **NEVER** leave the README empty or with only the title.
+- **ALWAYS** include a code block in the README — JSR uses it to score the package.
+- **DO NOT** duplicate all JSDoc documentation here; the README is an overview, not a reference.
 
 ---
 
-## 📚 Padrões para Comentários JSDoc
+## 📚 JSDoc Comment Standards
 
-### Regras Gerais
-- **Local:** Imediatamente acima de **cada símbolo exportado** (função, classe, interface, tipo, constante).
-- **Sintaxe:** Bloco `/** ... */` com cada linha interna iniciando por `*`.
-- **Idioma:** Manter o mesmo do README.
-- **Obrigatoriedade:** Todo `export` **deve** ter JSDoc. Sem exceção.
+### General Rules
+- **Location:** Immediately above **every exported symbol** (function, class, interface, type, constant).
+- **Syntax:** `/** ... */` block with each inner line starting with `*`.
+- **Language:** Keep the same language as the README.
+- **Requirement:** Every `export` **must** have JSDoc. No exceptions.
 
-### Estrutura do Bloco
+### Block Structure
 
-1. **Resumo** (primeira linha) — frase curta e imperativa. Aparece em tooltips do editor.
-2. **Descrição detalhada** (opcional) — parágrafo(s) adicional(is) com contexto.
-3. **Tags** — na ordem: `@param`, `@returns`, `@throws`, `@example`, `@see`.
-4. **Exemplo** — sempre que a função não for trivial.
+1. **Summary** (first line) — short, imperative sentence. Appears in editor tooltips.
+2. **Detailed description** (optional) — additional paragraph(s) with context.
+3. **Tags** — in order: `@param`, `@returns`, `@throws`, `@example`, `@see`.
+4. **Example** — whenever the function is not trivial.
 
-### Exemplo Completo — Função
+### Complete Example — Function
 
 ````ts
 /**
- * Busca registros no banco de dados usando a consulta fornecida.
+ * Searches records in the database using the provided query.
  *
- * Realiza normalização de entrada e aplica limite padrão quando não
- * especificado, evitando sobrecarga em consultas muito amplas.
+ * Performs input normalization and applies a default limit when none
+ * is specified, avoiding overload from very broad queries.
  *
- * @param query - Consulta textual. Deve ter entre 1 e 50 caracteres.
- * @param limit - Número máximo de itens a retornar. Padrão: `20`.
- * @returns Array com os registros encontrados. Vazio se nada corresponder.
- * @throws {Error} Se `query` estiver vazia ou exceder 50 caracteres.
+ * @param query - Textual query. Must be between 1 and 50 characters.
+ * @param limit - Maximum number of items to return. Default: `20`.
+ * @returns Array with the found records. Empty if nothing matches.
+ * @throws {Error} If `query` is empty or exceeds 50 characters.
  *
  * @example
  * ```ts
- * const resultados = search("Deno");
- * console.log(resultados); // ["Deno", "Deno Deploy"]
+ * const results = search("Deno");
+ * console.log(results); // ["Deno", "Deno Deploy"]
  * ```
  *
- * @see {@link normalizeQuery} para detalhes da normalização.
+ * @see {@link normalizeQuery} for normalization details.
  */
 export function search(query: string, limit: number = 20): string[] {
   // ...
 }
 ````
 
-### Exemplo Completo — Interface / Tipo
+### Complete Example — Interface / Type
 
 ````ts
 /**
- * Opções aceitas pelo cliente HTTP.
+ * Options accepted by the HTTP client.
  */
 export interface ClientOptions {
-  /** URL base para todas as requisições. */
+  /** Base URL for all requests. */
   baseUrl: string;
 
-  /** Tempo limite em milissegundos. Padrão: `5000`. */
+  /** Timeout in milliseconds. Default: `5000`. */
   timeout?: number;
 
-  /** Cabeçalhos adicionais enviados em cada requisição. */
+  /** Additional headers sent with every request. */
   headers?: Record<string, string>;
 }
 ````
 
-### Exemplo Completo — Classe
+### Complete Example — Class
 
 ````ts
 /**
- * Cliente HTTP leve com suporte a retry automático.
+ * Lightweight HTTP client with automatic retry support.
  *
  * @example
  * ```ts
@@ -971,19 +987,19 @@ export interface ClientOptions {
  */
 export class Client {
   /**
-   * Cria uma nova instância do cliente.
+   * Creates a new client instance.
    *
-   * @param options - Configurações do cliente.
+   * @param options - Client configuration.
    */
   constructor(options: ClientOptions) {
     // ...
   }
 
   /**
-   * Executa uma requisição GET.
+   * Performs a GET request.
    *
-   * @param path - Caminho relativo à `baseUrl`.
-   * @returns Resposta parseada como JSON.
+   * @param path - Path relative to `baseUrl`.
+   * @returns Response parsed as JSON.
    */
   async get<T>(path: string): Promise<T> {
     // ...
@@ -991,99 +1007,99 @@ export class Client {
 }
 ````
 
-### Tags Suportadas e Quando Usar
+### Supported Tags and When to Use Them
 
-| Tag | Uso |
+| Tag | Usage |
 | :--- | :--- |
-| `@param` | Descrever **cada** parâmetro. Use `-` após o nome. |
-| `@returns` | Descrever o valor de retorno (omita apenas se `void`). |
-| `@throws` | Tipos e condições de erro lançados. |
-| `@example` | Bloco de código executável. Sempre em cercas ` ```ts `. |
-| `@see` | Referência cruzada. Combine com `{@link Symbol}`. |
-| `@deprecated` | Marcar símbolos obsoletos e indicar substituto. |
-| `@since` | Versão em que o símbolo foi introduzido. |
+| `@param` | Describe **each** parameter. Use `-` after the name. |
+| `@returns` | Describe the return value (omit only for `void`). |
+| `@throws` | Types and conditions of thrown errors. |
+| `@example` | Executable code block. Always inside ` ```ts ` fences. |
+| `@see` | Cross reference. Combine with `{@link Symbol}`. |
+| `@deprecated` | Mark obsolete symbols and indicate the replacement. |
+| `@since` | Version in which the symbol was introduced. |
 
-### Links Internos
-Use `{@link <Símbolo>}` para criar links clicáveis entre símbolos na documentação gerada:
+### Internal Links
+Use `{@link <Symbol>}` to create clickable links between symbols in the generated documentation:
 
 ```ts
 /**
- * Atalho para {@link Client.get} com timeout customizado.
+ * Shortcut for {@link Client.get} with a custom timeout.
  */
 export function quickGet(path: string) { /* ... */ }
 ```
 
-### ⚠️ Regras Críticas
-- **NÃO** use JSDoc para comentários internos de linha — use `//`.
-- **NÃO** documente símbolos não exportados (a menos que sejam úteis para contexto).
-- **SEMPRE** coloque o `@example` **após** `@returns`/`@throws`.
-- **NUNCA** escreva "TODO" dentro de JSDoc; use comentários normais.
+### ⚠️ Critical Rules
+- **DO NOT** use JSDoc for internal line comments — use `//`.
+- **DO NOT** document non-exported symbols (unless they are useful for context).
+- **ALWAYS** place `@example` **after** `@returns`/`@throws`.
+- **NEVER** write "TODO" inside JSDoc; use regular comments.
 
 ---
 
-## ✅ Recomendações de Uso e Qualidade
+## ✅ Usage and Quality Recommendations
 
-1. **README e JSDoc são complementares** — nunca um substitui o outro.
-2. **Escreva exemplos reais** — evite `foo`/`bar`; use nomes que reflitam o domínio.
-3. **Mantenha o README curto** — se passar de ~150 linhas, crie uma pasta `docs/` dentro do diretório do pacote.
-4. **Valide antes de commitar:**
+1. **README and JSDoc are complementary** — one never replaces the other.
+2. **Write real examples** — avoid `foo`/`bar`; use names that reflect the domain.
+3. **Keep the README short** — if it exceeds ~150 lines, create a `docs/` folder inside the package directory.
+4. **Validate before committing:**
    ```bash
    deno doc --lint mod.ts
    ```
-   Isso aponta exports sem JSDoc e tags malformadas.
-5. **Valide antes de publicar:**
+   This flags exports without JSDoc and malformed tags.
+5. **Validate before publishing:**
    ```bash
    deno publish --dry-run
    ```
-   Inspecione o output para confirmar que apenas os arquivos desejados serão enviados.
-6. **Atualize o JSDoc ao refatorar** — nunca deixe documentação divergente do código.
-7. **Use `@deprecated`** ao invés de remover símbolos abruptamente — quebre consumidores com aviso.
+   Inspect the output to confirm only the intended files will be uploaded.
+6. **Update the JSDoc when refactoring** — never let documentation diverge from the code.
+7. **Use `@deprecated`** instead of abruptly removing symbols — break consumers with a warning.
 
 ---
 
-## 🏢 Configuração de `publish: false` em Workspaces
+## 🏢 `publish: false` Configuration in Workspaces
 
-Em um **workspace Deno** (definido por `workspace` no `deno.json` raiz), o comando `deno publish` tenta publicar **todos os membros** que possuem `name` e `exports`.
+In a **Deno workspace** (defined by `workspace` in the root `deno.json`), the `deno publish` command attempts to publish **every member** that has `name` and `exports`.
 
-Para **excluir um membro interno** (pacotes utilitários compartilhados, ferramentas de build, etc.), defina `"publish": false` no `deno.json` desse membro.
+To **exclude an internal member** (shared utility packages, build tooling, etc.), set `"publish": false` in that member's `deno.json`.
 
-### Estrutura Real no WorkerDB
+### Actual Structure in WorkerDB
 
-No monorepo do WorkerDB, temos múltiplos pacotes publicados e pacotes de aplicação/infraestrutura interna:
+In the WorkerDB monorepo, we have multiple published packages and application/internal-infrastructure packages:
 
 ```
 /
-├── deno.jsonc                 # workspace raiz
+├── deno.jsonc                 # root workspace
 ├── packages/
-│   ├── worker-db/             # publicado no JSR como @vanaware/workerdb
+│   ├── worker-db/             # published to JSR as @vanaware/workerdb
 │   │   └── deno.jsonc
-│   ├── service-worker/        # publicado no JSR como @vanaware/opfs-explorer
+│   ├── service-worker/        # published to JSR as @vanaware/opfs-explorer
 │   │   └── deno.jsonc
-│   ├── ui/                    # app frontend (publish: false)
+│   ├── ui/                    # frontend app (publish: false)
 │   │   └── deno.jsonc
-│   ├── server/                # dev/prod server Deno (publish: false)
+│   ├── server/                # Deno dev/prod server (publish: false)
 │   │   └── deno.jsonc
-│   └── utils/                 # scripts de bundling/build (publish: false)
+│   └── utils/                 # bundling/build scripts (publish: false)
 │       └── deno.jsonc
 ```
 
-O workflow de CI/CD em `.github/workflows/jsr-publish.yml` executa a matriz de publicação automatizada para `packages/worker-db` e `packages/service-worker`.
+The CI/CD workflow in `.github/workflows/jsr-publish.yml` runs the automated publish matrix for `packages/worker-db` and `packages/service-worker`.
 
-### Estrutura de Exemplo Genérica
+### Generic Example Structure
 
 ```
 /
-├── deno.json              # workspace raiz
+├── deno.json              # root workspace
 ├── packages/
 │   ├── core/
-│   │   └── deno.json      # publicado no JSR
+│   │   └── deno.json      # published to JSR
 │   ├── utils-internal/
-│   │   └── deno.json      # NÃO publicado
+│   │   └── deno.json      # NOT published
 │   └── cli/
-│       └── deno.json      # publicado no JSR
+│       └── deno.json      # published to JSR
 ```
 
-### `deno.json` raiz (workspace)
+### Root `deno.json` (workspace)
 
 ```json
 {
@@ -1095,48 +1111,48 @@ O workflow de CI/CD em `.github/workflows/jsr-publish.yml` executa a matriz de p
 }
 ```
 
-### `packages/core/deno.json` (publicado)
+### `packages/core/deno.json` (published)
 
 ```json
 {
-  "name": "@seu-escopo/core",
+  "name": "@your-scope/core",
   "version": "1.0.0",
   "exports": "./mod.ts",
   "license": "MIT"
 }
 ```
-> **Importante:** Caso os campos license e version não estejam configurados no deno.jsonc (ou deno.json) do pacote, configure com o mesmo valor encontrado no deno.jsonc raiz do workspace.
+> **Important:** If the `license` and `version` fields are not configured in the package's `deno.jsonc` (or `deno.json`), set them to the same values found in the workspace root `deno.jsonc`.
 
-### `packages/utils-internal/deno.json` (NÃO publicado)
+### `packages/utils-internal/deno.json` (NOT published)
 
 ```json
 {
-  "name": "@seu-escopo/utils-internal",
+  "name": "@your-scope/utils-internal",
   "version": "0.0.0",
   "exports": "./mod.ts",
   "publish": false
 }
 ```
 
-> **Importante:** Mesmo com `publish: false`, o pacote ainda pode ser importado por outros membros do workspace via `jsr:@seu-escopo/utils-internal` durante o desenvolvimento. Ele apenas não será enviado ao registro.
+> **Important:** Even with `publish: false`, the package can still be imported by other workspace members via `jsr:@your-scope/utils-internal` during development. It simply will not be uploaded to the registry.
 
-> **Regra fundamental:** Caso alguma função do pacote que não será publicado esteja em uso por um pacote que será publicado, o desenvolvedor deverá ser alertado e uma documentação de BUG deve ser criada com todas as referidas funções que deverão ser analisadas e devidamente tratadas antes da publicação do pacote.
+> **Fundamental rule:** If any function from a package that will not be published is in use by a package that will be published, the developer must be alerted and a BUG document must be created listing all affected functions, which must be analyzed and properly handled before the package is published.
 
 ---
 
-## 🗂️ Configuração de `publish.include` e `publish.exclude`
+## 🗂️ `publish.include` and `publish.exclude` Configuration
 
-### Regras Básicas
-- Os padrões são avaliados **relativos à raiz do pacote** (onde está o `deno.json` do pacote a ser publicado).
-- Use **globs POSIX** com `/` como separador (funciona em Windows também).
-- **`publish.include`** — lista branca. Se definido, **somente** o que casar será publicado.
-- **`publish.exclude`** — lista negra. Aplicada **após** o `include`.
-- Se apenas `exclude` for definido, tudo é incluído por padrão e depois filtrado.
-- **NUNCA** inclua `deno.json` no `exclude` — ele é sempre publicado automaticamente.
+### Basic Rules
+- Patterns are evaluated **relative to the package root** (where the `deno.json` of the package to be published lives).
+- Use **POSIX globs** with `/` as the separator (works on Windows too).
+- **`publish.include`** — whitelist. If set, **only** matching files are published.
+- **`publish.exclude`** — blacklist. Applied **after** `include`.
+- If only `exclude` is defined, everything is included by default and then filtered.
+- **NEVER** put `deno.json` in `exclude` — it is always published automatically.
 
-### Globs Recomendados
+### Recommended Globs
 
-#### Incluir apenas o código-fonte publicável
+#### Include only publishable source code
 
 ```json
 {
@@ -1151,7 +1167,7 @@ O workflow de CI/CD em `.github/workflows/jsr-publish.yml` executa a matriz de p
 }
 ```
 
-#### Excluir arquivos de desenvolvimento
+#### Exclude development files
 
 ```json
 {
@@ -1183,13 +1199,13 @@ O workflow de CI/CD em `.github/workflows/jsr-publish.yml` executa a matriz de p
 }
 ```
 
-### Combinação Recomendada (Include + Exclude)
+### Recommended Combination (Include + Exclude)
 
-A abordagem mais segura é **combinar ambos**: um `include` restritivo que define o que é código, e um `exclude` para varrer resíduos.
+The safest approach is to **combine both**: a restrictive `include` that defines what is code, and an `exclude` to sweep leftovers.
 
 ```json
 {
-  "name": "@seu-escopo/seu-pacote",
+  "name": "@your-scope/your-package",
   "version": "1.0.0",
   "exports": "./mod.ts",
   "license": "MIT",
@@ -1218,106 +1234,107 @@ A abordagem mais segura é **combinar ambos**: um `include` restritivo que defin
 }
 ```
 
-### Mapa de Decisão: Incluir ou Excluir?
+### Decision Map: Include or Exclude?
 
-| Arquivo/Pasta | Ação | Justificativa |
+| File/Folder | Action | Rationale |
 | :--- | :--- | :--- |
-| `src/**/*.ts` | ✅ Incluir | Código-fonte principal. |
-| `mod.ts` | ✅ Incluir | Ponto de entrada principal. |
-| `README.md` | ✅ Incluir | Exibido no JSR. |
-| `**/*_test.ts` | ❌ Excluir | Testes não vão para o registro. |
-| `tests/`, `test/` | ❌ Excluir | Idem. |
-| `examples/` | ❌ Excluir | Exemplos grandes ou não-API. |
-| `scripts/` | ❌ Excluir | Scripts de build/deploy. |
-| `build.ts`, `bundle.ts`, `deploy.ts` | ❌ Excluir | Ferramentas de dev. |
-| `docs/` | ❌ Excluir o docs da raiz pode incluir o subset do pacote | Documentação estendida da raiz do workspace fica no repo, documentação essencial reduzida do pacote pode incluir. |
-| `planning/` | ❌ Excluir | Planejamento interno. |
-| `AGENTS.md`, `CURRENT.md` | ❌ Excluir | Metadados para agentes de IA. |
-| `CHANGELOG.md` | ⚠️ Excluir | Útil para consumidores, mas aumenta o pacote. |
-| `deno.lock` | ❌ Excluir | Reconstruído pelo consumidor. |
-| `.github/` | ❌ Excluir | CI/CD. |
-| `deno.json` | 🚫 Nunca listar | Sempre publicado automaticamente. |
+| `src/**/*.ts` | ✅ Include | Main source code. |
+| `mod.ts` | ✅ Include | Main entry point. |
+| `README.md` | ✅ Include | Displayed on JSR. |
+| `**/*_test.ts` | ❌ Exclude | Tests do not go to the registry. |
+| `tests/`, `test/` | ❌ Exclude | Same. |
+| `examples/` | ❌ Exclude | Large or non-API examples. |
+| `scripts/` | ❌ Exclude | Build/deploy scripts. |
+| `build.ts`, `bundle.ts`, `deploy.ts` | ❌ Exclude | Dev tooling. |
+| `docs/` | ❌ Excluding the root docs; the package subset may be included | Extended documentation at the workspace root stays in the repo; a reduced essential documentation for the package may be included. |
+| `planning/` | ❌ Exclude | Internal planning. |
+| `AGENTS.md`, `CURRENT.md` | ❌ Exclude | Metadata for AI agents. |
+| `CHANGELOG.md` | ⚠️ Exclude | Useful for consumers, but increases package size. |
+| `deno.lock` | ❌ Exclude | Rebuilt by the consumer. |
+| `.github/` | ❌ Exclude | CI/CD. |
+| `deno.json` | 🚫 Never list | Always published automatically. |
 
-### Padrões Glob de Referência
+### Reference Glob Patterns
 
-| Padrão | Casa com |
+| Pattern | Matches |
 | :--- | :--- |
-| `src/**/*.ts` | Todos os `.ts` em `src/` recursivamente. |
-| `**/*_test.ts` | Qualquer arquivo terminando em `_test.ts`. |
-| `**/*.test.ts` | Qualquer arquivo terminando em `.test.ts`. |
-| `test/` | Todo o diretório `test/`. |
-| `**/__mocks__/**` | Qualquer diretório `__mocks__` em qualquer nível. |
-| `scripts/**` | Tudo dentro de `scripts/`. |
-| `*.config.ts` | Arquivos `.config.ts` na raiz. |
+| `src/**/*.ts` | All `.ts` files in `src/` recursively. |
+| `**/*_test.ts` | Any file ending in `_test.ts`. |
+| `**/*.test.ts` | Any file ending in `.test.ts`. |
+| `test/` | The entire `test/` directory. |
+| `**/__mocks__/**` | Any `__mocks__` directory at any level. |
+| `scripts/**` | Everything inside `scripts/`. |
+| `*.config.ts` | `.config.ts` files at the root. |
 
-### ⚠️ Erros Comuns a Evitar
-- **Não** use `./` no início dos padrões (`"./src/**"` ❌ → `"src/**"` ✅).
-- **Não** use `\` como separador — sempre `/`.
-- **Não** inclua `deno.json` no `exclude` — quebra a publicação.
-- **Não** use `include` e `exclude` contraditórios (ex: incluir `src/**` e excluir `src/`).
-- **Sempre** valide com `deno publish --dry-run` antes de publicar de verdade.
-
----
-
-## ✅ Checklist Antes de Publicar
-
-Execute na ordem:
-
-- [ ] `deno fmt --check` — formatação consistente.
-- [ ] `deno lint` — sem avisos.
-- [ ] `deno check mod.ts` — sem erros de tipo.
-- [ ] `deno test` — todos os testes passando.
-- [ ] `deno doc --lint mod.ts` — sem exports sem JSDoc.
-- [ ] `README.md` revisado e com bloco de código de exemplo.
-- [ ] `deno.jsonc` com `name`, `version`, `exports`, `license` corretos.
-- [ ] `publish.include` e `publish.exclude` revisados.
-- [ ] `deno publish --dry-run` — inspecionar arquivos listados.
-- [ ] Versão incrementada conforme SemVer, temos um script de sanitização a ser executado antes da publicação.
-- [ ] `deno publish` — publicar de fato.
+### ⚠️ Common Mistakes to Avoid
+- **Do not** use `./` at the beginning of patterns (`"./src/**"` ❌ → `"src/**"` ✅).
+- **Do not** use `\` as a separator — always `/`.
+- **Do not** put `deno.json` in `exclude` — it breaks publishing.
+- **Do not** use contradictory `include` and `exclude` (e.g. include `src/**` and exclude `src/`).
+- **Always** validate with `deno publish --dry-run` before actually publishing.
 
 ---
 
-## 📎 Referências
+## ✅ Pre-Publish Checklist
 
-- [Documentação oficial do JSR](https://jsr.io/docs)
-- [Escrevendo documentação para JSR](https://jsr.io/docs/writing-docs)
-- [Configuração `deno.jsonc`](https://docs.deno.com/runtime/fundamentals/configuration/)
-- [Globs no Deno](https://docs.deno.com/runtime/fundamentals/configuration/#glob-patterns)
+Run in order:
+
+- [ ] `deno fmt --check` — consistent formatting.
+- [ ] `deno lint` — no warnings.
+- [ ] `deno check mod.ts` — no type errors.
+- [ ] `deno test` — all tests passing.
+- [ ] `deno doc --lint mod.ts` — no exports without JSDoc.
+- [ ] `README.md` reviewed and containing an example code block.
+- [ ] `deno.jsonc` with correct `name`, `version`, `exports`, `license`.
+- [ ] `publish.include` and `publish.exclude` reviewed.
+- [ ] `deno publish --dry-run` — inspect the listed files.
+- [ ] Version incremented per SemVer; we have a sanitization script to be run before publishing.
+- [ ] `deno publish` — actually publish.
+
+---
+
+## 📎 References
+
+- [Official JSR documentation](https://jsr.io/docs)
+- [Writing documentation for JSR](https://jsr.io/docs/writing-docs)
+- [`deno.jsonc` configuration](https://docs.deno.com/runtime/fundamentals/configuration/)
+- [Globs in Deno](https://docs.deno.com/runtime/fundamentals/configuration/#glob-patterns)
+
 `````
 
 ---
 
-## Arquivo: `docs/return.md`
+## File: `docs/return.md`
 
 ````md
-# Possibilidades de Retorno dos Handlers HTTP
+# HTTP Handler Return Possibilities
 
-Os handlers HTTP no `@vanaware/wsrouter` oferecem **duas formas flexíveis de retorno**:
+HTTP handlers in `@vanaware/wsrouter` offer **two flexible return forms**:
 
-1. **Instância nativa de `Response`** (padrão Web API)
-2. **Objeto com `{ body, init }`** (formato ergonômico simplificado)
+1. **Native `Response` instance** (Web API standard)
+2. **Object with `{ body, init }`** (simplified, ergonomic format)
 
 ---
 
-## 🚀 1. Retorno de `Response` Nativo (Web Standard)
+## 🚀 1. Returning a Native `Response` (Web Standard)
 
-Você pode retornar diretamente qualquer instância de `Response` nativa, incluindo helpers como `Response.json()` ou `new Response(...)`:
+You can directly return any native `Response` instance, including helpers like `Response.json()` or `new Response(...)`:
 
 ```typescript
-// Resposta simples com texto
+// Simple text response
 app.get("/ping", () => new Response("pong"));
 
-// JSON com helper nativo Response.json()
+// JSON with the native Response.json() helper
 app.get("/api/users", () => {
   return Response.json({ users: ["Alice", "Bob"] }, { status: 200 });
 });
 
-// Redirecionamento nativo
+// Native redirect
 app.get("/legacy", () => {
   return Response.redirect("https://example.com/new-url", 301);
 });
 
-// Resposta customizada com headers e status
+// Custom response with headers and status
 app.post("/api/items", async (req) => {
   const item = await req.json();
   return new Response(JSON.stringify(item), {
@@ -1329,22 +1346,22 @@ app.post("/api/items", async (req) => {
 
 ---
 
-## 📦 2. Retorno com Objeto `{ body, init }`
+## 📦 2. Returning a `{ body, init }` Object
 
-O `body` pode ser qualquer um destes tipos:
+The `body` can be any of these types:
 
-| Tipo | Descrição | Exemplo |
+| Type | Description | Example |
 |------|-----------|---------|
-| `string` | Texto simples | `"Hello World"` |
-| `ArrayBuffer` | Dados binários | `new ArrayBuffer(8)` |
-| `TypedArray` | Arrays tipados | `new Uint8Array([1, 2, 3])` |
-| `Blob` | Dados binários com tipo | `new Blob(["data"], { type: "text/plain" })` |
-| `FormData` | Dados de formulário | `new FormData()` |
+| `string` | Plain text | `"Hello World"` |
+| `ArrayBuffer` | Binary data | `new ArrayBuffer(8)` |
+| `TypedArray` | Typed arrays | `new Uint8Array([1, 2, 3])` |
+| `Blob` | Typed binary data | `new Blob(["data"], { type: "text/plain" })` |
+| `FormData` | Form data | `new FormData()` |
 | `URLSearchParams` | Query string | `new URLSearchParams({ a: "1" })` |
-| `ReadableStream` | Stream de dados | `file.readable` |
-| `null` | Sem body | `null` |
+| `ReadableStream` | Data stream | `file.readable` |
+| `null` | No body | `null` |
 
-### Exemplos práticos
+### Practical examples
 
 ```typescript
 // String
@@ -1375,7 +1392,7 @@ app.get("/blob", () => ({
 // FormData
 app.post("/form", () => {
   const formData = new FormData();
-  formData.append("name", "João");
+  formData.append("name", "John");
   formData.append("age", "30");
   return { body: formData };
 });
@@ -1385,13 +1402,13 @@ app.get("/query", () => ({
   body: new URLSearchParams({ foo: "bar", baz: "qux" })
 }));
 
-// ReadableStream (arquivo)
+// ReadableStream (file)
 app.get("/file", async () => {
   const file = await Deno.open("./data.txt");
   return { body: file.readable };
 });
 
-// null (sem body)
+// null (no body)
 app.head("/check", () => ({
   body: null
 }));
@@ -1401,36 +1418,36 @@ app.head("/check", () => ({
 
 ## ⚙️ `init?: ResponseInit`
 
-O `init` é opcional e pode conter:
+The `init` is optional and may contain:
 
-| Propriedade | Tipo | Padrão | Descrição |
+| Property | Type | Default | Description |
 |-------------|------|--------|-----------|
-| `status` | `number` | `200` | Código HTTP de status |
-| `statusText` | `string` | `""` | Texto do status (raramente usado) |
-| `headers` | `HeadersInit` | `{}` | Headers da resposta |
+| `status` | `number` | `200` | HTTP status code |
+| `statusText` | `string` | `""` | Status text (rarely used) |
+| `headers` | `HeadersInit` | `{}` | Response headers |
 
-### `headers` pode ser:
+### `headers` can be:
 
-1. **Objeto simples**
+1. **Plain object**
 ```typescript
 { "Content-Type": "application/json" }
 ```
 
-2. **Array de tuplas**
+2. **Array of tuples**
 ```typescript
 [["Content-Type", "application/json"], ["X-Custom", "value"]]
 ```
 
-3. **Instância de Headers**
+3. **Headers instance**
 ```typescript
 new Headers({ "Content-Type": "application/json" })
 ```
 
 ---
 
-## 🎯 Combinações Comuns
+## 🎯 Common Combinations
 
-### 1. **Resposta simples (200 OK)**
+### 1. **Simple response (200 OK)**
 ```typescript
 app.get("/hello", () => ({
   body: "Hello World"
@@ -1438,17 +1455,17 @@ app.get("/hello", () => ({
 // Status: 200, Headers: {}
 ```
 
-### 2. **JSON com headers**
+### 2. **JSON with headers**
 ```typescript
 app.get("/api/data", () => ({
-  body: JSON.stringify({ id: 1, name: "João" }),
+  body: JSON.stringify({ id: 1, name: "John" }),
   init: {
     headers: { "Content-Type": "application/json" }
   }
 }));
 ```
 
-### 3. **Status customizado (201 Created)**
+### 3. **Custom status (201 Created)**
 ```typescript
 app.post("/users", async (req) => {
   const data = await req.json();
@@ -1512,7 +1529,7 @@ app.options("/*", () => ({
 }));
 ```
 
-### 9. **Download de arquivo**
+### 9. **File download**
 ```typescript
 app.get("/download", async () => {
   const file = await Deno.open("./document.pdf");
@@ -1528,7 +1545,7 @@ app.get("/download", async () => {
 });
 ```
 
-### 10. **Múltiplos headers**
+### 10. **Multiple headers**
 ```typescript
 app.get("/custom", () => ({
   body: "data",
@@ -1622,38 +1639,38 @@ app.get("/page", () => ({
 
 ---
 
-## 📊 Tabela de Status Codes Comuns
+## 📊 Common Status Codes Table
 
-| Status | Texto | Uso |
+| Status | Text | Usage |
 |--------|-------|-----|
-| `200` | OK | Sucesso padrão |
-| `201` | Created | Recurso criado (POST) |
-| `204` | No Content | Sucesso sem body (DELETE) |
-| `301` | Moved Permanently | Redirect permanente |
-| `302` | Found | Redirect temporário |
-| `304` | Not Modified | Cache válido |
-| `400` | Bad Request | Erro do cliente |
-| `401` | Unauthorized | Não autenticado |
-| `403` | Forbidden | Não autorizado |
-| `404` | Not Found | Recurso não encontrado |
-| `405` | Method Not Allowed | Método HTTP não permitido |
-| `409` | Conflict | Conflito (ex: duplicata) |
-| `422` | Unprocessable Entity | Erro de validação |
-| `429` | Too Many Requests | Rate limit excedido |
-| `500` | Internal Server Error | Erro do servidor |
-| `502` | Bad Gateway | Erro de gateway |
-| `503` | Service Unavailable | Serviço indisponível |
+| `200` | OK | Default success |
+| `201` | Created | Resource created (POST) |
+| `204` | No Content | Success without body (DELETE) |
+| `301` | Moved Permanently | Permanent redirect |
+| `302` | Found | Temporary redirect |
+| `304` | Not Modified | Valid cache |
+| `400` | Bad Request | Client error |
+| `401` | Unauthorized | Not authenticated |
+| `403` | Forbidden | Not authorized |
+| `404` | Not Found | Resource not found |
+| `405` | Method Not Allowed | HTTP method not allowed |
+| `409` | Conflict | Conflict (e.g. duplicate) |
+| `422` | Unprocessable Entity | Validation error |
+| `429` | Too Many Requests | Rate limit exceeded |
+| `500` | Internal Server Error | Server error |
+| `502` | Bad Gateway | Gateway error |
+| `503` | Service Unavailable | Service unavailable |
 
 ---
 
-## 🎨 Exemplo Completo com Todas as Opções
+## 🎨 Complete Example with All Options
 
 ```typescript
 import { Router } from "../src/mod.ts";
 
 const app = new Router({ basePath: "/api" });
 
-// 1. String simples
+// 1. Simple string
 app.get("/text", () => ({
   body: "Hello World"
 }));
@@ -1664,7 +1681,7 @@ app.get("/json", () => ({
   init: { headers: { "Content-Type": "application/json" } }
 }));
 
-// 3. Status customizado
+// 3. Custom status
 app.post("/create", async (req) => {
   const data = await req.json();
   return {
@@ -1757,77 +1774,77 @@ Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 
 ---
 
-## ✅ Resumo
+## ✅ Summary
 
-**`body`** pode ser:
+**`body`** can be:
 - `string`, `ArrayBuffer`, `TypedArray`, `Blob`, `FormData`, `URLSearchParams`, `ReadableStream`, `null`
 
-**`init`** pode conter:
+**`init`** may contain:
 - `status` (number)
 - `statusText` (string)
-- `headers` (object, array, ou Headers)
+- `headers` (object, array, or Headers)
 
-**Combinações mais comuns:**
+**Most common combinations:**
 1. `{ body: "text" }` → 200 OK
 2. `{ body: json, init: { headers } }` → JSON response
 3. `{ body: "", init: { status: 204 } }` → No Content
 4. `{ body: "", init: { status: 302, headers: { Location } } }` → Redirect
 5. `{ body: stream, init: { headers } }` → File download / streaming
 
-Todas essas combinações são válidas e suportadas pelo router! 🚀
+All these combinations are valid and supported by the router! 🚀
 ````
 
 ---
 
-## Arquivo: `docs/roadmap-adapters.md`
+## File: `docs/roadmap-adapters.md`
 
 ````md
-# 🗺️ Roadmap: Adaptadores para Outros Runtimes
+# 🗺️ Roadmap: Adapters for Other Runtimes
 
-O `@vanaware/wsrouter` foi projetado com arquitetura runtime-agnostic, mas atualmente possui suporte oficial apenas para **Deno**. Este documento descreve o roadmap para suportar outros ambientes.
+`@vanaware/wsrouter` was designed with a runtime-agnostic architecture, but currently only has official support for **Deno**. This document describes the roadmap for supporting other environments.
 
 ---
 
-## 📊 Status Atual
+## 📊 Current Status
 
 | Runtime | HTTP | WebSocket | Static Files | Status |
 |---------|------|-----------|--------------|--------|
-| **Deno** | ✅ | ✅ | ✅ | **Suporte Oficial** |
+| **Deno** | ✅ | ✅ | ✅ | **Official Support** |
 | Cloudflare Workers | ⏸️ | ❌ | ⏸️ | Roadmap (Static Assets) |
 | Node.js | ❌ | ❌ | ❌ | Roadmap |
 | Bun | ❌ | ❌ | ❌ | Roadmap |
-| Edge Runtimes (Vercel, Netlify) | ❌ | ❌ | ❌ | Futuro |
+| Edge Runtimes (Vercel, Netlify) | ❌ | ❌ | ❌ | Future |
 
 ---
 
 ## ☁️ Cloudflare Workers
 
-### Status Atual
+### Current Status
 
-Os adaptadores Cloudflare foram **removidos do core** na versão 1.0 devido a:
+The Cloudflare adapters were **removed from the core** in version 1.0 due to:
 
-1. **Limitações de estado**: Cloudflare Workers não mantém estado compartilhado entre requests (exceto via Durable Objects)
-2. **WebSocket em memória**: Grupos WebSocket não funcionariam corretamente em produção
-3. **Foco no Deno**: Simplificar o core e garantir qualidade
+1. **State limitations**: Cloudflare Workers does not keep shared state between requests (except via Durable Objects)
+2. **In-memory WebSocket**: WebSocket groups would not work correctly in production
+3. **Focus on Deno**: Simplify the core and guarantee quality
 
-### Caminho Futuro: Static Assets
+### Future Path: Static Assets
 
-Cloudflare lançou **Static Assets** ([documentação](https://developers.cloudflare.com/workers/static-assets/)), que é a forma recomendada de servir arquivos estáticos:
+Cloudflare launched **Static Assets** ([documentation](https://developers.cloudflare.com/workers/static-assets/)), which is the recommended way to serve static files:
 
 ```typescript
-// Futuro adaptador Cloudflare com Static Assets
+// Future Cloudflare adapter with Static Assets
 export function createCloudflareRouter(options: {
   basePath?: string;
-  assets?: { binding: string }; // Novo binding de Static Assets
+  assets?: { binding: string }; // New Static Assets binding
 }) {
   // ...
 }
 ```
 
-**Para WebSockets em Cloudflare**, use **Durable Objects**:
+**For WebSockets on Cloudflare**, use **Durable Objects**:
 
 ```typescript
-// Exemplo conceitual: Chat Room como Durable Object
+// Conceptual example: Chat Room as a Durable Object
 export class ChatRoom {
   private sessions: Map<string, WebSocket> = new Map();
   
@@ -1849,27 +1866,27 @@ export class ChatRoom {
   
   async handleSession(webSocket: WebSocket) {
     webSocket.accept();
-    // Gerenciar mensagens, broadcast, etc.
+    // Handle messages, broadcast, etc.
   }
 }
 ```
 
-### Prioridade: **Média**
+### Priority: **Medium**
 
 ---
 
 ## 🟢 Node.js
 
-### Desafios
+### Challenges
 
-1. **URLPattern**: Disponível apenas em Node 18.17+ (via `undici`)
-2. **WebSocket**: Requer biblioteca externa (`ws`, `uWebSockets.js`)
-3. **Static Files**: Módulo `fs` ou `fs/promises`
+1. **URLPattern**: Only available in Node 18.17+ (via `undici`)
+2. **WebSocket**: Requires an external library (`ws`, `uWebSockets.js`)
+3. **Static Files**: `fs` or `fs/promises` module
 
-### Adaptador Conceitual
+### Conceptual Adapter
 
 ```typescript
-// src/adapters/node.ts (futuro)
+// src/adapters/node.ts (future)
 import { WebSocketServer } from "ws";
 import { createReadStream, stat } from "fs/promises";
 import { join, resolve } from "path";
@@ -1877,9 +1894,9 @@ import { join, resolve } from "path";
 export function createNodeWebSocketUpgrader(wss: WebSocketServer): WebSocketUpgrader {
   return {
     upgrade(req: Request): { socket: WebSocket; response: Response } {
-      // Node.js requer abordagem diferente
-      // WebSocket upgrade acontece no servidor HTTP, não no handler
-      throw new Error("Node WebSocket adapter requer integração com servidor HTTP");
+      // Node.js requires a different approach
+      // WebSocket upgrade happens on the HTTP server, not in the handler
+      throw new Error("Node WebSocket adapter requires HTTP server integration");
     },
   };
 }
@@ -1909,24 +1926,24 @@ export function createNodeStaticFileHandler(staticDir: string): StaticFileHandle
 }
 ```
 
-### Prioridade: **Alta**
+### Priority: **High**
 
-Node.js é amplamente usado e seria valioso ter suporte oficial.
+Node.js is widely used and official support would be valuable.
 
 ---
 
 ## 🥐 Bun
 
-### Vantagens
+### Advantages
 
-- Compatível com APIs Node.js
-- Suporte nativo a WebSocket via `Bun.serve`
-- Performance excelente
+- Compatible with Node.js APIs
+- Native WebSocket support via `Bun.serve`
+- Excellent performance
 
-### Adaptador Conceitual
+### Conceptual Adapter
 
 ```typescript
-// src/adapters/bun.ts (futuro)
+// src/adapters/bun.ts (future)
 export function createBunWebSocketUpgrader(): WebSocketUpgrader {
   return {
     upgrade(req: Request): { socket: WebSocket; response: Response } {
@@ -1955,23 +1972,23 @@ export function createBunStaticFileHandler(staticDir: string): StaticFileHandler
 }
 ```
 
-### Prioridade: **Média-Alta**
+### Priority: **Medium-High**
 
-Bun está ganhando popularidade e seria relativamente fácil adaptar.
+Bun is gaining popularity and would be relatively easy to adapt.
 
 ---
 
 ## 🌐 Edge Runtimes (Vercel Edge, Netlify Edge)
 
-### Desafios
+### Challenges
 
-- Ambientes serverless com cold starts
-- Sem suporte a WebSocket de longa duração
-- Foco em HTTP request/response
+- Serverless environments with cold starts
+- No support for long-lived WebSockets
+- Focused on HTTP request/response
 
-### Abordagem Recomendada
+### Recommended Approach
 
-Usar o core agnóstico diretamente, sem adaptadores oficiais:
+Use the agnostic core directly, without official adapters:
 
 ```typescript
 // edge-function.ts
@@ -1989,15 +2006,15 @@ export default function handler(request: Request) {
 }
 ```
 
-### Prioridade: **Baixa**
+### Priority: **Low**
 
 ---
 
-## 🛠️ Como Contribuir com um Adaptador
+## 🛠️ How to Contribute an Adapter
 
-Se você quer criar um adaptador para outro runtime:
+If you want to create an adapter for another runtime:
 
-### 1. Implementar `WebSocketUpgrader`
+### 1. Implement `WebSocketUpgrader`
 
 ```typescript
 interface WebSocketUpgrader {
@@ -2005,7 +2022,7 @@ interface WebSocketUpgrader {
 }
 ```
 
-### 2. Implementar `StaticFileHandler`
+### 2. Implement `StaticFileHandler`
 
 ```typescript
 interface StaticFileHandler {
@@ -2013,7 +2030,7 @@ interface StaticFileHandler {
 }
 ```
 
-### 3. Criar Entry Point
+### 3. Create the Entry Point
 
 ```typescript
 // src/[runtime].ts
@@ -2021,7 +2038,7 @@ export function create[Runtime]Router(options: {
   basePath?: string;
   staticDir?: string;
   forceHttps?: boolean;
-  // ... outras opções específicas do runtime
+  // ... other runtime-specific options
 }): Router {
   const router = new Router({
     basePath,
@@ -2035,36 +2052,36 @@ export function create[Runtime]Router(options: {
 export * from "./mod.ts";
 ```
 
-### 4. Adicionar Testes
+### 4. Add Tests
 
-Criar `tests/adapters_[runtime]_test.ts` com:
-- Testes de HTTP routing
-- Testes de WebSocket (se suportado)
-- Testes de static files (se suportado)
-- Testes de edge cases do runtime
+Create `tests/adapters_[runtime]_test.ts` with:
+- HTTP routing tests
+- WebSocket tests (if supported)
+- Static file tests (if supported)
+- Runtime edge case tests
 
-### 5. Documentar
+### 5. Document
 
-- Adicionar seção em `docs/runtime-agnostic.md`
-- Criar exemplo em `example/[runtime]/`
-- Atualizar `README.md`
+- Add a section in `docs/runtime-agnostic.md`
+- Create an example in `example/[runtime]/`
+- Update `README.md`
 
 ---
 
-## 📅 Timeline Estimado
+## 📅 Estimated Timeline
 
-| Adaptador | Estimativa | Dependências |
+| Adapter | Estimate | Dependencies |
 |-----------|------------|--------------|
-| Node.js | 2-3 semanas | `ws`, `undici` |
-| Bun | 1-2 semanas | Nenhuma (built-in) |
-| Cloudflare (Static Assets) | 1-2 semanas | Wrangler |
-| Edge Runtimes | 1 semana | Nenhuma |
+| Node.js | 2-3 weeks | `ws`, `undici` |
+| Bun | 1-2 weeks | None (built-in) |
+| Cloudflare (Static Assets) | 1-2 weeks | Wrangler |
+| Edge Runtimes | 1 week | None |
 
 ---
 
-## 💡 Alternativa: Adapters da Comunidade
+## 💡 Alternative: Community Adapters
 
-Se você criar um adaptador, considere publicá-lo como pacote separado:
+If you create an adapter, consider publishing it as a separate package:
 
 ```bash
 @vanaware/wsrouter-adapter-node
@@ -2072,71 +2089,70 @@ Se você criar um adaptador, considere publicá-lo como pacote separado:
 @vanaware/wsrouter-adapter-cloudflare
 ```
 
-Isso mantém o core leve e permite que a comunidade contribua sem sobrecarregar o repositório principal.
+This keeps the core lightweight and lets the community contribute without overloading the main repository.
 
 ---
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-Interessado em contribuir com um adaptador? Abra uma issue discutindo:
+Interested in contributing an adapter? Open an issue discussing:
 
-1. Qual runtime você quer suportar
-2. Como você planeja implementar `WebSocketUpgrader`
-3. Como você planeja implementar `StaticFileHandler`
-4. Se você vai manter o adaptador a longo prazo
+1. Which runtime you want to support
+2. How you plan to implement `WebSocketUpgrader`
+3. How you plan to implement `StaticFileHandler`
+4. Whether you will maintain the adapter long term
 
-Estamos abertos a colaborações! 🚀
-
+We are open to collaborations! 🚀
 
 ````
 
 ---
 
-## Arquivo: `docs/roadmap-rate-limiting.md`
+## File: `docs/roadmap-rate-limiting.md`
 
 ````md
-# 🚦 Roadmap: Rate Limiting e Proteção contra Abuso
+# 🚦 Roadmap: Rate Limiting and Abuse Protection
 
-O `@vanaware/wsrouter` atualmente **não inclui rate limiting nativo**. Este documento descreve estratégias recomendadas e o roadmap para possíveis implementações futuras.
+`@vanaware/wsrouter` currently **does not include native rate limiting**. This document describes recommended strategies and the roadmap for possible future implementations.
 
 ---
 
-## 📊 Status Atual
+## 📊 Current Status
 
-| Feature | Status | Implementação Recomendada |
+| Feature | Status | Recommended Implementation |
 |---------|--------|---------------------------|
-| Rate Limiting por IP | ❌ | Middleware customizado |
-| Rate Limiting por Usuário | ❌ | Middleware customizado |
-| Rate Limiting por WebSocket | ❌ | Middleware customizado |
-| Tamanho Máximo de Mensagem | ❌ | Validação no handler |
-| Backpressure de Broadcast | ❌ | Lógica no handler |
+| Rate Limiting by IP | ❌ | Custom middleware |
+| Rate Limiting by User | ❌ | Custom middleware |
+| Rate Limiting by WebSocket | ❌ | Custom middleware |
+| Maximum Message Size | ❌ | Handler validation |
+| Broadcast Backpressure | ❌ | Handler logic |
 
 ---
 
-## 🛡️ Por Que Rate Limiting é Importante?
+## 🛡️ Why Is Rate Limiting Important?
 
-### Ataques Comuns
+### Common Attacks
 
-1. **Brute Force**: Tentativas massivas de login
-2. **DDoS**: Sobrecarga do servidor com requests
-3. **Credential Stuffing**: Teste de credenciais vazadas
-4. **Scraping**: Extração automatizada de dados
-5. **WebSocket Flood**: Envio massivo de mensagens
+1. **Brute Force**: Massive login attempts
+2. **DDoS**: Overloading the server with requests
+3. **Credential Stuffing**: Testing leaked credentials
+4. **Scraping**: Automated data extraction
+5. **WebSocket Flood**: Massive message sending
 
-### Impactos sem Rate Limiting
+### Impacts Without Rate Limiting
 
-- **Performance degradada**: CPU/memory sobrecarregados
-- **Custos elevados**: Uso excessivo de recursos (especialmente em serverless)
-- **Dados comprometidos**: Contas invadidas via brute force
-- **Disponibilidade**: Serviço indisponível para usuários legítimos
+- **Degraded performance**: CPU/memory overloaded
+- **High costs**: Excessive resource usage (especially in serverless)
+- **Compromised data**: Accounts breached via brute force
+- **Availability**: Service unavailable for legitimate users
 
 ---
 
-## 💡 Implementações Recomendadas
+## 💡 Recommended Implementations
 
-### 1. Rate Limiting Simples (Em Memória)
+### 1. Simple Rate Limiting (In Memory)
 
-Adequado para aplicações single-instance:
+Suitable for single-instance applications:
 
 ```typescript
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
@@ -2144,7 +2160,7 @@ const requestCounts = new Map<string, { count: number; resetTime: number }>();
 app.use(async (req, _params, next) => {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
   const now = Date.now();
-  const windowMs = 60000; // 1 minuto
+  const windowMs = 60000; // 1 minute
   const maxRequests = 100;
   
   const record = requestCounts.get(ip) ?? { count: 0, resetTime: now + windowMs };
@@ -2178,16 +2194,16 @@ app.use(async (req, _params, next) => {
 });
 ```
 
-**Limitações:**
-- Não funciona em múltiplas instâncias
-- Perde estado ao reiniciar
-- Sem persistência
+**Limitations:**
+- Does not work across multiple instances
+- Loses state on restart
+- No persistence
 
 ---
 
-### 2. Rate Limiting com Redis (Distribuído)
+### 2. Rate Limiting with Redis (Distributed)
 
-Para aplicações multi-instância:
+For multi-instance applications:
 
 ```typescript
 import { connect } from "redis";
@@ -2225,14 +2241,14 @@ app.use(async (req, _params, next) => {
 });
 ```
 
-**Vantagens:**
-- Funciona em múltiplas instâncias
-- Persistente
-- Atomicidade garantida
+**Advantages:**
+- Works across multiple instances
+- Persistent
+- Atomicity guaranteed
 
 ---
 
-### 3. Rate Limiting por Usuário Autenticado
+### 3. Rate Limiting by Authenticated User
 
 ```typescript
 app.use(async (req, _params, next) => {
@@ -2246,11 +2262,11 @@ app.use(async (req, _params, next) => {
     const { payload } = await jwtVerify(token, secret);
     userId = payload.userId as string;
   } catch {
-    return await next(); // Deixa o handler de auth lidar
+    return await next(); // Let the auth handler deal with it
   }
   
   const key = `ratelimit:user:${userId}`;
-  // ... mesma lógica de rate limiting
+  // ... same rate limiting logic
   
   return await next();
 });
@@ -2258,9 +2274,9 @@ app.use(async (req, _params, next) => {
 
 ---
 
-### 4. Rate Limiting de WebSocket
+### 4. WebSocket Rate Limiting
 
-#### Limite de Mensagens por Segundo
+#### Message Limit per Second
 
 ```typescript
 app.ws("/chat/:room/:user", (ws, _req, params) => {
@@ -2285,14 +2301,14 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
       return;
     }
     
-    // Processar mensagem normalmente
+    // Process the message normally
     const group = app.getWsGroupByPath("/chat/:room/:user");
     group.broadcast(event.data, /* ... */);
   };
 });
 ```
 
-#### Tamanho Máximo de Mensagem
+#### Maximum Message Size
 
 ```typescript
 app.ws("/chat/:room/:user", (ws, _req, params) => {
@@ -2307,16 +2323,16 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
       return;
     }
     
-    // Processar mensagem
+    // Process the message
   };
 });
 ```
 
 ---
 
-### 5. Backpressure de Broadcast
+### 5. Broadcast Backpressure
 
-Quando um cliente está lento, o broadcast pode acumular mensagens:
+When a client is slow, broadcasting can pile up messages:
 
 ```typescript
 app.ws("/chat/:room/:user", (ws, _req, params) => {
@@ -2325,7 +2341,7 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
   let messageQueue: string[] = [];
   
   ws.onmessage = (event) => {
-    // Broadcast normal
+    // Normal broadcast
     group.broadcast(
       `[${params.user}]: ${event.data}`,
       (receiver, sender, _msg) => receiver.room === sender.room,
@@ -2333,11 +2349,11 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
     );
   };
   
-  // Monitorar bufferedAmount (WebSocket API)
+  // Monitor bufferedAmount (WebSocket API)
   setInterval(() => {
     if (ws.bufferedAmount > 1024 * 1024) { // > 1 MB
-      console.warn(`[WS] Cliente ${params.user} com buffer alto: ${ws.bufferedAmount}`);
-      // Opcional: fechar conexão ou enviar alerta
+      console.warn(`[WS] Client ${params.user} has a high buffer: ${ws.bufferedAmount}`);
+      // Optional: close the connection or send an alert
       ws.send(JSON.stringify({
         type: "warning",
         message: "You're receiving messages faster than you can process them.",
@@ -2349,9 +2365,9 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
 
 ---
 
-## 🔮 Possível Implementação Futura no Core
+## 🔮 Possible Future Implementation in the Core
 
-Se rate limiting for adicionado ao core, poderia ser assim:
+If rate limiting were added to the core, it could look like this:
 
 ```typescript
 const app = createDenoRouter({
@@ -2372,115 +2388,115 @@ const app = createDenoRouter({
 });
 ```
 
-### Desafios
+### Challenges
 
-1. **Storage**: Em memória vs Redis vs banco de dados
-2. **Distribuição**: Como sincronizar entre instâncias
-3. **Flexibilidade**: Diferentes limites para diferentes rotas
-4. **Performance**: Overhead de verificar rate limit em cada request
+1. **Storage**: In memory vs Redis vs database
+2. **Distribution**: How to synchronize between instances
+3. **Flexibility**: Different limits for different routes
+4. **Performance**: Overhead of checking rate limits on every request
 
-### Prioridade: **Média**
+### Priority: **Medium**
 
-Rate limiting é importante, mas existem soluções maduras (middlewares, proxies) que podem ser usadas. Implementar no core pode ser over-engineering.
-
----
-
-## 📚 Bibliotecas Recomendadas
-
-### Para Node.js
-
-- **rate-limiter-flexible**: Suporta Redis, MongoDB, memória
-- **express-rate-limit**: Simples e popular
-- **slow-down**: Adiciona delay em vez de bloquear
-
-### Para Deno
-
-Atualmente não há bibliotecas maduras. Implemente custom ou use Redis diretamente.
-
-### Para Cloudflare
-
-- **Cloudflare Rate Limiting Rules**: Configurado no dashboard
-- **Workers KV**: Para rate limiting distribuído
+Rate limiting is important, but mature solutions (middlewares, proxies) already exist and can be used. Implementing it in the core may be over-engineering.
 
 ---
 
-## ✅ Checklist de Rate Limiting
+## 📚 Recommended Libraries
 
-- [ ] Rate limit por IP em endpoints públicos
-- [ ] Rate limit mais agressivo em `/login`, `/register`
-- [ ] Rate limit por usuário autenticado
-- [ ] Rate limit de WebSocket (mensagens/segundo)
-- [ ] Tamanho máximo de mensagem WebSocket
-- [ ] Headers `X-RateLimit-*` nas respostas
-- [ ] Logs de tentativas de abuso
-- [ ] Alertas para picos anômalos de tráfego
+### For Node.js
+
+- **rate-limiter-flexible**: Supports Redis, MongoDB, memory
+- **express-rate-limit**: Simple and popular
+- **slow-down**: Adds delay instead of blocking
+
+### For Deno
+
+There are currently no mature libraries. Implement your own or use Redis directly.
+
+### For Cloudflare
+
+- **Cloudflare Rate Limiting Rules**: Configured in the dashboard
+- **Workers KV**: For distributed rate limiting
 
 ---
 
-## 🎯 Recomendações por Tamanho de Aplicação
+## ✅ Rate Limiting Checklist
 
-### Pequena (Single Instance, < 1000 req/min)
+- [ ] Rate limit by IP on public endpoints
+- [ ] More aggressive rate limit on `/login`, `/register`
+- [ ] Rate limit by authenticated user
+- [ ] WebSocket rate limiting (messages/second)
+- [ ] Maximum WebSocket message size
+- [ ] `X-RateLimit-*` headers on responses
+- [ ] Logs of abuse attempts
+- [ ] Alerts for anomalous traffic spikes
 
-- Rate limiting em memória
-- Sem Redis
-- Middleware simples
+---
 
-### Média (Multi-Instance, < 10000 req/min)
+## 🎯 Recommendations by Application Size
 
-- Redis para rate limiting distribuído
-- Diferentes limites por rota
-- Monitoramento básico
+### Small (Single Instance, < 1000 req/min)
 
-### Grande (> 10000 req/min)
+- In-memory rate limiting
+- No Redis
+- Simple middleware
 
-- Solução de edge (Cloudflare, AWS WAF)
+### Medium (Multi-Instance, < 10000 req/min)
+
+- Redis for distributed rate limiting
+- Different limits per route
+- Basic monitoring
+
+### Large (> 10000 req/min)
+
+- Edge solution (Cloudflare, AWS WAF)
 - Redis cluster
-- Análise de padrões de tráfego
-- Machine learning para detecção de anomalias
+- Traffic pattern analysis
+- Machine learning for anomaly detection
 
 ---
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-Se você implementou uma solução de rate limiting robusta, considere:
+If you have implemented a robust rate limiting solution, consider:
 
-1. Compartilhar como exemplo em `example/rate-limiting/`
-2. Criar um pacote separado: `@vanaware/wsrouter-rate-limit`
-3. Abrir uma issue discutindo a abordagem
+1. Sharing it as an example in `example/rate-limiting/`
+2. Creating a separate package: `@vanaware/wsrouter-rate-limit`
+3. Opening an issue discussing the approach
 
-Estamos abertos a contribuições! 🚀
+We are open to contributions! 🚀
 
 ````
 
 ---
 
-## Arquivo: `docs/runtime-agnostic.md`
+## File: `docs/runtime-agnostic.md`
 
 ````md
-# 🌐 Arquitetura Runtime-Agnostic
+# 🌐 Runtime-Agnostic Architecture
 
-O `@vanaware/wsrouter` foi projetado para funcionar em **qualquer runtime JavaScript** que suporte as Web APIs padrão (Fetch API, WebSocket, URLPattern). O core do router **não possui nenhuma dependência direta** de runtime específico.
+`@vanaware/wsrouter` is designed to run on **any JavaScript runtime** that supports standard Web APIs (Fetch API, WebSocket, URLPattern). The router core **has no direct dependency** on any specific runtime.
 
-Atualmente, fornecemos adaptadores oficiais e testados apenas para **Deno**. Adaptadores para outros runtimes (Node.js, Bun, Cloudflare Workers) estão em nosso [Roadmap](./roadmap-adapters.md).
+Currently, we provide official, tested adapters only for **Deno**. Adapters for other runtimes (Node.js, Bun, Cloudflare Workers) are on our [Roadmap](./roadmap-adapters.md).
 
 ---
 
-## 🏗️ Arquitetura em Camadas
+## 🏗️ Layered Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│              SEU CÓDIGO (main.ts / worker.ts)           │
-│  - Define rotas, middlewares e handlers                 │
-│  - Escolhe o entry point adequado ao runtime            │
+│             YOUR CODE (main.ts / worker.ts)             │
+│  - Defines routes, middlewares and handlers             │
+│  - Chooses the entry point matching the runtime         │
 └──────────────────────────┬──────────────────────────────┘
-                           │ importa
+                           │ imports
 ┌──────────────────────────▼──────────────────────────────┐
  │           ENTRY POINTS (src/deno.ts)                    │
  │  - createDenoRouter()                                   │
  └──────────────────────────┬──────────────────────────────┘
-                           │ injeta adaptadores
+                           │ injects adapters
 ┌──────────────────────────▼──────────────────────────────┐
- │              CORE AGNÓSTICO (src/mod.ts)                │
+ │            AGNOSTIC CORE (src/mod.ts)                   │
  │  - Router (src/router.ts)                               │
  │  - HttpRoute (src/http-route.ts)                        │
  │  - WsRoute (src/ws-route.ts)                            │
@@ -2489,12 +2505,12 @@ Atualmente, fornecemos adaptadores oficiais e testados apenas para **Deno**. Ada
  │  - MiddlewareRoute (src/middleware-route.ts)            │
  │  - WorkerRoute (src/worker-route.ts)                    │
  │  - Types (src/types.ts)                                 │
- │  - ZERO dependência de runtime específico               │
- │  - Usa interfaces: WebSocketUpgrader, StaticFileHandler │
+ │  - ZERO dependency on any specific runtime              │
+ │  - Uses interfaces: WebSocketUpgrader, StaticFileHandler│
  └──────────────────────────┬──────────────────────────────┘
-                           │ implementado por
+                           │ implemented by
 ┌──────────────────────────▼──────────────────────────────┐
- │              ADAPTADORES (src/adapters/)                 │
+ │              ADAPTERS (src/adapters/)                    │
  │  - adapters/deno.ts       → Deno.upgradeWebSocket,      │
  │                              Deno.stat, Deno.open       │
  └─────────────────────────────────────────────────────────┘
@@ -2502,10 +2518,10 @@ Atualmente, fornecemos adaptadores oficiais e testados apenas para **Deno**. Ada
 
 ---
 
-## 🔌 Interfaces de Adaptação
+## 🔌 Adaptation Interfaces
 
 ### `WebSocketUpgrader`
-Abstrai o mecanismo de upgrade de HTTP para WebSocket:
+Abstracts the HTTP-to-WebSocket upgrade mechanism:
 ```typescript
 interface WebSocketUpgrader {
   upgrade(req: Request): { socket: WebSocket; response: Response };
@@ -2513,7 +2529,7 @@ interface WebSocketUpgrader {
 ```
 
 ### `StaticFileHandler`
-Abstrai o sistema de arquivos para servir arquivos estáticos:
+Abstracts the file system used to serve static files:
 ```typescript
 interface StaticFileHandler {
   handle(path: string): Promise<Response | null>;
@@ -2522,7 +2538,7 @@ interface StaticFileHandler {
 
 ---
 
-## 🦕 Usando com Deno (Suporte Oficial)
+## 🦕 Using with Deno (Official Support)
 
 ```typescript
 import { createDenoRouter } from "@vanaware/wsrouter/deno";
@@ -2539,14 +2555,14 @@ app.get("/hello", () => ({ body: "Hello!" }));
 Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 ```
 
-## 🟢 Usando com Node.js ou Bun (Via Core Puro)
+## 🟢 Using with Node.js or Bun (Via Pure Core)
 
-Como o core é agnóstico, você pode usá-lo em Node.js ou Bun implementando suas próprias interfaces de adaptação:
+Since the core is agnostic, you can use it on Node.js or Bun by implementing your own adaptation interfaces:
 
 ```typescript
 import { Router } from "@vanaware/wsrouter";
 
-// Você precisaria implementar estas interfaces para o seu runtime
+// You would need to implement these interfaces for your runtime
 const myNodeUpgrader = { /* ... */ };
 const myNodeStaticHandler = { /* ... */ };
 
@@ -2559,99 +2575,99 @@ const app = new Router({
 
 ---
 
-## 🔒 Segurança
+## 🔒 Security
 
-- **Path Traversal Protection**: O core sanitiza paths e o adaptador Deno garante *containment* real e recusa symlinks.
-- **Dotfiles**: Bloqueados por padrão (`allowDotfiles: false`).
-- **Force HTTPS**: Redireciona HTTP→HTTPS em produção (ignora localhost).
-- **HSTS**: Header `Strict-Transport-Security` adicionado automaticamente em respostas HTTPS.
-- **Trust Proxy**: Confiança explícita em headers como `X-Forwarded-Proto` via `trustProxy: true`.
+- **Path Traversal Protection**: The core sanitizes paths and the Deno adapter enforces real *containment* and rejects symlinks.
+- **Dotfiles**: Blocked by default (`allowDotfiles: false`).
+- **Force HTTPS**: Redirects HTTP→HTTPS in production (ignores localhost).
+- **HSTS**: The `Strict-Transport-Security` header is added automatically on HTTPS responses.
+- **Trust Proxy**: Explicit trust in headers such as `X-Forwarded-Proto` via `trustProxy: true`.
 
 ---
 
-## 📋 Tabela de Compatibilidade Atual
+## 📋 Current Compatibility Table
 
-| Feature | Deno (Oficial) | Node.js / Bun (Via Core) |
+| Feature | Deno (Official) | Node.js / Bun (Via Core) |
 |---------|----------------|--------------------------|
 | HTTP Routing | ✅ | ✅ |
-| WebSocket | ✅ | ⚠️ (Requer Adaptador) |
-| Static Files (disco) | ✅ | ⚠️ (Requer Adaptador) |
+| WebSocket | ✅ | ⚠️ (Adapter Required) |
+| Static Files (disk) | ✅ | ⚠️ (Adapter Required) |
 | Force HTTPS / HSTS | ✅ | ✅ |
 | Middlewares | ✅ | ✅ |
 | Dual Params Broadcast | ✅ | ✅ |
 | Last Broadcast | ✅ | ✅ |
-| Path Traversal / Symlinks | ✅ | ⚠️ (Depende do Adaptador) |
+| Path Traversal / Symlinks | ✅ | ⚠️ (Adapter Dependent) |
 
 ````
 
 ---
 
-## Arquivo: `docs/security.md`
+## File: `docs/security.md`
 
 ````md
-# 🔒 Guia de Segurança do @vanaware/wsrouter
+# 🔒 @vanaware/wsrouter Security Guide
 
-Este documento descreve as práticas de segurança recomendadas ao usar o `@vanaware/wsrouter` em produção.
+This document describes the recommended security practices when using `@vanaware/wsrouter` in production.
 
-## 📋 Índice
+## 📋 Index
 
-1. [HTTPS e HSTS](#https-e-hsts)
-2. [Proteção de Arquivos Estáticos](#proteção-de-arquivos-estáticos)
+1. [HTTPS and HSTS](#https-and-hsts)
+2. [Static File Protection](#static-file-protection)
 3. [WebSocket Security](#websocket-security)
-4. [Autenticação e Autorização](#autenticação-e-autorização)
+4. [Authentication and Authorization](#authentication-and-authorization)
 5. [Rate Limiting](#rate-limiting)
-6. [Headers de Segurança](#headers-de-segurança)
+6. [Security Headers](#security-headers)
 
 ---
 
-## 🌐 HTTPS e HSTS
+## 🌐 HTTPS and HSTS
 
 ### Force HTTPS
 
-O router suporta redirecionamento automático de HTTP para HTTPS:
+The router supports automatic HTTP-to-HTTPS redirection:
 
 ```typescript
 const app = createDenoRouter({
   basePath: "/api",
-  forceHttps: true, // Redireciona HTTP → HTTPS
+  forceHttps: true, // Redirects HTTP → HTTPS
 });
 ```
 
-**Comportamento:**
-- Redireciona com status `301 Moved Permanently`
-- Ignora automaticamente `localhost` e `127.0.0.1` para facilitar desenvolvimento
-- Suporta IPv6 `[::1]`
+**Behavior:**
+- Redirects with status `301 Moved Permanently`
+- Automatically ignores `localhost` and `127.0.0.1` to ease development
+- Supports IPv6 `[::1]`
 
-### Confiança em Proxy (`trustProxy`)
+### Proxy Trust (`trustProxy`)
 
-Quando atrás de um proxy reverso (nginx, Cloudflare, etc.), o router pode confiar no header `X-Forwarded-Proto`:
+When running behind a reverse proxy (nginx, Cloudflare, etc.), the router can trust the `X-Forwarded-Proto` header:
 
 ```typescript
 const app = createDenoRouter({
   forceHttps: true,
-  trustProxy: true, // ⚠️ Apenas se estiver atrás de proxy confiável
+  trustProxy: true, // ⚠️ Only if behind a trusted proxy
 });
 ```
 
-**⚠️ AVISO:** Nunca ative `trustProxy` se o servidor estiver exposto diretamente à internet. Um atacante poderia enviar `X-Forwarded-Proto: https` e bypassar o redirect.
+**⚠️ WARNING:** Never enable `trustProxy` if the server is exposed directly to the internet. An attacker could send `X-Forwarded-Proto: https` and bypass the redirect.
 
 ### HSTS (HTTP Strict Transport Security)
 
-Quando `forceHttps` está ativo e a requisição já é HTTPS, o router automaticamente adiciona:
+When `forceHttps` is active and the request is already HTTPS, the router automatically adds:
 
 ```http
 Strict-Transport-Security: max-age=31536000; includeSubDomains
 ```
 
-Isso instrui navegadores a sempre usar HTTPS para seu domínio.
+This instructs browsers to always use HTTPS for your domain.
 
 ---
 
-## 📂 Proteção de Arquivos Estáticos
+## 📂 Static File Protection
 
-### Dotfiles e Traversal Defense-in-Depth
+### Dotfiles and Traversal Defense-in-Depth
 
-Por padrão, arquivos que começam com `.` são bloqueados:
+By default, files that begin with `.` are blocked:
 
 ```typescript
 const app = createDenoRouter({
@@ -2660,64 +2676,64 @@ const app = createDenoRouter({
 });
 ```
 
-**Bloqueados por padrão:**
+**Blocked by default:**
 - `.env`, `.env.local`
 - `.git/config`, `.git/HEAD`
 - `.DS_Store`
 - `.htaccess`
 
-Mesmo quando `allowDotfiles: true` é habilitado (por exemplo, para servir `.well-known`), segmentos de diretório relativo como `..` e `.` continuam **estritamente proibidos e bloqueados com 404**, garantindo que a ativação de dotfiles nunca abra brechas de path traversal.
+Even when `allowDotfiles: true` is enabled (for example, to serve `.well-known`), relative directory segments such as `..` and `.` remain **strictly forbidden and blocked with 404**, guaranteeing that enabling dotfiles never opens path traversal gaps.
 
-### Symlinks e Diretórios Symlink
+### Symlinks and Symlinked Directories
 
-O adaptador Deno **recusa symlinks** diretamente e valida a resolução física com `Deno.realPath`:
-- Symlinks diretos são detectados via `Deno.lstat` e recusados.
-- Diretórios intermediários symlink são validados contra `resolvedBase`, impedindo que symlinks de diretório apontando para fora do `staticDir` sejam acessados.
+The Deno adapter **rejects symlinks** directly and validates the physical resolution with `Deno.realPath`:
+- Direct symlinks are detected via `Deno.lstat` and rejected.
+- Intermediate symlinked directories are validated against `resolvedBase`, preventing symlinked directories pointing outside the `staticDir` from being accessed.
 
-### Headers de Arquivos Estáticos & Proteção MIME
+### Static File Headers & MIME Protection
 
-O adaptador Deno injeta automaticamente:
-- `X-Content-Type-Options: nosniff` (prevenindo ataques de sniffing MIME)
-- `ETag` e suporte transparente a `If-None-Match` (retornando `304 Not Modified` e cancelando o stream para economia de I/O)
-- `Cache-Control` e `Last-Modified`
-- Tratamento seguro de requisições `HEAD`, cancelando o stream aberto para evitar vazamento de file descriptors.
+The Deno adapter automatically injects:
+- `X-Content-Type-Options: nosniff` (preventing MIME sniffing attacks)
+- `ETag` and transparent `If-None-Match` support (returning `304 Not Modified` and cancelling the stream to save I/O)
+- `Cache-Control` and `Last-Modified`
+- Safe handling of `HEAD` requests, cancelling the opened stream to avoid file descriptor leaks.
 
 ### Path Traversal
 
-O router sanitiza caminhos para evitar ataques de path traversal:
+The router sanitizes paths to prevent path traversal attacks:
 
 ```typescript
-// Requisição maliciosa
+// Malicious request
 GET /../../etc/passwd
 GET /..%2F..%2Fetc%2Fpasswd
 
-// Resultado: 404 (caminho sanitizado antes de acessar)
+// Result: 404 (path sanitized before access)
 ```
 
 ### Containment
 
-O adaptador Deno verifica que o caminho resolvido está estritamente dentro do `staticDir`:
+The Deno adapter verifies that the resolved path is strictly inside the `staticDir`:
 
 ```typescript
 const app = createDenoRouter({
   staticDir: "/var/www/public",
 });
 
-// Requisição: GET /../../etc/passwd
-// Mesmo após sanitização, o path resolvido é verificado
-// Resultado: 404 se tentar escapar do diretório
+// Request: GET /../../etc/passwd
+// Even after sanitization, the resolved path is verified
+// Result: 404 if it attempts to escape the directory
 ```
 
 ---
 
 ## 🔌 WebSocket Security
 
-### Validação de Origin
+### Origin Validation
 
-WebSockets são vulneráveis a ataques Cross-Site WebSocket Hijacking (CSWSH). Valide o header `Origin`:
+WebSockets are vulnerable to Cross-Site WebSocket Hijacking (CSWSH) attacks. Validate the `Origin` header:
 
 ```typescript
-const allowedOrigins = ["https://meusite.com", "https://app.meusite.com"];
+const allowedOrigins = ["https://mysite.com", "https://app.mysite.com"];
 
 app.use(async (req, _params, next) => {
   if (req.headers.get("upgrade")?.toLowerCase() === "websocket") {
@@ -2730,29 +2746,29 @@ app.use(async (req, _params, next) => {
 });
 ```
 
-### Autenticação via Subprotocol
+### Authentication via Subprotocol
 
-O exemplo JWT demonstra como passar tokens via subprotocolo WebSocket:
+The JWT example demonstrates how to pass tokens through the WebSocket subprotocol:
 
 ```javascript
-// Cliente
+// Client
 const ws = new WebSocket("wss://api.site.com/chat", ["Bearer", token]);
 
-// Servidor (middleware)
+// Server (middleware)
 app.use(async (req, _params, next) => {
   if (req.headers.get("upgrade")?.toLowerCase() !== "websocket") {
     return await next();
   }
-  
+
   const protocol = req.headers.get("sec-websocket-protocol") ?? "";
   const protocols = protocol.split(",").map(p => p.trim());
   const bearerIndex = protocols.findIndex(p => p === "Bearer");
   const token = bearerIndex !== -1 ? protocols[bearerIndex + 1] : null;
-  
+
   if (!token) {
     return new Response("Token required", { status: 401 });
   }
-  
+
   try {
     await jwtVerify(token, secret);
     return await next();
@@ -2762,14 +2778,14 @@ app.use(async (req, _params, next) => {
 });
 ```
 
-### Isolamento de Salas
+### Room Isolation
 
-Use `permissionFn` para garantir que mensagens não vazem entre salas:
+Use `permissionFn` to ensure messages do not leak between rooms:
 
 ```typescript
 app.ws("/chat/:room/:user", (ws, _req, params) => {
   const group = app.getWsGroupByPath("/chat/:room/:user");
-  
+
   ws.onmessage = (event) => {
     group.broadcast(
       `[${params.user}]: ${event.data}`,
@@ -2780,50 +2796,50 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
 });
 ```
 
-**Sem `permissionFn`, o broadcast envia para TODOS os sockets da rota**, não apenas para a mesma sala.
+**Without `permissionFn`, the broadcast sends to ALL sockets on the route**, not only to the same room.
 
 ---
 
-## 🔐 Autenticação e Autorização
+## 🔐 Authentication and Authorization
 
-### JWT com Expiração
+### JWT with Expiration
 
-Sempre defina expiração em tokens JWT:
+Always set expiration on JWT tokens:
 
 ```typescript
 import { SignJWT } from "jose";
 
 const token = await new SignJWT({ userId: "123", role: "user" })
   .setProtectedHeader({ alg: "HS256" })
-  .setExpirationTime("1h") // ⚠️ Sempre definir
+  .setExpirationTime("1h") // ⚠️ Always set
   .setIssuedAt()
   .sign(secret);
 ```
 
-### Validação de Algoritmo
+### Algorithm Validation
 
-Ao verificar JWTs, especifique algoritmos permitidos:
+When verifying JWTs, specify the allowed algorithms:
 
 ```typescript
 import { jwtVerify } from "jose";
 
 await jwtVerify(token, secret, {
-  algorithms: ["HS256"], // ⚠️ Evite "none" e algoritmos fracos
+  algorithms: ["HS256"], // ⚠️ Avoid "none" and weak algorithms
 });
 ```
 
-### Segredos em Variáveis de Ambiente
+### Secrets in Environment Variables
 
-Nunca hardcode segredos em produção:
+Never hardcode secrets in production:
 
 ```typescript
-// ❌ RUIM
-const JWT_SECRET = "meu-segredo-123";
+// ❌ BAD
+const JWT_SECRET = "my-secret-123";
 
-// ✅ BOM
+// ✅ GOOD
 const JWT_SECRET = Deno.env.get("JWT_SECRET");
 if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET não configurado");
+  throw new Error("JWT_SECRET not configured");
 }
 ```
 
@@ -2831,28 +2847,28 @@ if (!JWT_SECRET) {
 
 ## 🚦 Rate Limiting
 
-O router **não inclui rate limiting nativo**. Use middlewares para proteger contra abuso:
+The router **does not include native rate limiting**. Use middlewares to protect against abuse:
 
 ```typescript
-// Exemplo simples de rate limiting por IP
+// Simple example of rate limiting by IP
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
 
 app.use(async (req, _params, next) => {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
   const now = Date.now();
-  const windowMs = 60000; // 1 minuto
+  const windowMs = 60000; // 1 minute
   const maxRequests = 100;
-  
+
   const record = requestCounts.get(ip) ?? { count: 0, resetTime: now + windowMs };
-  
+
   if (now > record.resetTime) {
     record.count = 0;
     record.resetTime = now + windowMs;
   }
-  
+
   record.count++;
   requestCounts.set(ip, record);
-  
+
   if (record.count > maxRequests) {
     return new Response("Too Many Requests", {
       status: 429,
@@ -2861,63 +2877,63 @@ app.use(async (req, _params, next) => {
       },
     });
   }
-  
+
   return await next();
 });
 ```
 
-Para produção, considere:
-- Redis para rate limiting distribuído
-- Bibliotecas especializadas como `rate-limiter-flexible`
-- Soluções de edge (Cloudflare, AWS WAF)
+For production, consider:
+- Redis for distributed rate limiting
+- Specialized libraries such as `rate-limiter-flexible`
+- Edge solutions (Cloudflare, AWS WAF)
 
 ---
 
-## 🛡️ Headers de Segurança
+## 🛡️ Security Headers
 
-Adicione headers de segurança via middleware:
+Add security headers via middleware:
 
 ```typescript
 app.use(async (req, _params, next) => {
   const res = await next();
-  
-  // Prevenir clickjacking
+
+  // Prevent clickjacking
   res.headers.set("X-Frame-Options", "DENY");
-  
-  // Prevenir MIME sniffing
+
+  // Prevent MIME sniffing
   res.headers.set("X-Content-Type-Options", "nosniff");
-  
+
   // Referrer Policy
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  
-  // Content Security Policy (ajuste conforme necessário)
+
+  // Content Security Policy (adjust as needed)
   res.headers.set(
     "Content-Security-Policy",
     "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
   );
-  
+
   return res;
 });
 ```
 
 ---
 
-## ✅ Checklist de Segurança para Produção
+## ✅ Production Security Checklist
 
-- [ ] `forceHttps: true` ativado
-- [ ] `trustProxy: true` apenas se atrás de proxy confiável
+- [ ] `forceHttps: true` enabled
+- [ ] `trustProxy: true` only if behind a trusted proxy
 - [ ] `allowDotfiles: false` (default)
-- [ ] Validação de `Origin` em WebSockets
-- [ ] Tokens JWT com expiração e algoritmos restritos
-- [ ] Segredos em variáveis de ambiente
-- [ ] Rate limiting implementado
-- [ ] Headers de segurança adicionados
-- [ ] Logs de auditoria para autenticação
-- [ ] HTTPS/WSS em produção (nunca HTTP/WS)
+- [ ] `Origin` validation on WebSockets
+- [ ] JWT tokens with expiration and restricted algorithms
+- [ ] Secrets in environment variables
+- [ ] Rate limiting implemented
+- [ ] Security headers added
+- [ ] Audit logs for authentication
+- [ ] HTTPS/WSS in production (never HTTP/WS)
 
 ---
 
-## 📚 Recursos Adicionais
+## 📚 Additional Resources
 
 - [OWASP WebSocket Security Cheat Sheet](https://cheatsheetseries.owasp.org/)
 - [MDN: HTTP Strict Transport Security](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security)
@@ -2927,148 +2943,148 @@ app.use(async (req, _params, next) => {
 
 ---
 
-## Arquivo: `docs/simple-permission.md`
+## File: `docs/simple-permission.md`
 
 ````md
-# Exemplo Simples: Rota `/sala` sem Parâmetros
+# Simple Example: The `/room` Route Without Parameters
 
-Quando a rota não tem parâmetros dinâmicos, o `params` recebido pela `permissionFn` será um objeto vazio `{}`. Nesse caso, a filtragem deve ser feita com base no **conteúdo da mensagem** ou em **estado externo** (como uma lista de banidos).
+When a route has no dynamic parameters, the `params` object received by the `permissionFn` will be an empty object `{}`. In that case, filtering must be based on the **message content** or on **external state** (such as a banned-user list).
 
-## 📄 Arquivo: `monorepo/router/example/sala/main.ts`
+## 📄 File: `monorepo/router/example/room/main.ts`
 
 ```typescript
-// monorepo/router/example/sala/main.ts
+// monorepo/router/example/room/main.ts
 import { Router } from "../../src/mod.ts";
 
 const app = new Router({ basePath: "/api" });
 
-// Lista externa de usuários banidos (simulando um banco de dados)
+// External list of banned users (simulating a database)
 const bannedUsers = new Set(["spammer1", "baduser2"]);
 
 // ============================================================
-// Rota WebSocket simples: /sala (sem parâmetros)
+// Simple WebSocket route: /room (no parameters)
 // ============================================================
-app.ws("/sala", (ws, req, _params) => {
-  // Extrai o nome do usuário de um header (já que não temos params na URL)
-  const user = req.headers.get("x-user-name") ?? "anonimo";
-  
-  console.log(`[WS] ${user} entrou na sala`);
+app.ws("/room", (ws, req, _params) => {
+  // Extract the user name from a header (since we have no URL params)
+  const user = req.headers.get("x-user-name") ?? "anonymous";
 
-  const group = app.getWsGroupByPath("/sala");
+  console.log(`[WS] ${user} joined the room`);
+
+  const group = app.getWsGroupByPath("/room");
   if (!group) return;
 
   ws.onmessage = (event) => {
     const message = event.data;
 
-    // Exemplo 1: Filtrar por conteúdo da mensagem
-    // Exemplo 2: Filtrar por usuário banido (estado externo)
+    // Example 1: Filter by message content
+    // Example 2: Filter by banned user (external state)
     group.broadcast(
       `[${user}]: ${message}`,
-      (_receiver, _sender, msg) => { 
-        // clientParams é {} (vazio, pois a rota não tem params)
-        // msg é a mensagem sendo enviada
-        
-        // Regra 1: Bloquear mensagens com palavra proibida
+      (_receiver, _sender, msg) => {
+        // clientParams is {} (empty, because the route has no params)
+        // msg is the message being sent
+
+        // Rule 1: Block messages containing a forbidden word
         if (msg.toLowerCase().includes("spam")) {
           return false;
         }
-        
-        // Regra 2: Bloquear mensagens de usuários banidos
-        // (extraímos o nome do usuário do prefixo "[user]:")
+
+        // Rule 2: Block messages from banned users
+        // (we extract the user name from the "[user]:" prefix)
         const senderMatch = msg.match(/^\[([^\]]+)\]:/);
         if (senderMatch && bannedUsers.has(senderMatch[1])) {
           return false;
         }
-        
-        return true; // Permite todas as outras mensagens
+
+        return true; // Allow all other messages
       },
-      {}, // senderParams vazio, já que não temos params na rota
+      {}, // empty senderParams, since we have no params on the route
     );
   };
 
-  ws.onclose = () => console.log(`[WS] ${user} saiu da sala`);
+  ws.onclose = () => console.log(`[WS] ${user} left the room`);
 });
 
 // ============================================================
-// Servidor
+// Server
 // ============================================================
 const server = Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
-console.log("🚀 Servidor rodando em http://localhost:3000");
-console.log("🔌 WS: ws://localhost:3000/api/sala (header X-User-Name opcional)");
+console.log("🚀 Server running on http://localhost:3000");
+console.log("🔌 WS: ws://localhost:3000/api/room (optional X-User-Name header)");
 ```
 
 ---
 
-## 🔍 Como Funciona a `permissionFn` sem Parâmetros
+## 🔍 How the `permissionFn` Works Without Parameters
 
-Como a rota `/sala` não tem `:param`, o objeto `params` é sempre `{}`. Então a filtragem precisa usar outras informações:
+Because the `/room` route has no `:param`, the `params` object is always `{}`. So filtering must rely on other information:
 
-| Fonte de Dados | Como Acessar | Exemplo de Uso |
-|----------------|--------------|----------------|
-| **Conteúdo da mensagem** | Parâmetro `msg` da `permissionFn` | Bloquear palavras proibidas |
-| **Estado externo** | Variáveis fora do handler (ex: `bannedUsers`) | Lista de banidos, roles |
-| **Headers da requisição** | Capturados no `onopen` e guardados | Roles, níveis de acesso |
+| Data Source | How to Access | Example Use |
+|-------------|---------------|-------------|
+| **Message content** | The `msg` parameter of the `permissionFn` | Block forbidden words |
+| **External state** | Variables outside the handler (e.g. `bannedUsers`) | Ban list, roles |
+| **Request headers** | Captured in `onopen` and stored | Roles, access levels |
 
 ---
 
-## 🧪 Testando
+## 🧪 Testing
 
-### Cliente simples (Node.js ou navegador)
+### Simple client (Node.js or browser)
 
 ```javascript
-// Conectar passando o nome no header (via fetch + WebSocket manual)
-// No navegador, headers customizados não são possíveis no WebSocket.
-// Alternativa: passar o nome na query string ou primeira mensagem.
+// Connect passing the name in a header (via fetch + manual WebSocket)
+// In the browser, custom headers are not possible with WebSocket.
+// Alternative: pass the name in the query string or first message.
 
-const ws = new WebSocket("ws://localhost:3000/api/sala");
+const ws = new WebSocket("ws://localhost:3000/api/room");
 
 ws.onopen = () => {
-  // Primeira mensagem identifica o usuário
+  // The first message identifies the user
   ws.send("__IDENTIFY__:joao");
 };
 
-ws.onmessage = (e) => console.log("Recebido:", e.data);
+ws.onmessage = (e) => console.log("Received:", e.data);
 ```
 
-### Casos de teste
+### Test cases
 
 ```bash
-# ✅ Mensagem normal → todos recebem
-ws.send("Olá pessoal!")
-# → [joao]: Olá pessoal!
+# ✅ Normal message → everyone receives it
+ws.send("Hello everyone!")
+# → [joao]: Hello everyone!
 
-# ❌ Mensagem com "spam" → ninguém recebe
-ws.send("Isso é spam!")
-# → (silêncio)
+# ❌ Message containing "spam" → nobody receives it
+ws.send("This is spam!")
+# → (silence)
 
-# ❌ Mensagem de usuário banido → ninguém recebe
-# (se o sender for "spammer1")
-# → (silêncio)
+# ❌ Message from a banned user → nobody receives it
+# (if the sender is "spammer1")
+# → (silence)
 ```
 
 ---
 
-## 💡 Alternativa: Guardar Estado no Handler
+## 💡 Alternative: Keep State in the Handler
 
-Se precisar de filtragem mais complexa, você pode guardar informações no fechamento (closure) do handler:
+If you need more complex filtering, you can keep information in the handler's closure:
 
 ```typescript
-app.ws("/sala", (ws, req, _params) => {
-  // Estado local por conexão
+app.ws("/room", (ws, req, _params) => {
+  // Local per-connection state
   const userRole = req.headers.get("x-role") ?? "visitor";
-  const userName = req.headers.get("x-user-name") ?? "anonimo";
-  
-  const group = app.getWsGroupByPath("/sala");
+  const userName = req.headers.get("x-user-name") ?? "anonymous";
+
+  const group = app.getWsGroupByPath("/room");
   if (!group) return;
 
   ws.onmessage = (event) => {
     group.broadcast(
       `[${userName}]: ${event.data}`,
-      (_receiver, _sender, msg) => { 
-        // Aqui você pode usar `userRole` do closure
-        // para decidir se a mensagem deve passar
-        if (userRole === "admin") return true; // Admin sempre passa
-        if (msg.includes("@admin")) return false; // Visitante não vê menções
+      (_receiver, _sender, msg) => {
+        // Here you can use the `userRole` from the closure
+        // to decide whether the message should pass through
+        if (userRole === "admin") return true; // Admin always passes
+        if (msg.includes("@admin")) return false; // Visitors don't see mentions
         return true;
       },
       {},
@@ -3079,18 +3095,19 @@ app.ws("/sala", (ws, req, _params) => {
 
 ---
 
-## ✅ Resumo
+## ✅ Summary
 
-Para rotas **sem parâmetros**:
-- `params` será sempre `{}`
-- Use o parâmetro `message` da `permissionFn` para filtrar por conteúdo
-- Use variáveis externas (closures, Maps, Sets) para estado compartilhado
-- A lógica de permissão continua sendo `(receiverParams, senderParams, message) => boolean`
+For routes **without parameters**:
+- `params` will always be `{}`
+- Use the `message` parameter of the `permissionFn` to filter by content
+- Use external variables (closures, Maps, Sets) for shared state
+- The permission logic remains `(receiverParams, senderParams, message) => boolean`
+
 ````
 
 ---
 
-## Arquivo: `docs/webrtc.md`
+## File: `docs/webrtc.md`
 
 ````md
 # 🎥 WebRTC Live Streaming & Signaling Guide
@@ -3408,62 +3425,62 @@ ws.onmessage = async (event) => {
 
 ---
 
-## Arquivo: `docs/websocket-permissions.md`
+## File: `docs/websocket-permissions.md`
 
 ````md
-# 📡 Documentação: Permissionamento Inteligente em WebSockets (Dual Params)
+# 📡 Documentation: Smart Permissioning in WebSockets (Dual Params)
 
-O `@vanaware/wsrouter` possui um sistema nativo e robusto de permissionamento para WebSockets, permitindo que mensagens de broadcast sejam filtradas dinamicamente com base nos **parâmetros do destinatário (receiver)**, nos **parâmetros do remetente (sender)** e no **conteúdo da mensagem**.
+`@vanaware/wsrouter` has a native and robust permissioning system for WebSockets, allowing broadcast messages to be filtered dynamically based on the **receiver parameters**, the **sender parameters**, and the **message content**.
 
 ---
 
-## 🔑 Conceitos Fundamentais
+## 🔑 Fundamental Concepts
 
-### 1. `PermissionFn` (Função de Permissão Dual)
-É um callback opcional passado ao método `group.broadcast()`. Sua assinatura recebe três argumentos:
+### 1. `PermissionFn` (Dual Permission Function)
+It is an optional callback passed to the `group.broadcast()` method. Its signature receives three arguments:
 
 ```typescript
 type PermissionFn = (
-  receiverParams: RouteParams, // Parâmetros de quem VAI RECEBER a mensagem
-  senderParams: RouteParams,   // Parâmetros de quem ENVIOU a mensagem
-  message: string              // O conteúdo da mensagem
+  receiverParams: RouteParams, // Parameters of who WILL RECEIVE the message
+  senderParams: RouteParams,   // Parameters of who SENT the message
+  message: string              // The message content
 ) => boolean;
 ```
 
 ---
 
-## 🌍 Exemplos Práticos do Mundo Real
+## 🌍 Practical Real-World Examples
 
-### Cenário 1: Isolamento de Salas de Chat (O Clássico)
-**Objetivo:** Garantir que uma mensagem enviada na sala "geral" não vaze para a sala "vip".
+### Scenario 1: Chat Room Isolation (The Classic)
+**Goal:** Ensure a message sent in the "general" room does not leak into the "vip" room.
 
 ```typescript
 app.ws("/chat/:room/:user", (ws, _req, params) => {
   const group = app.getWsGroupByPath("/chat/:room/:user");
-  
+
   ws.onmessage = (event) => {
     group.broadcast(
       `[${params.user}]: ${event.data}`,
-      // Filtra: O receiver deve estar na mesma sala que o sender
+      // Filter: the receiver must be in the same room as the sender
       (receiver, sender, _msg) => receiver.room === sender.room,
-      params // Passamos os params do remetente
+      params // We pass the sender's params
     );
   };
 });
 ```
 
-### Cenário 2: Controle de Acesso por Nível de Usuário (RBAC)
-**Objetivo:** Apenas usuários com role `admin` podem enviar alertas de sistema críticos.
+### Scenario 2: Access Control by User Level (RBAC)
+**Goal:** Only users with the `admin` role may send critical system alerts.
 
 ```typescript
 app.ws("/dashboard/:role/:userId", (ws, _req, params) => {
   const group = app.getWsGroupByPath("/dashboard/:role/:userId");
-  
+
   ws.onmessage = (event) => {
     group.broadcast(
-      `🚨 ALERTA: ${event.data}`,
+      `🚨 ALERT: ${event.data}`,
       (_receiver, sender, _msg) => {
-        // Só permite o broadcast se o SENDER for admin
+        // Only allow the broadcast if the SENDER is admin
         return sender.role === "admin";
       },
       params
@@ -3472,18 +3489,18 @@ app.ws("/dashboard/:role/:userId", (ws, _req, params) => {
 });
 ```
 
-### Cenário 3: Filtragem Baseada no Conteúdo da Mensagem
-**Objetivo:** Impedir que mensagens contendo a palavra "spam" sejam propagadas.
+### Scenario 3: Filtering Based on Message Content
+**Goal:** Prevent messages containing the word "spam" from being propagated.
 
 ```typescript
 app.ws("/community/:serverId/:userId", (ws, _req, params) => {
   const group = app.getWsGroupByPath("/community/:serverId/:userId");
-  
+
   ws.onmessage = (event) => {
     group.broadcast(
       event.data,
       (_receiver, _sender, msgContent) => {
-        // Bloqueia se a mensagem contiver "spam"
+        // Block if the message contains "spam"
         return !msgContent.toLowerCase().includes("spam");
       },
       params
@@ -3494,75 +3511,75 @@ app.ws("/community/:serverId/:userId", (ws, _req, params) => {
 
 ---
 
-## 💡 A "Mágica" do Last Broadcast com Dual Params
+## 💡 The "Magic" of Last Broadcast with Dual Params
 
-Quando um novo membro entra na sala, o router reavalia o `lastBroadcast` usando os **Dual Params**.
+When a new member joins the room, the router re-evaluates the `lastBroadcast` using the **Dual Params**.
 
 ```typescript
-// 10:00:00 -> User A (room: "lobby") envia: "Olá a todos!"
-// O router salva: { message: "Olá...", permissionFn: (r, s) => r.room === s.room, senderParams: { room: "lobby" } }
+// 10:00:00 -> User A (room: "lobby") sends: "Hello everyone!"
+// The router stores: { message: "Hello...", permissionFn: (r, s) => r.room === s.room, senderParams: { room: "lobby" } }
 
-// 10:00:05 -> User B conecta na rota /chat/lobby/userB
-// O router reavalia: permissionFn({ room: "lobby" }, { room: "lobby" }, "Olá...") -> TRUE
-// User B recebe a mensagem histórica automaticamente!
+// 10:00:05 -> User B connects on route /chat/lobby/userB
+// The router re-evaluates: permissionFn({ room: "lobby" }, { room: "lobby" }, "Hello...") -> TRUE
+// User B automatically receives the historical message!
 
-// 10:00:10 -> User C conecta na rota /chat/vip/userC
-// O router reavalia: permissionFn({ room: "vip" }, { room: "lobby" }, "Olá...") -> FALSE
-// User C NÃO recebe a mensagem (Segurança garantida!).
+// 10:00:10 -> User C connects on route /chat/vip/userC
+// The router re-evaluates: permissionFn({ room: "vip" }, { room: "lobby" }, "Hello...") -> FALSE
+// User C does NOT receive the message (Security guaranteed!).
 ```
 
-## ⚠️ Melhores Práticas
+## ⚠️ Best Practices
 
-1. **Mantenha a `PermissionFn` Leve:** Evite operações assíncronas (como consultas ao banco de dados) dentro da `PermissionFn`.
-2. **Use `senderParams` Corretamente:** Sempre passe o terceiro argumento `params` no `group.broadcast(msg, fn, params)`. Sem isso, o `senderParams` será um objeto vazio `{}` e o recurso de "Last Broadcast" não funcionará corretamente.
+1. **Keep the `PermissionFn` Lightweight:** Avoid asynchronous operations (such as database queries) inside the `PermissionFn`.
+2. **Use `senderParams` Correctly:** Always pass the third argument `params` in `group.broadcast(msg, fn, params)`. Without it, `senderParams` will be an empty object `{}` and the "Last Broadcast" feature will not work correctly.
 
 ````
 
 ---
 
-## Arquivo: `docs/workers.md`
+## File: `docs/workers.md`
 
 ````md
-# 🔧 Workers: Fallback Programável no Router
+# 🔧 Workers: Programmable Fallback in the Router
 
-A função `app.worker()` permite registrar **handlers genéricos de fallback** que são executados quando nenhuma rota HTTP/WS casa com a requisição, mas **antes** de tentar servir arquivos estáticos.
+The `app.worker()` function lets you register **generic fallback handlers** that run when no HTTP/WS route matches the request, but **before** attempting to serve static files.
 
 ---
 
-## 🎯 Motivação
+## 🎯 Motivation
 
-No projeto **Loco**, o pacote `@loco/server` possui um `workerHandler` no formato Cloudflare Worker (`fetch(request, env, ctx)`) que processa endpoints como `/ping`, `/push` e `/publickey`. Ao integrar o server com o router, precisamos de uma forma nativa de delegar requisições não roteadas para esse worker, sem duplicar rotas.
+In the **Loco** project, the `@loco/server` package has a `workerHandler` in the Cloudflare Worker format (`fetch(request, env, ctx)`) that processes endpoints such as `/ping`, `/push`, and `/publickey`. When integrating the server with the router, we needed a native way to delegate unrouted requests to that worker without duplicating routes.
 
-O padrão do `main.ts` do server era:
+The server's `main.ts` pattern was:
 
 ```typescript
-// 1. Tenta o worker
+// 1. Try the worker
 const workerResponse = await workerHandler.fetch(req, env, ctx);
 
-// 2. Se o worker retornou 404, tenta static files
+// 2. If the worker returned 404, try static files
 if (workerResponse.status !== 404) {
   return workerResponse;
 }
 
-// 3. Senão, serveDir
+// 3. Otherwise, serveDir
 return await serveDir(req, { fsRoot: "./build/dist" });
 ```
 
-Com `app.worker()`, esse fluxo se torna nativo do router.
+With `app.worker()`, this flow becomes native to the router.
 
 ---
 
-## 📐 Arquitetura
+## 📐 Architecture
 
-### Tipo `WorkerHandler`
+### The `WorkerHandler` Type
 
 ```typescript
 type WorkerHandler = (req: Request) => Promise<Response>;
 ```
 
-O worker é uma **função simples** que recebe um `Request` e retorna um `Promise<Response>`. Não recebe `env` nem `ctx` — esses valores ficam capturados no **closure** pelo usuário. Isso mantém o router 100% agnóstico.
+The worker is a **simple function** that receives a `Request` and returns a `Promise<Response>`. It does not receive `env` or `ctx` — those values are captured in the **closure** by the user. This keeps the router 100% agnostic.
 
-### Posição no Fluxo de Execução
+### Position in the Execution Flow
 
 ```
 Request
@@ -3571,64 +3588,64 @@ Request
   │
   ├── Middlewares (app.use)
   │
-  ├── Rota HTTP encontrada? → executeHttpHandler
+  ├── HTTP route found? → executeHttpHandler
   │
-  ├── HEAD sem rota? → tenta GET automático
+  ├── HEAD without route? → try automatic GET
   │
   ├── 405? → Method Not Allowed
   │
-  ├── 🆕 Workers (app.worker) ← AQUI
-  │     ├── worker1 → 200 → retorna
-  │     ├── worker1 → 404 → worker2 → 200 → retorna
-  │     └── todos → 404 → null
+  ├── 🆕 Workers (app.worker) ← HERE
+  │     ├── worker1 → 200 → return
+  │     ├── worker1 → 404 → worker2 → 200 → return
+  │     └── all → 404 → null
   │
-  ├── Static files (GET/HEAD apenas)
+  ├── Static files (GET/HEAD only)
   │
   └── 404 Not Found
 ```
 
-### Por que depois do 405 e antes do static?
+### Why after the 405 check and before static files?
 
-1. **Depois do 405:** Se uma rota existe com outro método, o comportamento HTTP correto é 405, não delegar para um worker.
-2. **Antes do static:** Workers podem implementar APIs dinâmicas. Static files são o último recurso.
+1. **After the 405:** If a route exists with another method, the correct HTTP behavior is 405, not delegating to a worker.
+2. **Before static:** Workers can implement dynamic APIs. Static files are the last resort.
 
 ---
 
 ## 📝 API
 
-### Registro
+### Registration
 
 ```typescript
 app.worker(handler: WorkerHandler): this;
 ```
 
-Retorna `this` para chaining. Múltiplos workers formam uma **cadeia de fallback**: se um retorna 404, o próximo é tentado.
+Returns `this` for chaining. Multiple workers form a **fallback chain**: if one returns 404, the next one is tried.
 
-### Comportamento da Cadeia
+### Chain Behavior
 
 ```typescript
-app.worker(worker1);  // Tentado primeiro
-app.worker(worker2);  // Tentado se worker1 retornar 404
-app.worker(worker3);  // Tentado se worker2 retornar 404
+app.worker(worker1);  // Tried first
+app.worker(worker2);  // Tried if worker1 returns 404
+app.worker(worker3);  // Tried if worker2 returns 404
 ```
 
-- Se qualquer worker retornar status **≠ 404**, a resposta é retornada imediatamente.
-- Se **todos** retornarem 404, o router prossegue para static files.
-- Se um worker **lançar exceção**, o erro é logado e o próximo worker é tentado (resiliência).
+- If any worker returns a status **≠ 404**, the response is returned immediately.
+- If **all** of them return 404, the router proceeds to static files.
+- If a worker **throws an exception**, the error is logged and the next worker is tried (resilience).
 
 ### Middlewares
 
-**Sim, middlewares funcionam para workers.** Como os workers são executados dentro do `executeFinalHandler`, que é chamado pela cadeia de middlewares, qualquer middleware registrado com `app.use()` intercepta a requisição antes do worker.
+**Yes, middlewares work for workers.** Because workers run inside `executeFinalHandler`, which is invoked by the middleware chain, any middleware registered with `app.use()` intercepts the request before the worker.
 
-Isso significa que logging, CORS, autenticação e rate limiting funcionam automaticamente.
+This means logging, CORS, authentication, and rate limiting work automatically.
 
 ---
 
-## 🌍 Exemplos Práticos
+## 🌍 Practical Examples
 
-### 1. Integração com workerHandler do @loco/server
+### 1. Integration with the `@loco/server` workerHandler
 
-O caso de uso principal do projeto Loco:
+The main use case of the Loco project:
 
 ```typescript
 import { createDenoRouter } from "@vanaware/wsrouter/deno";
@@ -3645,26 +3662,26 @@ const app = createDenoRouter({
   staticDir: "./build/dist",
 });
 
-// Rotas do router (têm prioridade sobre o worker)
+// Router routes (they take priority over the worker)
 app.get("/health", () => ({ body: "OK" }));
 
-// Worker como fallback (antes de static files)
+// Worker as fallback (before static files)
 app.worker((req) => workerHandler.fetch(req, env, ctx));
 
 Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 ```
 
-**Fluxo resultante:**
+**Resulting flow:**
 
-| Requisição | Resultado |
+| Request | Result |
 |---|---|
-| `GET /health` | Rota do router → `OK` |
+| `GET /health` | Router route → `OK` |
 | `POST /ping` | Worker → `{ success: true, service: "loco-proxy" }` |
-| `POST /push` | Worker → processa push notification |
-| `GET /index.html` | Worker retorna 404 → Static file |
-| `GET /nao-existe` | Worker 404 → Static 404 → `404 Not Found` |
+| `POST /push` | Worker → processes the push notification |
+| `GET /index.html` | Worker returns 404 → Static file |
+| `GET /does-not-exist` | Worker 404 → Static 404 → `404 Not Found` |
 
-### 2. Proxy reverso simples
+### 2. Simple reverse proxy
 
 ```typescript
 app.worker(async (req) => {
@@ -3672,7 +3689,7 @@ app.worker(async (req) => {
   if (!url.pathname.startsWith("/api/legacy/")) {
     return new Response("Not Found", { status: 404 });
   }
-  // Encaminha para serviço legado
+  // Forward to the legacy service
   const target = url.pathname.replace("/api/legacy/", "http://legacy-service:3000/");
   return await fetch(target, {
     method: req.method,
@@ -3682,82 +3699,82 @@ app.worker(async (req) => {
 });
 ```
 
-### 3. Múltiplos workers (API + Proxy)
+### 3. Multiple workers (API + Proxy)
 
 ```typescript
-// Worker 1: APIs do server
+// Worker 1: server APIs
 app.worker((req) => workerHandler.fetch(req, env, ctx));
 
-// Worker 2: Proxy para serviço externo
+// Worker 2: proxy to an external service
 app.worker(async (req) => {
   const url = new URL(req.url);
   if (!url.pathname.startsWith("/external/")) {
     return new Response("Not Found", { status: 404 });
   }
-  return await fetch(url.pathname.replace("/external/", "https://api.externa.com/"));
+  return await fetch(url.pathname.replace("/external/", "https://api.external.com/"));
 });
 ```
 
 ---
 
-## ⚠️ Considerações
+## ⚠️ Considerations
 
-### Rotas têm prioridade sobre workers
+### Routes take priority over workers
 
-Se existir `app.get("/ping")` **e** um worker que também trata `/ping`, a rota do router **sempre vence**. O worker nunca é chamado para paths que já têm rota registrada.
+If `app.get("/ping")` exists **and** a worker also handles `/ping`, the router route **always wins**. The worker is never called for paths that already have a registered route.
 
 ### Performance
 
-Cada request que não casa com nenhuma rota passa por **todos os workers** antes de chegar aos static files. Workers devem ser rápidos ao retornar 404 (ex: checar prefixo de URL antes de processar).
+Every request that matches no route passes through **all workers** before reaching static files. Workers should be fast to return 404 (e.g. check the URL prefix before processing).
 
 ```typescript
-// ✅ BOM: retorno rápido
+// ✅ GOOD: fast return
 app.worker(async (req) => {
   if (!new URL(req.url).pathname.startsWith("/api/")) {
     return new Response("Not Found", { status: 404 });
   }
-  // ... processamento
+  // ... processing
 });
 
-// ❌ RUIM: processamento desnecessário
+// ❌ BAD: unnecessary processing
 app.worker(async (req) => {
-  const data = await heavyComputation(); // Executa mesmo para /index.html
+  const data = await heavyComputation(); // Runs even for /index.html
   // ...
 });
 ```
 
-### env e ctx via closure
+### `env` and `ctx` via closure
 
-O router não conhece `env` nem `ctx`. Esses valores são capturados no closure do worker:
+The router knows neither `env` nor `ctx`. Those values are captured in the worker's closure:
 
 ```typescript
-// env e ctx vivem fora do router
+// env and ctx live outside the router
 const env = Deno.env.toObject();
 const ctx = { waitUntil: (p: Promise<unknown>) => p.catch(console.error) };
 
-// O closure captura env e ctx
+// The closure captures env and ctx
 app.worker((req) => workerHandler.fetch(req, env, ctx));
 ```
 
-Isso é intencional: mantém o router agnóstico e permite que qualquer runtime forneça seu próprio contexto.
+This is intentional: it keeps the router agnostic and lets any runtime provide its own context.
 
-### Erros em workers
+### Errors in workers
 
-Se um worker lançar exceção, o erro é logado no console e o **próximo worker é tentado**. Isso garante que um worker com bug não derruba toda a aplicação.
+If a worker throws an exception, the error is logged to the console and the **next worker is tried**. This ensures a buggy worker does not take down the whole application.
 
 ---
 
-## 📋 Resumo
+## 📋 Summary
 
-| Aspecto | Detalhe |
+| Aspect | Detail |
 |---|---|
-| **Tipo** | `(req: Request) => Promise<Response>` |
-| **Registro** | `app.worker(handler)` |
-| **Múltiplos** | Sim, cadeia de fallback (404 → próximo) |
-| **Middlewares** | Sim, executam antes dos workers |
-| **Prioridade** | Rotas > Workers > Static files > 404 |
-| **Erros** | Logados, próximo worker tentado |
-| **env/ctx** | Via closure, router não conhece |
+| **Type** | `(req: Request) => Promise<Response>` |
+| **Registration** | `app.worker(handler)` |
+| **Multiple** | Yes, fallback chain (404 → next) |
+| **Middlewares** | Yes, they run before workers |
+| **Priority** | Routes > Workers > Static files > 404 |
+| **Errors** | Logged, next worker tried |
+| **env/ctx** | Via closure, the router is unaware |
 
 ````
 

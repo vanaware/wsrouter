@@ -6,7 +6,7 @@ import { WebSocketGroup, } from "../src/mod.ts";
 // ============================================================
 // 1. Error Handling
 // ============================================================
-Deno.test("Handler HTTP que lança erro retorna 500", async () => {
+Deno.test("HTTP handler that throws returns 500", async () => {
   const app = createDenoRouter("", null, null,);
   app.get("/error", () => {
     throw new Error("Database connection failed",);
@@ -17,7 +17,7 @@ Deno.test("Handler HTTP que lança erro retorna 500", async () => {
   assertEquals(await res.text(), "Internal Server Error",);
 });
 
-Deno.test("Handler HTTP assíncrono que rejeita retorna 500", async () => {
+Deno.test("Async HTTP handler that rejects returns 500", async () => {
   const app = createDenoRouter("", null, null,);
   app.get("/async-error", async () => {
     await new Promise((r,) => setTimeout(r, 10,));
@@ -31,7 +31,7 @@ Deno.test("Handler HTTP assíncrono que rejeita retorna 500", async () => {
 // ============================================================
 // 2. Force HTTPS
 // ============================================================
-Deno.test("Force HTTPS redireciona em produção (não localhost)", async () => {
+Deno.test("Force HTTPS redirects in production (not localhost)", async () => {
   const app = createDenoRouter({ basePath: "", forceHttps: true, },);
   app.get("/ping", () => ({ body: "pong", }),);
   const req = new Request("http://example.com/ping",);
@@ -44,7 +44,7 @@ Deno.test("Force HTTPS redireciona em produção (não localhost)", async () => 
   );
 });
 
-Deno.test("Force HTTPS ignora localhost", async () => {
+Deno.test("Force HTTPS ignores localhost", async () => {
   const app = createDenoRouter({ basePath: "", forceHttps: true, },);
   app.get("/ping", () => ({ body: "pong", }),);
   const req = new Request("http://localhost:8000/ping",);
@@ -53,7 +53,7 @@ Deno.test("Force HTTPS ignora localhost", async () => {
   assertEquals(await res.text(), "pong",);
 });
 
-Deno.test("Force HTTPS ignora se já for HTTPS", async () => {
+Deno.test("Force HTTPS ignores when already HTTPS", async () => {
   const app = createDenoRouter({ basePath: "", forceHttps: true, },);
   app.get("/ping", () => ({ body: "pong", }),);
   const req = new Request("https://example.com/ping",);
@@ -61,8 +61,8 @@ Deno.test("Force HTTPS ignora se já for HTTPS", async () => {
   assertEquals(res.status, 200,);
 });
 
-// 🚀 CORREÇÃO: Adicionado trustProxy: true
-Deno.test("Force HTTPS ignora se x-forwarded-proto for https", async () => {
+// 🚀 FIX: Added trustProxy: true
+Deno.test("Force HTTPS ignores when x-forwarded-proto is https", async () => {
   const app = createDenoRouter({
     basePath: "",
     forceHttps: true,
@@ -77,7 +77,7 @@ Deno.test("Force HTTPS ignora se x-forwarded-proto for https", async () => {
 });
 
 // ============================================================
-// 3. Last Broadcast com Dual Permission
+// 3. Last Broadcast with Dual Permission
 // ============================================================
 class MockWebSocket {
   readyState: number = 1;
@@ -92,12 +92,12 @@ class MockWebSocket {
   }
 }
 
-Deno.test("Last Broadcast NÃO vaza para sala diferente (Dual Permission)", async () => {
+Deno.test("Last broadcast does NOT leak to a different room (Dual Permission)", async () => {
   const group = new WebSocketGroup();
   const ws1 = new MockWebSocket();
   group.addSocket(ws1 as unknown as WebSocket, { room: "A", user: "user1", },);
   group.broadcast(
-    "Segredo da Sala A",
+    "Secret of room A",
     (receiver, sender, _msg,) => receiver.room === sender.room,
     { room: "A", user: "user1", },
   );
@@ -111,16 +111,16 @@ Deno.test("Last Broadcast NÃO vaza para sala diferente (Dual Permission)", asyn
   assertEquals(
     ws2.sent,
     [],
-    "User2 na sala B não deve receber broadcast da sala A",
+    "User2 in room B should not receive the broadcast from room A",
   );
 });
 
-Deno.test("Last Broadcast É entregue para novo membro na mesma sala", async () => {
+Deno.test("Last broadcast IS delivered to a new member in the same room", async () => {
   const group = new WebSocketGroup();
   const ws1 = new MockWebSocket();
   group.addSocket(ws1 as unknown as WebSocket, { room: "A", user: "user1", },);
   group.broadcast(
-    "Bem-vindos!",
+    "Welcome!",
     (receiver, sender, _msg,) => receiver.room === sender.room,
     { room: "A", user: "user1", },
   );
@@ -131,10 +131,10 @@ Deno.test("Last Broadcast É entregue para novo membro na mesma sala", async () 
     user: "user3",
   },);
   await new Promise((r,) => setTimeout(r, 100,));
-  assertEquals(ws3.sent, ["Bem-vindos!",],);
+  assertEquals(ws3.sent, ["Welcome!",],);
 });
 
-Deno.test("Last Broadcast com delay customizado (0ms)", async () => {
+Deno.test("Last broadcast with custom delay (0ms)", async () => {
   const group = new WebSocketGroup(0,);
   const ws1 = new MockWebSocket();
   group.addSocket(ws1 as unknown as WebSocket, { room: "A", },);

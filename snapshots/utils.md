@@ -1,25 +1,25 @@
-> **INSTRUÇÃO PARA A IA:** 
-> O texto abaixo contém o código da biblioteca @vanaware/buildit
-> Cada arquivo começa com um título indicando seu caminho relativo exato (ex: `## Arquivo: src/main.ts`).
-> Sempre que sugerir alterações, indique claramente qual arquivo deve ser modificado com base nesses caminhos e forneça o novo código completo do arquivo.
+> **AI INSTRUCTION:** 
+> The text below contains the code of the @vanaware/buildit library
+> Each file starts with a title indicating its exact relative path (e.g., `## File: src/main.ts`).
+> Whenever suggesting changes, clearly indicate which file should be modified based on these paths and provide the complete new code for the file.
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB - Modo: UTILS
+# Exported Context from Project WorkerDB - Mode: UTILS
 
-Gerado automaticamente em: 2026-10-01T22:35:55.056Z
+Automatically generated at: 2026-10-24T20:20:08.355Z
 
 ---
 
-## Arquivo: `scripts/export.jsonc`
+## File: `scripts/export.jsonc`
 
 ```json
 {
   "$schema": "https://vanaware.github.io/buildit/schema/export.json",
-  "projeto": "WorkerDB",
-  "modos": {
+  "project": "WorkerDB",
+  "modes": {
     "example": {
-      "arquivoSaida": "snapshots/example.md",
+      "outputFile": "snapshots/example.md",
       "includes": [
         "example/**/*.{tsx,jsx,js,ts,css,html,manifest,json,jsonc,md}"
       ],
@@ -27,12 +27,12 @@ Gerado automaticamente em: 2026-10-01T22:35:55.056Z
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": true,
-      "instrucaoCustomizada": "O texto abaixo contém os arquivos de CÓDIGO FONTE principais da aplicação exemplo (example).",
+      "includeVersion": true,
+      "customInstruction": "The text below contains the main SOURCE CODE files of the example application (example).",
       "default": true
     },
     "docs": {
-      "arquivoSaida": "snapshots/docs.md",
+      "outputFile": "snapshots/docs.md",
       "includes": [
         "docs/**/*.{md,txt}",
         "{README.md,LICENSE,.tool-versions,CHANGELOG.md}"
@@ -41,27 +41,27 @@ Gerado automaticamente em: 2026-10-01T22:35:55.056Z
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": false,
-      "instrucaoCustomizada": "O texto abaixo contém a DOCUMENTAÇÃO e diretrizes arquiteturais do projeto.",
+      "includeVersion": false,
+      "customInstruction": "The text below contains the project DOCUMENTATION and architectural guidelines.",
       "default": true
     },
     "server": {
-      "arquivoSaida": "snapshots/server.md",
+      "outputFile": "snapshots/server.md",
       "includes": [
         "{src,tests}/**/*.{tsx,jsx,js,ts,css,html,json,jsonc,yaml,yml,md}",
-        "{deno.json,deno.jsonc,README.md,.env.example}",
+        "{deno.json,deno.jsonc,README.md,.env.example,.tools-versions,CHANGELOG.md}",
         ".github/workflows/**/*.{yaml,yml}"
       ],
       "excludes": [
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": true,
-      "instrucaoCustomizada": "O texto abaixo contém os arquivos de configuração e execução do WSROUTER @vanaware/wsrouter e CI/CD.",
+      "includeVersion": true,
+      "customInstruction": "The text below contains the configuration and runtime files of WSROUTER @vanaware/wsrouter and CI/CD.",
       "default": true
     },
     "utils": {
-      "arquivoSaida": "snapshots/utils.md",
+      "outputFile": "snapshots/utils.md",
       "includes": [
         "scripts/**/*.{ts,jsonc}"
       ],
@@ -69,8 +69,8 @@ Gerado automaticamente em: 2026-10-01T22:35:55.056Z
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": false,
-      "instrucaoCustomizada": "O texto abaixo contém o código da biblioteca @vanaware/buildit",
+      "includeVersion": false,
+      "customInstruction": "The text below contains the code of the @vanaware/buildit library",
       "default": true
     }
   }
@@ -80,16 +80,16 @@ Gerado automaticamente em: 2026-10-01T22:35:55.056Z
 
 ---
 
-## Arquivo: `scripts/export.ts`
+## File: `scripts/export.ts`
 
 ```ts
 /// <reference lib="deno.ns" />
 
 /**
  * @file export.ts
- * @description CLI de consolidação de contexto para IAs no projeto BuildIt.
- * Delega a execução e regras para a biblioteca @vanaware/buildit
- * e carrega as configurações declarativas de export.jsonc.
+ * @description Context consolidation CLI for AIs in the BuildIt project.
+ * Delegates execution and rules to the @vanaware/buildit library
+ * and loads the declarative settings from export.jsonc.
  */
 
 import { exportCli, } from "@vanaware/buildit/cli/export";
@@ -103,15 +103,15 @@ if (import.meta.main) {
 
 ---
 
-## Arquivo: `scripts/sanitize-version.ts`
+## File: `scripts/sanitize-version.ts`
 
 ```ts
 /// <reference lib="deno.ns" />
 
 /**
  * @file sanitize-version.ts
- * @description CLI de sanitização de versão semântica do deno.json[c].
- * Normaliza o campo "version" para o formato estrito semver (MAJOR.MINOR.PATCH).
+ * @description Semantic version sanitization CLI for deno.json[c].
+ * Normalizes the "version" field to the strict semver format (MAJOR.MINOR.PATCH).
  */
 
 import { sanitizeVersionCli, } from "@vanaware/buildit/cli/sanitize-version";
@@ -125,15 +125,15 @@ if (import.meta.main) {
 
 ---
 
-## Arquivo: `scripts/tag-version.ts`
+## File: `scripts/tag-version.ts`
 
 ```ts
 /// <reference lib="deno.ns" />
 
 /**
  * @file tag-version.ts
- * @description CLI para criação e publicação de tag git baseada na versão do deno.json[c].
- * Gera tags no formato vMAJOR.MINOR e publica no repositório remoto.
+ * @description CLI to create and publish a git tag based on the deno.json[c] version.
+ * Generates tags in the vMAJOR.MINOR format and pushes them to the remote repository.
  */
 
 import { tagVersionCli, }  from "@vanaware/buildit/cli/tag-version";
@@ -147,7 +147,7 @@ if (import.meta.main) {
 
 ---
 
-## Arquivo: `scripts/update-version.ts`
+## File: `scripts/update-version.ts`
 
 ```ts
 import {
@@ -166,40 +166,40 @@ async function newProjectVersion(denoJsonPath : string, baseDir: string) {
 }
 async function syncVersionFiles() {
     const baseDir = "./"
-    const lista = [
+    const fileList = [
             "src/version.ts",
             "example/version.ts",
             "example/public/version.js"
         ]
-    for (const arquivo of lista) {
+    for (const file of fileList) {
         try {
-            await Deno.remove(join(baseDir,arquivo));
-            console.log(`✅ Excluído arquivo ${join(baseDir,arquivo)}`);
+            await Deno.remove(join(baseDir, file));
+            console.log(`✅ File deleted ${join(baseDir, file)}`);
         } catch (err) {
             if (err instanceof Deno.errors.NotFound) {
-                console.log(`✅ Ignorado (não existe) ${join(baseDir,arquivo)}`);
+                console.log(`✅ Skipped (does not exist) ${join(baseDir, file)}`);
             } else {
-                throw err; // qualquer outro erro deve interromper
+                throw err; // any other error must interrupt
             }
         }
     }
-    const arquivos = await ensureVersionFiles(
-        lista,
+    const files = await ensureVersionFiles(
+        fileList,
         baseDir,
         "__APP_VERSION__"
     );
     const version = await newProjectVersion("deno.jsonc",baseDir)
-    console.log(`\n📦 Sincronizando versão "${version}" em ${arquivos.length} arquivo(s)...\n`);
+    console.log(`\n📦 Syncing version "${version}" across ${files.length} file(s)...\n`);
     const results = await processFilesWithDefines(
-        arquivos,
+        files,
         {
             "__APP_VERSION__": JSON.stringify(version),
         },
     );
-    for (const path of arquivos) {
-        console.log(`✅ processado  ${path}`);
+    for (const path of files) {
+        console.log(`✅ processed  ${path}`);
     }
-    console.log(`\n🎉 Concluído: ${arquivos.length} arquivo(s) sincronizado(s) para v${version}.\n`);
+    console.log(`\n🎉 Done: ${files.length} file(s) synced to v${version}.\n`);
 }
 
 
@@ -207,7 +207,7 @@ if (import.meta.main) {
     try {
         await syncVersionFiles();
     } catch (err) {
-        console.error("❌ Falha ao sincronizar versão:", err);
+        console.error("❌ Failed to sync version:", err);
         Deno.exit(1);
     }
 }

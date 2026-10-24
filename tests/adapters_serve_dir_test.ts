@@ -2,7 +2,7 @@
 import { assert, assertEquals, } from "@std/assert";
 import { createDenoServeDirRouter, } from "../src/deno-serve-dir.ts";
 
-Deno.test("createDenoServeDirRouter serve arquivos", async () => {
+Deno.test("createDenoServeDirRouter serves files", async () => {
   const tmpDir = await Deno.makeTempDir();
   await Deno.writeTextFile(`${tmpDir}/hello.txt`, "hello world",);
   const app = createDenoServeDirRouter({ basePath: "", staticDir: tmpDir, },);
@@ -13,7 +13,7 @@ Deno.test("createDenoServeDirRouter serve arquivos", async () => {
   await Deno.remove(tmpDir, { recursive: true, },);
 });
 
-Deno.test("createDenoServeDirRouter bloqueia dotfiles", async () => {
+Deno.test("createDenoServeDirRouter blocks dotfiles", async () => {
   const tmpDir = await Deno.makeTempDir();
   await Deno.writeTextFile(`${tmpDir}/.env`, "SECRET=123",);
   const app = createDenoServeDirRouter({ basePath: "", staticDir: tmpDir, },);

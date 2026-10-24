@@ -46,7 +46,7 @@
     ]
   },
   "name": "@vanaware/wsrouter",
-  "version": "0.5.1#mv39h36q",
+  "version": "0.6.0#mv39h36q",
   "license": "MIT",
   "author": "Vanaware",
   "description": "A WebSocket router for Deno",
@@ -65,11 +65,11 @@
     "@std/assert": "jsr:@std/assert@^1.0.19",
     "@std/testing": "jsr:@std/testing@^1.0.20",
     "@std/http": "jsr:@std/http@^1.1.4",
-    "@std/media-types": "jsr:@std/media-types@^1.1.0", //uso futuro
+    "@std/media-types": "jsr:@std/media-types@^1.1.0", // used by the Deno static file adapter
     "@std/path": "jsr:@std/path@^1.1.6",
-    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.22"
+    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.6.1"
   },
-     // 📦 Gerenciamento de Dependências
+     // 📦 Dependency Management
   "minimumDependencyAge": 1,
   "nodeModulesDir": "auto",
   "vendor": true,

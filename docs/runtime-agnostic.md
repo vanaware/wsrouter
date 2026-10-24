@@ -1,27 +1,27 @@
-# 🌐 Arquitetura Runtime-Agnostic
+# 🌐 Runtime-Agnostic Architecture
 
-O `@vanaware/wsrouter` foi projetado para funcionar em **qualquer runtime JavaScript** que suporte as Web APIs padrão (Fetch API, WebSocket, URLPattern). O core do router **não possui nenhuma dependência direta** de runtime específico.
+`@vanaware/wsrouter` is designed to run on **any JavaScript runtime** that supports standard Web APIs (Fetch API, WebSocket, URLPattern). The router core **has no direct dependency** on any specific runtime.
 
-Atualmente, fornecemos adaptadores oficiais e testados apenas para **Deno**. Adaptadores para outros runtimes (Node.js, Bun, Cloudflare Workers) estão em nosso [Roadmap](./roadmap-adapters.md).
+Currently, we provide official, tested adapters only for **Deno**. Adapters for other runtimes (Node.js, Bun, Cloudflare Workers) are on our [Roadmap](./roadmap-adapters.md).
 
 ---
 
-## 🏗️ Arquitetura em Camadas
+## 🏗️ Layered Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│              SEU CÓDIGO (main.ts / worker.ts)           │
-│  - Define rotas, middlewares e handlers                 │
-│  - Escolhe o entry point adequado ao runtime            │
+│             YOUR CODE (main.ts / worker.ts)             │
+│  - Defines routes, middlewares and handlers             │
+│  - Chooses the entry point matching the runtime         │
 └──────────────────────────┬──────────────────────────────┘
-                           │ importa
+                           │ imports
 ┌──────────────────────────▼──────────────────────────────┐
  │           ENTRY POINTS (src/deno.ts)                    │
  │  - createDenoRouter()                                   │
  └──────────────────────────┬──────────────────────────────┘
-                           │ injeta adaptadores
+                           │ injects adapters
 ┌──────────────────────────▼──────────────────────────────┐
- │              CORE AGNÓSTICO (src/mod.ts)                │
+ │            AGNOSTIC CORE (src/mod.ts)                   │
  │  - Router (src/router.ts)                               │
  │  - HttpRoute (src/http-route.ts)                        │
  │  - WsRoute (src/ws-route.ts)                            │
@@ -30,12 +30,12 @@ Atualmente, fornecemos adaptadores oficiais e testados apenas para **Deno**. Ada
  │  - MiddlewareRoute (src/middleware-route.ts)            │
  │  - WorkerRoute (src/worker-route.ts)                    │
  │  - Types (src/types.ts)                                 │
- │  - ZERO dependência de runtime específico               │
- │  - Usa interfaces: WebSocketUpgrader, StaticFileHandler │
+ │  - ZERO dependency on any specific runtime              │
+ │  - Uses interfaces: WebSocketUpgrader, StaticFileHandler│
  └──────────────────────────┬──────────────────────────────┘
-                           │ implementado por
+                           │ implemented by
 ┌──────────────────────────▼──────────────────────────────┐
- │              ADAPTADORES (src/adapters/)                 │
+ │              ADAPTERS (src/adapters/)                    │
  │  - adapters/deno.ts       → Deno.upgradeWebSocket,      │
  │                              Deno.stat, Deno.open       │
  └─────────────────────────────────────────────────────────┘
@@ -43,10 +43,10 @@ Atualmente, fornecemos adaptadores oficiais e testados apenas para **Deno**. Ada
 
 ---
 
-## 🔌 Interfaces de Adaptação
+## 🔌 Adaptation Interfaces
 
 ### `WebSocketUpgrader`
-Abstrai o mecanismo de upgrade de HTTP para WebSocket:
+Abstracts the HTTP-to-WebSocket upgrade mechanism:
 ```typescript
 interface WebSocketUpgrader {
   upgrade(req: Request): { socket: WebSocket; response: Response };
@@ -54,7 +54,7 @@ interface WebSocketUpgrader {
 ```
 
 ### `StaticFileHandler`
-Abstrai o sistema de arquivos para servir arquivos estáticos:
+Abstracts the file system used to serve static files:
 ```typescript
 interface StaticFileHandler {
   handle(path: string): Promise<Response | null>;
@@ -63,7 +63,7 @@ interface StaticFileHandler {
 
 ---
 
-## 🦕 Usando com Deno (Suporte Oficial)
+## 🦕 Using with Deno (Official Support)
 
 ```typescript
 import { createDenoRouter } from "@vanaware/wsrouter/deno";
@@ -80,14 +80,14 @@ app.get("/hello", () => ({ body: "Hello!" }));
 Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 ```
 
-## 🟢 Usando com Node.js ou Bun (Via Core Puro)
+## 🟢 Using with Node.js or Bun (Via Pure Core)
 
-Como o core é agnóstico, você pode usá-lo em Node.js ou Bun implementando suas próprias interfaces de adaptação:
+Since the core is agnostic, you can use it on Node.js or Bun by implementing your own adaptation interfaces:
 
 ```typescript
 import { Router } from "@vanaware/wsrouter";
 
-// Você precisaria implementar estas interfaces para o seu runtime
+// You would need to implement these interfaces for your runtime
 const myNodeUpgrader = { /* ... */ };
 const myNodeStaticHandler = { /* ... */ };
 
@@ -100,25 +100,25 @@ const app = new Router({
 
 ---
 
-## 🔒 Segurança
+## 🔒 Security
 
-- **Path Traversal Protection**: O core sanitiza paths e o adaptador Deno garante *containment* real e recusa symlinks.
-- **Dotfiles**: Bloqueados por padrão (`allowDotfiles: false`).
-- **Force HTTPS**: Redireciona HTTP→HTTPS em produção (ignora localhost).
-- **HSTS**: Header `Strict-Transport-Security` adicionado automaticamente em respostas HTTPS.
-- **Trust Proxy**: Confiança explícita em headers como `X-Forwarded-Proto` via `trustProxy: true`.
+- **Path Traversal Protection**: The core sanitizes paths and the Deno adapter enforces real *containment* and rejects symlinks.
+- **Dotfiles**: Blocked by default (`allowDotfiles: false`).
+- **Force HTTPS**: Redirects HTTP→HTTPS in production (ignores localhost).
+- **HSTS**: The `Strict-Transport-Security` header is added automatically on HTTPS responses.
+- **Trust Proxy**: Explicit trust in headers such as `X-Forwarded-Proto` via `trustProxy: true`.
 
 ---
 
-## 📋 Tabela de Compatibilidade Atual
+## 📋 Current Compatibility Table
 
-| Feature | Deno (Oficial) | Node.js / Bun (Via Core) |
+| Feature | Deno (Official) | Node.js / Bun (Via Core) |
 |---------|----------------|--------------------------|
 | HTTP Routing | ✅ | ✅ |
-| WebSocket | ✅ | ⚠️ (Requer Adaptador) |
-| Static Files (disco) | ✅ | ⚠️ (Requer Adaptador) |
+| WebSocket | ✅ | ⚠️ (Adapter Required) |
+| Static Files (disk) | ✅ | ⚠️ (Adapter Required) |
 | Force HTTPS / HSTS | ✅ | ✅ |
 | Middlewares | ✅ | ✅ |
 | Dual Params Broadcast | ✅ | ✅ |
 | Last Broadcast | ✅ | ✅ |
-| Path Traversal / Symlinks | ✅ | ⚠️ (Depende do Adaptador) |
+| Path Traversal / Symlinks | ✅ | ⚠️ (Adapter Dependent) |

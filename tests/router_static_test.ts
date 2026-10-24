@@ -1,7 +1,7 @@
 import { assertEquals, } from "@std/assert";
 import { createDenoRouter, } from "../src/deno.ts";
 
-Deno.test("serve arquivo estático existente", async () => {
+Deno.test("serves an existing static file", async () => {
   const tmpDir = await Deno.makeTempDir();
   await Deno.writeTextFile(`${tmpDir}/hello.txt`, "hello world",);
   const app = createDenoRouter({ basePath: "", staticDir: tmpDir, },);
@@ -13,7 +13,7 @@ Deno.test("serve arquivo estático existente", async () => {
   await Deno.remove(tmpDir, { recursive: true, },);
 });
 
-Deno.test("serve index.html para path de diretório", async () => {
+Deno.test("serves index.html for a directory path", async () => {
   const tmpDir = await Deno.makeTempDir();
   await Deno.mkdir(`${tmpDir}/sub`,);
   await Deno.writeTextFile(`${tmpDir}/sub/index.html`, "<h1>Hi</h1>",);
@@ -25,7 +25,7 @@ Deno.test("serve index.html para path de diretório", async () => {
   await Deno.remove(tmpDir, { recursive: true, },);
 });
 
-Deno.test("retorna 404 para arquivo inexistente", async () => {
+Deno.test("returns 404 for a nonexistent file", async () => {
   const tmpDir = await Deno.makeTempDir();
   const app = createDenoRouter({ basePath: "", staticDir: tmpDir, },);
   const req = new Request("http://localhost/nope.txt",);

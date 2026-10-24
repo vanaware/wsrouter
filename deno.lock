@@ -31,7 +31,7 @@
     "jsr:@std/testing@1": "1.0.21",
     "jsr:@std/testing@^1.0.20": "1.0.21",
     "jsr:@std/text@^1.0.19": "1.1.0",
-    "jsr:@vanaware/buildit@~0.4.22": "0.4.22",
+    "jsr:@vanaware/buildit@~0.6.1": "0.6.1",
     "npm:esbuild@~0.25.5": "0.25.12",
     "npm:esbuild@~0.28.2": "0.28.2"
   },
@@ -162,8 +162,8 @@
     "@std/text@1.1.0": {
       "integrity": "3db511996317f63e35b76fe18fe35249723ae0ff6f8305398c78dd64ffa809a7"
     },
-    "@vanaware/buildit@0.4.22": {
-      "integrity": "cdd70e53f826085f2cfca6a9711f99f0e0b6f4eda22f0780deb3df5414898fa2",
+    "@vanaware/buildit@0.6.1": {
+      "integrity": "0a05376b6f9e51e88c38a1f0aea20ac6e9b6c1a65b777eaa0f3e079cebbb2b32",
       "dependencies": [
         "jsr:@cliffy/command",
         "jsr:@deno/esbuild-plugin",
@@ -588,7 +588,7 @@
       "jsr:@std/media-types@^1.1.0",
       "jsr:@std/path@^1.1.6",
       "jsr:@std/testing@^1.0.20",
-      "jsr:@vanaware/buildit@~0.4.22"
+      "jsr:@vanaware/buildit@~0.6.1"
     ]
   }
 }

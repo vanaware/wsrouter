@@ -5,6 +5,7 @@
  */
 
 import { join, resolve } from "@std/path";
+import { typeByExtension } from "@std/media-types";
 import type { WebSocketUpgrader, StaticFileHandler } from "../mod.ts";
 
 /**
@@ -83,7 +84,7 @@ async function tryServeDir(baseDir: string, pathname: string): Promise<Response 
       
       if (info.isFile) {
         const ext = candidate.split(".").pop()?.toLowerCase() ?? "";
-        const mimeType = defaultDenoMimeTypeResolver(ext) ?? "application/octet-stream";
+        const mimeType = resolveMimeType(ext);
         const file = await Deno.open(candidate);
         
         // 🚀 HEADERS: Add complete metadata and security headers
@@ -138,22 +139,26 @@ function buildFileCandidates(baseDir: string, pathname: string): string[] {
 }
 
 /**
- * Maps common file extensions to their corresponding standard MIME types.
+ * Maps common file extensions to their standard MIME types via `@std/media-types`,
+ * with a small override table for runtime-specific conventions not covered by the
+ * IANA registry, and appends `charset=utf-8` to textual types.
  */
-function defaultDenoMimeTypeResolver(ext: string): string | undefined {
-  const map: Record<string, string> = {
-    html: "text/html; charset=utf-8", htm: "text/html; charset=utf-8",
-    css: "text/css; charset=utf-8", js: "application/javascript; charset=utf-8",
-    mjs: "application/javascript; charset=utf-8", json: "application/json; charset=utf-8",
-    png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif",
-    svg: "image/svg+xml", ico: "image/x-icon", txt: "text/plain; charset=utf-8",
-    pdf: "application/pdf", xml: "application/xml", woff: "font/woff",
-    woff2: "font/woff2", ttf: "font/ttf", otf: "font/otf",
-    mp3: "audio/mpeg", mp4: "video/mp4", webm: "video/webm", wasm: "application/wasm",
-    // 🚀 MODERN EXTENSIONS
-    webp: "image/webp", avif: "image/avif", webmanifest: "application/manifest+json",
-    ts: "application/typescript", tsx: "application/typescript",
-    jsx: "application/javascript", map: "application/json",
+function resolveMimeType(ext: string): string {
+  const overrides: Record<string, string> = {
+    mjs: "application/javascript",
+    jsx: "application/javascript",
+    ts: "application/typescript",
+    tsx: "application/typescript",
+    map: "application/json",
+    webmanifest: "application/manifest+json",
   };
-  return map[ext.toLowerCase()];
+  const type = overrides[ext] ?? typeByExtension(ext) ??
+    "application/octet-stream";
+  if (
+    type.startsWith("text/") || type === "application/javascript" ||
+    type === "application/json" || type === "application/xml"
+  ) {
+    return `${type}; charset=utf-8`;
+  }
+  return type;
 }

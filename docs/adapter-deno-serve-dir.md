@@ -1,34 +1,34 @@
-# 🦕 Adaptador Alternativo: `deno-serve-dir`
+# 🦕 Alternative Adapter: `deno-serve-dir`
 
-O `@vanaware/wsrouter` oferece **dois adaptadores de arquivos estáticos** para Deno. Este documento descreve o adaptador alternativo baseado em `serveDir` do `@std/http/file-server`.
-
----
-
-## 🎯 Motivação
-
-O adaptador principal (`adapters/deno.ts`) implementa serving de arquivos manualmente com `Deno.open`, `Deno.lstat` e `Deno.realPath`. Isso dá controle total sobre headers e comportamento, mas:
-
-- **Não suporta Range Requests** (necessário para vídeo/áudio/PDFs grandes)
-- **Não processa `If-None-Match` / `If-Modified-Since`** (304 Not Modified)
-- **~100 linhas de código** para manter
-
-O `serveDir` do `@std/http` resolve tudo isso nativamente, pois é a implementação oficial do Deno para file serving.
+`@vanaware/wsrouter` offers **two static file adapters** for Deno. This document describes the alternative adapter based on `serveDir` from `@std/http/file-server`.
 
 ---
 
-## 📐 Arquitetura: Dois Adaptadores
+## 🎯 Motivation
+
+The primary adapter (`adapters/deno.ts`) implements file serving manually with `Deno.open`, `Deno.lstat` and `Deno.realPath`. This gives full control over headers and behavior, but:
+
+- **Does not support Range Requests** (required for large video/audio/PDF files)
+- **Does not handle `If-None-Match` / `If-Modified-Since`** (304 Not Modified)
+- **~100 lines of code** to maintain
+
+`serveDir` from `@std/http` solves all of this natively, since it is Deno's official implementation for file serving.
+
+---
+
+## 📐 Architecture: Two Adapters
 
 ```
 src/adapters/
-├── deno.ts              ← Manual: controle total, zero dependências extras
-└── deno-serve-dir.ts    ← serveDir: Range, 304, HEAD nativos
+├── deno.ts              ← Manual: full control, zero extra dependencies
+└── deno-serve-dir.ts    ← serveDir: native Range, 304, HEAD
 
 src/
 ├── deno.ts              ← Entry point: createDenoRouter()
 └── deno-serve-dir.ts    ← Entry point: createDenoServeDirRouter()
 ```
 
-**Ambos compartilham o mesmo upgrader WebSocket** (`denoWebSocketUpgrader`), re-exportado via:
+**Both share the same WebSocket upgrader** (`denoWebSocketUpgrader`), re-exported via:
 
 ```typescript
 export { denoWebSocketUpgrader } from "./deno.ts";
@@ -36,31 +36,31 @@ export { denoWebSocketUpgrader } from "./deno.ts";
 
 ---
 
-## 📊 Comparação
+## 📊 Comparison
 
-| Aspecto | `deno.ts` (Manual) | `deno-serve-dir.ts` (serveDir) |
+| Aspect | `deno.ts` (Manual) | `deno-serve-dir.ts` (serveDir) |
 |---|:---:|:---:|
-| **Linhas de código** | ~100 | ~50 |
-| **Range Requests** | ❌ | ✅ Nativo |
-| **ETag / 304** | ✅ Custom (size+mtime) | ✅ Nativo (mais robusto) |
-| **HEAD automático** | ✅ Via core | ✅ Via serveDir |
-| **Cache-Control** | ✅ Customizável | ⚠️ Fixo |
-| **Formato do ETag** | Custom: `"size-mtime"` | Interno do std |
-| **Dependência extra** | Nenhuma | `@std/http` |
-| **Manutenção** | Manual | Comunitária (std) |
+| **Lines of code** | ~100 | ~50 |
+| **Range Requests** | ❌ | ✅ Native |
+| **ETag / 304** | ✅ Custom (size+mtime) | ✅ Native (more robust) |
+| **Automatic HEAD** | ✅ Via core | ✅ Via serveDir |
+| **Cache-Control** | ✅ Customizable | ⚠️ Fixed |
+| **ETag format** | Custom: `"size-mtime"` | std internal |
+| **Extra dependency** | None | `@std/http` |
+| **Maintenance** | Manual | Community (std) |
 | **Containment** | ✅ `Deno.realPath` | ✅ `resolve` |
-| **Symlinks** | ✅ Recusados | ✅ Recusados |
-| **Dotfiles** | ✅ Bloqueados | ✅ Bloqueados |
+| **Symlinks** | ✅ Rejected | ✅ Rejected |
+| **Dotfiles** | ✅ Blocked | ✅ Blocked |
 
-### Quando usar cada um?
+### When to use each one?
 
-| Cenário | Adaptador |
+| Scenario | Adapter |
 |---|---|
-| Serve vídeo/áudio/PDFs grandes | `deno-serve-dir` |
-| Precisa de 304 Not Modified | `deno-serve-dir` |
-| Precisa de Cache-Control custom por arquivo | `deno` (manual) |
-| Não quer dependência `@std/http` | `deno` (manual) |
-| Quer menos código para manter | `deno-serve-dir` |
+| Serving large video/audio/PDF files | `deno-serve-dir` |
+| Need 304 Not Modified | `deno-serve-dir` |
+| Need per-file custom Cache-Control | `deno` (manual) |
+| Don't want the `@std/http` dependency | `deno` (manual) |
+| Want less code to maintain | `deno-serve-dir` |
 
 ---
 
@@ -83,7 +83,7 @@ interface DenoServeDirRouterOptions {
   trustProxy?: boolean;
   allowDotfiles?: boolean;
   lastBroadcastDelay?: number;
-  /** Opções específicas do serveDir */
+  /** serveDir-specific options */
   serveDir?: {
     showDirListing?: boolean;  // Default: false
     enableCors?: boolean;      // Default: false
@@ -93,7 +93,7 @@ interface DenoServeDirRouterOptions {
 
 ### `createDenoServeDirStaticFileHandler(staticDir, embeddedDir, options)`
 
-Cria apenas o `StaticFileHandler` sem instanciar o Router completo:
+Creates only the `StaticFileHandler` without instantiating the full Router:
 
 ```typescript
 interface DenoServeDirOptions {
@@ -105,9 +105,9 @@ interface DenoServeDirOptions {
 
 ---
 
-## 🌍 Exemplos
+## 🌍 Examples
 
-### Básico
+### Basic
 
 ```typescript
 import { createDenoServeDirRouter } from "@vanaware/wsrouter/deno-serve-dir";
@@ -122,20 +122,20 @@ app.get("/hello", () => ({ body: "Hello!" }));
 Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 ```
 
-### Com CORS e dir listing
+### With CORS and dir listing
 
 ```typescript
 const app = createDenoServeDirRouter({
   basePath: "",
   staticDir: "./public",
   serveDir: {
-    showDirListing: true,   // Mostra listagem de diretórios
-    enableCors: true,       // Adiciona headers CORS
+    showDirListing: true,   // Shows directory listing
+    enableCors: true,       // Adds CORS headers
   },
 });
 ```
 
-### Usando apenas o handler (sem entry point)
+### Using only the handler (no entry point)
 
 ```typescript
 import { Router } from "@vanaware/wsrouter";
@@ -152,12 +152,12 @@ const app = new Router({
 });
 ```
 
-### Integração com server/main.ts do Loco
+### Integration with the Loco server/main.ts
 
-Substituindo o `serveDir` manual do `main.ts`:
+Replacing the manual `serveDir` in `main.ts`:
 
 ```typescript
-// ANTES (main.ts manual):
+// BEFORE (manual main.ts):
 import { serveDir } from "@std/http/file-server";
 const staticResponse = await serveDir(req, {
   fsRoot: "./build/dist",
@@ -165,7 +165,7 @@ const staticResponse = await serveDir(req, {
   quiet: true,
 });
 
-// DEPOIS (com router):
+// AFTER (with router):
 import { createDenoServeDirRouter } from "@vanaware/wsrouter/deno-serve-dir";
 import workerHandler from "./worker.ts";
 
@@ -184,65 +184,65 @@ Deno.serve({ port: Number(env.PORT || 3000) }, app.handleRequest.bind(app));
 
 ---
 
-## 🔒 Segurança
+## 🔒 Security
 
-O adaptador `deno-serve-dir` mantém as **mesmas políticas de segurança** do adaptador manual:
+The `deno-serve-dir` adapter keeps the **same security policies** as the manual adapter:
 
 ### Containment
 
-Antes de delegar para o `serveDir`, o caminho é resolvido e verificado:
+Before delegating to `serveDir`, the path is resolved and verified:
 
 ```typescript
 const fullPath = resolve(baseDir, "." + pathname);
 const resolvedBase = resolve(baseDir);
 
 if (!fullPath.startsWith(resolvedBase + "/") && fullPath !== resolvedBase) {
-  return null; // Path tenta escapar do diretório
+  return null; // Path attempts to escape the directory
 }
 ```
 
 ### Symlinks
 
-Symlinks são recusados com `Deno.lstat` antes de chegar ao `serveDir`:
+Symlinks are rejected with `Deno.lstat` before reaching `serveDir`:
 
 ```typescript
 const info = await Deno.lstat(fullPath);
 if (info.isSymlink) {
-  console.warn(`[Static] Symlink recusado: ${fullPath}`);
+  console.warn(`[Static] Symlink rejected: ${fullPath}`);
   return null;
 }
 ```
 
 ### Dotfiles
 
-Controlados pela opção `allowDotfiles` (default: `false`), que é passada como `showDotfiles` para o `serveDir`.
+Controlled by the `allowDotfiles` option (default: `false`), which is passed as `showDotfiles` to `serveDir`.
 
 ---
 
-## 🧪 Testes
+## 🧪 Tests
 
-O adaptador possui testes dedicados em `tests/adapters_serve_dir_test.ts`:
+The adapter has dedicated tests in `tests/adapters_serve_dir_test.ts`:
 
 ```bash
 deno test tests/adapters_serve_dir_test.ts --allow-read --allow-write --allow-net --allow-env
 ```
 
-Testes atuais:
-- ✅ Serve arquivos existentes
-- ✅ Bloqueia dotfiles por padrão
+Current tests:
+- ✅ Serves existing files
+- ✅ Blocks dotfiles by default
 
-Testes recomendados para adicionar:
-- ⏳ Range Request retorna 206 Partial Content
-- ⏳ If-None-Match retorna 304
-- ⏳ HEAD retorna headers sem body
-- ⏳ Symlink é recusado
-- ⏳ Path traversal é bloqueado
+Recommended tests to add:
+- ⏳ Range Request returns 206 Partial Content
+- ⏳ If-None-Match returns 304
+- ⏳ HEAD returns headers without body
+- ⏳ Symlink is rejected
+- ⏳ Path traversal is blocked
 
 ---
 
-## 📋 Dependências
+## 📋 Dependencies
 
-Este adaptador requer `@std/http` no `deno.jsonc`:
+This adapter requires `@std/http` in `deno.jsonc`:
 
 ```jsonc
 {
@@ -252,20 +252,20 @@ Este adaptador requer `@std/http` no `deno.jsonc`:
 }
 ```
 
-O adaptador manual (`deno.ts`) **não requer** essa dependência.
+The manual adapter (`deno.ts`) **does not require** this dependency.
 
 ---
 
-## 📋 Resumo
+## 📋 Summary
 
-| Item | Valor |
+| Item | Value |
 |---|---|
-| **Arquivo do adaptador** | `src/adapters/deno-serve-dir.ts` |
+| **Adapter file** | `src/adapters/deno-serve-dir.ts` |
 | **Entry point** | `src/deno-serve-dir.ts` |
-| **Export no deno.jsonc** | `"./adapters/deno-serve-dir"` |
-| **Função principal** | `createDenoServeDirRouter()` |
+| **Export in deno.jsonc** | `"./adapters/deno-serve-dir"` |
+| **Main function** | `createDenoServeDirRouter()` |
 | **Handler factory** | `createDenoServeDirStaticFileHandler()` |
-| **Dependência** | `@std/http` |
-| **Upgrader WS** | Re-exportado de `deno.ts` |
-| **Segurança** | Containment + Symlinks + Dotfiles |
-| **Vantagem principal** | Range Requests + 304 nativos |
+| **Dependency** | `@std/http` |
+| **WS Upgrader** | Re-exported from `deno.ts` |
+| **Security** | Containment + Symlinks + Dotfiles |
+| **Main advantage** | Native Range Requests + 304 |

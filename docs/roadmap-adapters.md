@@ -1,49 +1,49 @@
-# 🗺️ Roadmap: Adaptadores para Outros Runtimes
+# 🗺️ Roadmap: Adapters for Other Runtimes
 
-O `@vanaware/wsrouter` foi projetado com arquitetura runtime-agnostic, mas atualmente possui suporte oficial apenas para **Deno**. Este documento descreve o roadmap para suportar outros ambientes.
+`@vanaware/wsrouter` was designed with a runtime-agnostic architecture, but currently only has official support for **Deno**. This document describes the roadmap for supporting other environments.
 
 ---
 
-## 📊 Status Atual
+## 📊 Current Status
 
 | Runtime | HTTP | WebSocket | Static Files | Status |
 |---------|------|-----------|--------------|--------|
-| **Deno** | ✅ | ✅ | ✅ | **Suporte Oficial** |
+| **Deno** | ✅ | ✅ | ✅ | **Official Support** |
 | Cloudflare Workers | ⏸️ | ❌ | ⏸️ | Roadmap (Static Assets) |
 | Node.js | ❌ | ❌ | ❌ | Roadmap |
 | Bun | ❌ | ❌ | ❌ | Roadmap |
-| Edge Runtimes (Vercel, Netlify) | ❌ | ❌ | ❌ | Futuro |
+| Edge Runtimes (Vercel, Netlify) | ❌ | ❌ | ❌ | Future |
 
 ---
 
 ## ☁️ Cloudflare Workers
 
-### Status Atual
+### Current Status
 
-Os adaptadores Cloudflare foram **removidos do core** na versão 1.0 devido a:
+The Cloudflare adapters were **removed from the core** in version 1.0 due to:
 
-1. **Limitações de estado**: Cloudflare Workers não mantém estado compartilhado entre requests (exceto via Durable Objects)
-2. **WebSocket em memória**: Grupos WebSocket não funcionariam corretamente em produção
-3. **Foco no Deno**: Simplificar o core e garantir qualidade
+1. **State limitations**: Cloudflare Workers does not keep shared state between requests (except via Durable Objects)
+2. **In-memory WebSocket**: WebSocket groups would not work correctly in production
+3. **Focus on Deno**: Simplify the core and guarantee quality
 
-### Caminho Futuro: Static Assets
+### Future Path: Static Assets
 
-Cloudflare lançou **Static Assets** ([documentação](https://developers.cloudflare.com/workers/static-assets/)), que é a forma recomendada de servir arquivos estáticos:
+Cloudflare launched **Static Assets** ([documentation](https://developers.cloudflare.com/workers/static-assets/)), which is the recommended way to serve static files:
 
 ```typescript
-// Futuro adaptador Cloudflare com Static Assets
+// Future Cloudflare adapter with Static Assets
 export function createCloudflareRouter(options: {
   basePath?: string;
-  assets?: { binding: string }; // Novo binding de Static Assets
+  assets?: { binding: string }; // New Static Assets binding
 }) {
   // ...
 }
 ```
 
-**Para WebSockets em Cloudflare**, use **Durable Objects**:
+**For WebSockets on Cloudflare**, use **Durable Objects**:
 
 ```typescript
-// Exemplo conceitual: Chat Room como Durable Object
+// Conceptual example: Chat Room as a Durable Object
 export class ChatRoom {
   private sessions: Map<string, WebSocket> = new Map();
   
@@ -65,27 +65,27 @@ export class ChatRoom {
   
   async handleSession(webSocket: WebSocket) {
     webSocket.accept();
-    // Gerenciar mensagens, broadcast, etc.
+    // Handle messages, broadcast, etc.
   }
 }
 ```
 
-### Prioridade: **Média**
+### Priority: **Medium**
 
 ---
 
 ## 🟢 Node.js
 
-### Desafios
+### Challenges
 
-1. **URLPattern**: Disponível apenas em Node 18.17+ (via `undici`)
-2. **WebSocket**: Requer biblioteca externa (`ws`, `uWebSockets.js`)
-3. **Static Files**: Módulo `fs` ou `fs/promises`
+1. **URLPattern**: Only available in Node 18.17+ (via `undici`)
+2. **WebSocket**: Requires an external library (`ws`, `uWebSockets.js`)
+3. **Static Files**: `fs` or `fs/promises` module
 
-### Adaptador Conceitual
+### Conceptual Adapter
 
 ```typescript
-// src/adapters/node.ts (futuro)
+// src/adapters/node.ts (future)
 import { WebSocketServer } from "ws";
 import { createReadStream, stat } from "fs/promises";
 import { join, resolve } from "path";
@@ -93,9 +93,9 @@ import { join, resolve } from "path";
 export function createNodeWebSocketUpgrader(wss: WebSocketServer): WebSocketUpgrader {
   return {
     upgrade(req: Request): { socket: WebSocket; response: Response } {
-      // Node.js requer abordagem diferente
-      // WebSocket upgrade acontece no servidor HTTP, não no handler
-      throw new Error("Node WebSocket adapter requer integração com servidor HTTP");
+      // Node.js requires a different approach
+      // WebSocket upgrade happens on the HTTP server, not in the handler
+      throw new Error("Node WebSocket adapter requires HTTP server integration");
     },
   };
 }
@@ -125,24 +125,24 @@ export function createNodeStaticFileHandler(staticDir: string): StaticFileHandle
 }
 ```
 
-### Prioridade: **Alta**
+### Priority: **High**
 
-Node.js é amplamente usado e seria valioso ter suporte oficial.
+Node.js is widely used and official support would be valuable.
 
 ---
 
 ## 🥐 Bun
 
-### Vantagens
+### Advantages
 
-- Compatível com APIs Node.js
-- Suporte nativo a WebSocket via `Bun.serve`
-- Performance excelente
+- Compatible with Node.js APIs
+- Native WebSocket support via `Bun.serve`
+- Excellent performance
 
-### Adaptador Conceitual
+### Conceptual Adapter
 
 ```typescript
-// src/adapters/bun.ts (futuro)
+// src/adapters/bun.ts (future)
 export function createBunWebSocketUpgrader(): WebSocketUpgrader {
   return {
     upgrade(req: Request): { socket: WebSocket; response: Response } {
@@ -171,23 +171,23 @@ export function createBunStaticFileHandler(staticDir: string): StaticFileHandler
 }
 ```
 
-### Prioridade: **Média-Alta**
+### Priority: **Medium-High**
 
-Bun está ganhando popularidade e seria relativamente fácil adaptar.
+Bun is gaining popularity and would be relatively easy to adapt.
 
 ---
 
 ## 🌐 Edge Runtimes (Vercel Edge, Netlify Edge)
 
-### Desafios
+### Challenges
 
-- Ambientes serverless com cold starts
-- Sem suporte a WebSocket de longa duração
-- Foco em HTTP request/response
+- Serverless environments with cold starts
+- No support for long-lived WebSockets
+- Focused on HTTP request/response
 
-### Abordagem Recomendada
+### Recommended Approach
 
-Usar o core agnóstico diretamente, sem adaptadores oficiais:
+Use the agnostic core directly, without official adapters:
 
 ```typescript
 // edge-function.ts
@@ -205,15 +205,15 @@ export default function handler(request: Request) {
 }
 ```
 
-### Prioridade: **Baixa**
+### Priority: **Low**
 
 ---
 
-## 🛠️ Como Contribuir com um Adaptador
+## 🛠️ How to Contribute an Adapter
 
-Se você quer criar um adaptador para outro runtime:
+If you want to create an adapter for another runtime:
 
-### 1. Implementar `WebSocketUpgrader`
+### 1. Implement `WebSocketUpgrader`
 
 ```typescript
 interface WebSocketUpgrader {
@@ -221,7 +221,7 @@ interface WebSocketUpgrader {
 }
 ```
 
-### 2. Implementar `StaticFileHandler`
+### 2. Implement `StaticFileHandler`
 
 ```typescript
 interface StaticFileHandler {
@@ -229,7 +229,7 @@ interface StaticFileHandler {
 }
 ```
 
-### 3. Criar Entry Point
+### 3. Create the Entry Point
 
 ```typescript
 // src/[runtime].ts
@@ -237,7 +237,7 @@ export function create[Runtime]Router(options: {
   basePath?: string;
   staticDir?: string;
   forceHttps?: boolean;
-  // ... outras opções específicas do runtime
+  // ... other runtime-specific options
 }): Router {
   const router = new Router({
     basePath,
@@ -251,36 +251,36 @@ export function create[Runtime]Router(options: {
 export * from "./mod.ts";
 ```
 
-### 4. Adicionar Testes
+### 4. Add Tests
 
-Criar `tests/adapters_[runtime]_test.ts` com:
-- Testes de HTTP routing
-- Testes de WebSocket (se suportado)
-- Testes de static files (se suportado)
-- Testes de edge cases do runtime
+Create `tests/adapters_[runtime]_test.ts` with:
+- HTTP routing tests
+- WebSocket tests (if supported)
+- Static file tests (if supported)
+- Runtime edge case tests
 
-### 5. Documentar
+### 5. Document
 
-- Adicionar seção em `docs/runtime-agnostic.md`
-- Criar exemplo em `example/[runtime]/`
-- Atualizar `README.md`
+- Add a section in `docs/runtime-agnostic.md`
+- Create an example in `example/[runtime]/`
+- Update `README.md`
 
 ---
 
-## 📅 Timeline Estimado
+## 📅 Estimated Timeline
 
-| Adaptador | Estimativa | Dependências |
+| Adapter | Estimate | Dependencies |
 |-----------|------------|--------------|
-| Node.js | 2-3 semanas | `ws`, `undici` |
-| Bun | 1-2 semanas | Nenhuma (built-in) |
-| Cloudflare (Static Assets) | 1-2 semanas | Wrangler |
-| Edge Runtimes | 1 semana | Nenhuma |
+| Node.js | 2-3 weeks | `ws`, `undici` |
+| Bun | 1-2 weeks | None (built-in) |
+| Cloudflare (Static Assets) | 1-2 weeks | Wrangler |
+| Edge Runtimes | 1 week | None |
 
 ---
 
-## 💡 Alternativa: Adapters da Comunidade
+## 💡 Alternative: Community Adapters
 
-Se você criar um adaptador, considere publicá-lo como pacote separado:
+If you create an adapter, consider publishing it as a separate package:
 
 ```bash
 @vanaware/wsrouter-adapter-node
@@ -288,18 +288,17 @@ Se você criar um adaptador, considere publicá-lo como pacote separado:
 @vanaware/wsrouter-adapter-cloudflare
 ```
 
-Isso mantém o core leve e permite que a comunidade contribua sem sobrecarregar o repositório principal.
+This keeps the core lightweight and lets the community contribute without overloading the main repository.
 
 ---
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-Interessado em contribuir com um adaptador? Abra uma issue discutindo:
+Interested in contributing an adapter? Open an issue discussing:
 
-1. Qual runtime você quer suportar
-2. Como você planeja implementar `WebSocketUpgrader`
-3. Como você planeja implementar `StaticFileHandler`
-4. Se você vai manter o adaptador a longo prazo
+1. Which runtime you want to support
+2. How you plan to implement `WebSocketUpgrader`
+3. How you plan to implement `StaticFileHandler`
+4. Whether you will maintain the adapter long term
 
-Estamos abertos a colaborações! 🚀
-
+We are open to collaborations! 🚀

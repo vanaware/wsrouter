@@ -4,6 +4,7 @@
  * @description Entry point for the Deno-specific router factory.
  */
 import { Router } from "./mod.ts";
+import { resolveFactoryOptions } from "./factory-options.ts";
 import { denoWebSocketUpgrader, createDenoStaticFileHandler } from "./adapters/deno.ts";
 
 /**
@@ -51,33 +52,28 @@ export function createDenoRouter(
   forceHttps: boolean = false,
   lastBroadcastDelay?: number,
 ): Router {
-  let options: DenoRouterOptions;
-  if (typeof basePathOrOptions === "string") {
-    options = { basePath: basePathOrOptions, staticDir, embeddedDir, forceHttps, lastBroadcastDelay };
-  } else {
-    options = basePathOrOptions;
-  }
-
-  const {
-    basePath = "",
-    staticDir: sDir = null, // 🚀 MUDANÇA: Default null no options object
-    embeddedDir: eDir = null,
-    forceHttps: fHttps = false,
-    trustProxy = false,
-    allowDotfiles = false,
-    lastBroadcastDelay: lDelay,
-  } = options;
-
-  const router = new Router({
+  const options = resolveFactoryOptions(basePathOrOptions, (basePath) => ({
     basePath,
-    forceHttps: fHttps,
-    trustProxy,
-    allowDotfiles,
-    lastBroadcastDelay: lDelay,
+    staticDir,
+    embeddedDir,
+    forceHttps,
+    lastBroadcastDelay,
+  }));
+
+  return new Router({
+    basePath: options.basePath,
+    forceHttps: options.forceHttps,
+    trustProxy: options.trustProxy,
+    allowDotfiles: options.allowDotfiles,
+    lastBroadcastDelay: options.lastBroadcastDelay,
     webSocketUpgrader: denoWebSocketUpgrader,
-    staticFileHandler: sDir || eDir ? createDenoStaticFileHandler(sDir, eDir) : undefined,
+    staticFileHandler: options.staticDir || options.embeddedDir
+      ? createDenoStaticFileHandler(
+        options.staticDir ?? null,
+        options.embeddedDir ?? null,
+      )
+      : undefined,
   });
-  return router;
 }
 
 export * from "./mod.ts";

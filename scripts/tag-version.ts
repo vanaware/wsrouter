@@ -2,8 +2,8 @@
 
 /**
  * @file tag-version.ts
- * @description CLI para criação e publicação de tag git baseada na versão do deno.json[c].
- * Gera tags no formato vMAJOR.MINOR e publica no repositório remoto.
+ * @description CLI to create and publish a git tag based on the deno.json[c] version.
+ * Generates tags in the vMAJOR.MINOR format and pushes them to the remote repository.
  */
 
 import { tagVersionCli, }  from "@vanaware/buildit/cli/tag-version";

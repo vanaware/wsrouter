@@ -1,66 +1,66 @@
-# 🔒 Guia de Segurança do @vanaware/wsrouter
+# 🔒 @vanaware/wsrouter Security Guide
 
-Este documento descreve as práticas de segurança recomendadas ao usar o `@vanaware/wsrouter` em produção.
+This document describes the recommended security practices when using `@vanaware/wsrouter` in production.
 
-## 📋 Índice
+## 📋 Index
 
-1. [HTTPS e HSTS](#https-e-hsts)
-2. [Proteção de Arquivos Estáticos](#proteção-de-arquivos-estáticos)
+1. [HTTPS and HSTS](#https-and-hsts)
+2. [Static File Protection](#static-file-protection)
 3. [WebSocket Security](#websocket-security)
-4. [Autenticação e Autorização](#autenticação-e-autorização)
+4. [Authentication and Authorization](#authentication-and-authorization)
 5. [Rate Limiting](#rate-limiting)
-6. [Headers de Segurança](#headers-de-segurança)
+6. [Security Headers](#security-headers)
 
 ---
 
-## 🌐 HTTPS e HSTS
+## 🌐 HTTPS and HSTS
 
 ### Force HTTPS
 
-O router suporta redirecionamento automático de HTTP para HTTPS:
+The router supports automatic HTTP-to-HTTPS redirection:
 
 ```typescript
 const app = createDenoRouter({
   basePath: "/api",
-  forceHttps: true, // Redireciona HTTP → HTTPS
+  forceHttps: true, // Redirects HTTP → HTTPS
 });
 ```
 
-**Comportamento:**
-- Redireciona com status `301 Moved Permanently`
-- Ignora automaticamente `localhost` e `127.0.0.1` para facilitar desenvolvimento
-- Suporta IPv6 `[::1]`
+**Behavior:**
+- Redirects with status `301 Moved Permanently`
+- Automatically ignores `localhost` and `127.0.0.1` to ease development
+- Supports IPv6 `[::1]`
 
-### Confiança em Proxy (`trustProxy`)
+### Proxy Trust (`trustProxy`)
 
-Quando atrás de um proxy reverso (nginx, Cloudflare, etc.), o router pode confiar no header `X-Forwarded-Proto`:
+When running behind a reverse proxy (nginx, Cloudflare, etc.), the router can trust the `X-Forwarded-Proto` header:
 
 ```typescript
 const app = createDenoRouter({
   forceHttps: true,
-  trustProxy: true, // ⚠️ Apenas se estiver atrás de proxy confiável
+  trustProxy: true, // ⚠️ Only if behind a trusted proxy
 });
 ```
 
-**⚠️ AVISO:** Nunca ative `trustProxy` se o servidor estiver exposto diretamente à internet. Um atacante poderia enviar `X-Forwarded-Proto: https` e bypassar o redirect.
+**⚠️ WARNING:** Never enable `trustProxy` if the server is exposed directly to the internet. An attacker could send `X-Forwarded-Proto: https` and bypass the redirect.
 
 ### HSTS (HTTP Strict Transport Security)
 
-Quando `forceHttps` está ativo e a requisição já é HTTPS, o router automaticamente adiciona:
+When `forceHttps` is active and the request is already HTTPS, the router automatically adds:
 
 ```http
 Strict-Transport-Security: max-age=31536000; includeSubDomains
 ```
 
-Isso instrui navegadores a sempre usar HTTPS para seu domínio.
+This instructs browsers to always use HTTPS for your domain.
 
 ---
 
-## 📂 Proteção de Arquivos Estáticos
+## 📂 Static File Protection
 
-### Dotfiles e Traversal Defense-in-Depth
+### Dotfiles and Traversal Defense-in-Depth
 
-Por padrão, arquivos que começam com `.` são bloqueados:
+By default, files that begin with `.` are blocked:
 
 ```typescript
 const app = createDenoRouter({
@@ -69,64 +69,64 @@ const app = createDenoRouter({
 });
 ```
 
-**Bloqueados por padrão:**
+**Blocked by default:**
 - `.env`, `.env.local`
 - `.git/config`, `.git/HEAD`
 - `.DS_Store`
 - `.htaccess`
 
-Mesmo quando `allowDotfiles: true` é habilitado (por exemplo, para servir `.well-known`), segmentos de diretório relativo como `..` e `.` continuam **estritamente proibidos e bloqueados com 404**, garantindo que a ativação de dotfiles nunca abra brechas de path traversal.
+Even when `allowDotfiles: true` is enabled (for example, to serve `.well-known`), relative directory segments such as `..` and `.` remain **strictly forbidden and blocked with 404**, guaranteeing that enabling dotfiles never opens path traversal gaps.
 
-### Symlinks e Diretórios Symlink
+### Symlinks and Symlinked Directories
 
-O adaptador Deno **recusa symlinks** diretamente e valida a resolução física com `Deno.realPath`:
-- Symlinks diretos são detectados via `Deno.lstat` e recusados.
-- Diretórios intermediários symlink são validados contra `resolvedBase`, impedindo que symlinks de diretório apontando para fora do `staticDir` sejam acessados.
+The Deno adapter **rejects symlinks** directly and validates the physical resolution with `Deno.realPath`:
+- Direct symlinks are detected via `Deno.lstat` and rejected.
+- Intermediate symlinked directories are validated against `resolvedBase`, preventing symlinked directories pointing outside the `staticDir` from being accessed.
 
-### Headers de Arquivos Estáticos & Proteção MIME
+### Static File Headers & MIME Protection
 
-O adaptador Deno injeta automaticamente:
-- `X-Content-Type-Options: nosniff` (prevenindo ataques de sniffing MIME)
-- `ETag` e suporte transparente a `If-None-Match` (retornando `304 Not Modified` e cancelando o stream para economia de I/O)
-- `Cache-Control` e `Last-Modified`
-- Tratamento seguro de requisições `HEAD`, cancelando o stream aberto para evitar vazamento de file descriptors.
+The Deno adapter automatically injects:
+- `X-Content-Type-Options: nosniff` (preventing MIME sniffing attacks)
+- `ETag` and transparent `If-None-Match` support (returning `304 Not Modified` and cancelling the stream to save I/O)
+- `Cache-Control` and `Last-Modified`
+- Safe handling of `HEAD` requests, cancelling the opened stream to avoid file descriptor leaks.
 
 ### Path Traversal
 
-O router sanitiza caminhos para evitar ataques de path traversal:
+The router sanitizes paths to prevent path traversal attacks:
 
 ```typescript
-// Requisição maliciosa
+// Malicious request
 GET /../../etc/passwd
 GET /..%2F..%2Fetc%2Fpasswd
 
-// Resultado: 404 (caminho sanitizado antes de acessar)
+// Result: 404 (path sanitized before access)
 ```
 
 ### Containment
 
-O adaptador Deno verifica que o caminho resolvido está estritamente dentro do `staticDir`:
+The Deno adapter verifies that the resolved path is strictly inside the `staticDir`:
 
 ```typescript
 const app = createDenoRouter({
   staticDir: "/var/www/public",
 });
 
-// Requisição: GET /../../etc/passwd
-// Mesmo após sanitização, o path resolvido é verificado
-// Resultado: 404 se tentar escapar do diretório
+// Request: GET /../../etc/passwd
+// Even after sanitization, the resolved path is verified
+// Result: 404 if it attempts to escape the directory
 ```
 
 ---
 
 ## 🔌 WebSocket Security
 
-### Validação de Origin
+### Origin Validation
 
-WebSockets são vulneráveis a ataques Cross-Site WebSocket Hijacking (CSWSH). Valide o header `Origin`:
+WebSockets are vulnerable to Cross-Site WebSocket Hijacking (CSWSH) attacks. Validate the `Origin` header:
 
 ```typescript
-const allowedOrigins = ["https://meusite.com", "https://app.meusite.com"];
+const allowedOrigins = ["https://mysite.com", "https://app.mysite.com"];
 
 app.use(async (req, _params, next) => {
   if (req.headers.get("upgrade")?.toLowerCase() === "websocket") {
@@ -139,29 +139,29 @@ app.use(async (req, _params, next) => {
 });
 ```
 
-### Autenticação via Subprotocol
+### Authentication via Subprotocol
 
-O exemplo JWT demonstra como passar tokens via subprotocolo WebSocket:
+The JWT example demonstrates how to pass tokens through the WebSocket subprotocol:
 
 ```javascript
-// Cliente
+// Client
 const ws = new WebSocket("wss://api.site.com/chat", ["Bearer", token]);
 
-// Servidor (middleware)
+// Server (middleware)
 app.use(async (req, _params, next) => {
   if (req.headers.get("upgrade")?.toLowerCase() !== "websocket") {
     return await next();
   }
-  
+
   const protocol = req.headers.get("sec-websocket-protocol") ?? "";
   const protocols = protocol.split(",").map(p => p.trim());
   const bearerIndex = protocols.findIndex(p => p === "Bearer");
   const token = bearerIndex !== -1 ? protocols[bearerIndex + 1] : null;
-  
+
   if (!token) {
     return new Response("Token required", { status: 401 });
   }
-  
+
   try {
     await jwtVerify(token, secret);
     return await next();
@@ -171,14 +171,14 @@ app.use(async (req, _params, next) => {
 });
 ```
 
-### Isolamento de Salas
+### Room Isolation
 
-Use `permissionFn` para garantir que mensagens não vazem entre salas:
+Use `permissionFn` to ensure messages do not leak between rooms:
 
 ```typescript
 app.ws("/chat/:room/:user", (ws, _req, params) => {
   const group = app.getWsGroupByPath("/chat/:room/:user");
-  
+
   ws.onmessage = (event) => {
     group.broadcast(
       `[${params.user}]: ${event.data}`,
@@ -189,50 +189,50 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
 });
 ```
 
-**Sem `permissionFn`, o broadcast envia para TODOS os sockets da rota**, não apenas para a mesma sala.
+**Without `permissionFn`, the broadcast sends to ALL sockets on the route**, not only to the same room.
 
 ---
 
-## 🔐 Autenticação e Autorização
+## 🔐 Authentication and Authorization
 
-### JWT com Expiração
+### JWT with Expiration
 
-Sempre defina expiração em tokens JWT:
+Always set expiration on JWT tokens:
 
 ```typescript
 import { SignJWT } from "jose";
 
 const token = await new SignJWT({ userId: "123", role: "user" })
   .setProtectedHeader({ alg: "HS256" })
-  .setExpirationTime("1h") // ⚠️ Sempre definir
+  .setExpirationTime("1h") // ⚠️ Always set
   .setIssuedAt()
   .sign(secret);
 ```
 
-### Validação de Algoritmo
+### Algorithm Validation
 
-Ao verificar JWTs, especifique algoritmos permitidos:
+When verifying JWTs, specify the allowed algorithms:
 
 ```typescript
 import { jwtVerify } from "jose";
 
 await jwtVerify(token, secret, {
-  algorithms: ["HS256"], // ⚠️ Evite "none" e algoritmos fracos
+  algorithms: ["HS256"], // ⚠️ Avoid "none" and weak algorithms
 });
 ```
 
-### Segredos em Variáveis de Ambiente
+### Secrets in Environment Variables
 
-Nunca hardcode segredos em produção:
+Never hardcode secrets in production:
 
 ```typescript
-// ❌ RUIM
-const JWT_SECRET = "meu-segredo-123";
+// ❌ BAD
+const JWT_SECRET = "my-secret-123";
 
-// ✅ BOM
+// ✅ GOOD
 const JWT_SECRET = Deno.env.get("JWT_SECRET");
 if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET não configurado");
+  throw new Error("JWT_SECRET not configured");
 }
 ```
 
@@ -240,28 +240,28 @@ if (!JWT_SECRET) {
 
 ## 🚦 Rate Limiting
 
-O router **não inclui rate limiting nativo**. Use middlewares para proteger contra abuso:
+The router **does not include native rate limiting**. Use middlewares to protect against abuse:
 
 ```typescript
-// Exemplo simples de rate limiting por IP
+// Simple example of rate limiting by IP
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
 
 app.use(async (req, _params, next) => {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
   const now = Date.now();
-  const windowMs = 60000; // 1 minuto
+  const windowMs = 60000; // 1 minute
   const maxRequests = 100;
-  
+
   const record = requestCounts.get(ip) ?? { count: 0, resetTime: now + windowMs };
-  
+
   if (now > record.resetTime) {
     record.count = 0;
     record.resetTime = now + windowMs;
   }
-  
+
   record.count++;
   requestCounts.set(ip, record);
-  
+
   if (record.count > maxRequests) {
     return new Response("Too Many Requests", {
       status: 429,
@@ -270,63 +270,63 @@ app.use(async (req, _params, next) => {
       },
     });
   }
-  
+
   return await next();
 });
 ```
 
-Para produção, considere:
-- Redis para rate limiting distribuído
-- Bibliotecas especializadas como `rate-limiter-flexible`
-- Soluções de edge (Cloudflare, AWS WAF)
+For production, consider:
+- Redis for distributed rate limiting
+- Specialized libraries such as `rate-limiter-flexible`
+- Edge solutions (Cloudflare, AWS WAF)
 
 ---
 
-## 🛡️ Headers de Segurança
+## 🛡️ Security Headers
 
-Adicione headers de segurança via middleware:
+Add security headers via middleware:
 
 ```typescript
 app.use(async (req, _params, next) => {
   const res = await next();
-  
-  // Prevenir clickjacking
+
+  // Prevent clickjacking
   res.headers.set("X-Frame-Options", "DENY");
-  
-  // Prevenir MIME sniffing
+
+  // Prevent MIME sniffing
   res.headers.set("X-Content-Type-Options", "nosniff");
-  
+
   // Referrer Policy
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  
-  // Content Security Policy (ajuste conforme necessário)
+
+  // Content Security Policy (adjust as needed)
   res.headers.set(
     "Content-Security-Policy",
     "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
   );
-  
+
   return res;
 });
 ```
 
 ---
 
-## ✅ Checklist de Segurança para Produção
+## ✅ Production Security Checklist
 
-- [ ] `forceHttps: true` ativado
-- [ ] `trustProxy: true` apenas se atrás de proxy confiável
+- [ ] `forceHttps: true` enabled
+- [ ] `trustProxy: true` only if behind a trusted proxy
 - [ ] `allowDotfiles: false` (default)
-- [ ] Validação de `Origin` em WebSockets
-- [ ] Tokens JWT com expiração e algoritmos restritos
-- [ ] Segredos em variáveis de ambiente
-- [ ] Rate limiting implementado
-- [ ] Headers de segurança adicionados
-- [ ] Logs de auditoria para autenticação
-- [ ] HTTPS/WSS em produção (nunca HTTP/WS)
+- [ ] `Origin` validation on WebSockets
+- [ ] JWT tokens with expiration and restricted algorithms
+- [ ] Secrets in environment variables
+- [ ] Rate limiting implemented
+- [ ] Security headers added
+- [ ] Audit logs for authentication
+- [ ] HTTPS/WSS in production (never HTTP/WS)
 
 ---
 
-## 📚 Recursos Adicionais
+## 📚 Additional Resources
 
 - [OWASP WebSocket Security Cheat Sheet](https://cheatsheetseries.owasp.org/)
 - [MDN: HTTP Strict Transport Security](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security)

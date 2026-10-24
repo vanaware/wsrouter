@@ -13,7 +13,7 @@ class MockWebSocket {
   }
 }
 
-Deno.test("broadcast envia para todos os sockets", () => {
+Deno.test("broadcast sends to all sockets", () => {
   const group = new WebSocketGroup();
   const ws1 = new MockWebSocket();
   const ws2 = new MockWebSocket();
@@ -24,14 +24,14 @@ Deno.test("broadcast envia para todos os sockets", () => {
   assertEquals(ws2.sent, ["hello",],);
 });
 
-Deno.test("broadcast com permissionFn filtra destinatários", () => {
+Deno.test("broadcast with permissionFn filters recipients", () => {
   const group = new WebSocketGroup();
   const ws1 = new MockWebSocket();
   const ws2 = new MockWebSocket();
   group.addSocket(ws1 as unknown as WebSocket, { room: "A", },);
   group.addSocket(ws2 as unknown as WebSocket, { room: "B", },);
 
-  // 🚀 MUDANÇA: Assinatura Dual (receiver, sender, msg)
+  // 🚀 CHANGE: Dual signature (receiver, sender, msg)
   group.broadcast(
     "only-A",
     (receiver, _sender, _msg,) => receiver.room === "A",
@@ -41,7 +41,7 @@ Deno.test("broadcast com permissionFn filtra destinatários", () => {
   assertEquals(ws2.sent, [],);
 });
 
-Deno.test("novo membro recebe último broadcast ao entrar", async () => {
+Deno.test("new member receives the last broadcast when joining", async () => {
   const group = new WebSocketGroup();
   const ws1 = new MockWebSocket();
   group.addSocket(ws1 as unknown as WebSocket, { room: "A", },);
@@ -51,17 +51,17 @@ Deno.test("novo membro recebe último broadcast ao entrar", async () => {
   group.addSocket(ws2 as unknown as WebSocket, { room: "A", },);
   group.sendLastBroadcastTo(ws2 as unknown as WebSocket, { room: "A", },);
 
-  // 🚀 MUDANÇA: Delay default agora é 0ms, 10ms é mais que suficiente
+  // 🚀 CHANGE: The default delay is now 0ms, 10ms is more than enough
   await new Promise((resolve,) => setTimeout(resolve, 10,));
   assertEquals(ws2.sent, ["first-msg",],);
 });
 
-Deno.test("novo membro em sala diferente NÃO recebe último broadcast", async () => {
+Deno.test("new member in a different room does NOT receive the last broadcast", async () => {
   const group = new WebSocketGroup();
   const ws1 = new MockWebSocket();
   group.addSocket(ws1 as unknown as WebSocket, { room: "A", },);
 
-  // 🚀 MUDANÇA: Assinatura Dual
+  // 🚀 CHANGE: Dual signature
   group.broadcast(
     "first-msg",
     (receiver, sender, _msg,) => receiver.room === sender.room,
@@ -76,7 +76,7 @@ Deno.test("novo membro em sala diferente NÃO recebe último broadcast", async (
   assertEquals(ws2.sent, [],);
 });
 
-Deno.test("closeGroup fecha todos os sockets", () => {
+Deno.test("closeGroup closes all sockets", () => {
   const group = new WebSocketGroup();
   const ws1 = new MockWebSocket();
   const ws2 = new MockWebSocket();

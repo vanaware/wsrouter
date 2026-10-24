@@ -1,56 +1,56 @@
-# 📡 Documentação: Permissionamento Inteligente em WebSockets (Dual Params)
+# 📡 Documentation: Smart Permissioning in WebSockets (Dual Params)
 
-O `@vanaware/wsrouter` possui um sistema nativo e robusto de permissionamento para WebSockets, permitindo que mensagens de broadcast sejam filtradas dinamicamente com base nos **parâmetros do destinatário (receiver)**, nos **parâmetros do remetente (sender)** e no **conteúdo da mensagem**.
+`@vanaware/wsrouter` has a native and robust permissioning system for WebSockets, allowing broadcast messages to be filtered dynamically based on the **receiver parameters**, the **sender parameters**, and the **message content**.
 
 ---
 
-## 🔑 Conceitos Fundamentais
+## 🔑 Fundamental Concepts
 
-### 1. `PermissionFn` (Função de Permissão Dual)
-É um callback opcional passado ao método `group.broadcast()`. Sua assinatura recebe três argumentos:
+### 1. `PermissionFn` (Dual Permission Function)
+It is an optional callback passed to the `group.broadcast()` method. Its signature receives three arguments:
 
 ```typescript
 type PermissionFn = (
-  receiverParams: RouteParams, // Parâmetros de quem VAI RECEBER a mensagem
-  senderParams: RouteParams,   // Parâmetros de quem ENVIOU a mensagem
-  message: string              // O conteúdo da mensagem
+  receiverParams: RouteParams, // Parameters of who WILL RECEIVE the message
+  senderParams: RouteParams,   // Parameters of who SENT the message
+  message: string              // The message content
 ) => boolean;
 ```
 
 ---
 
-## 🌍 Exemplos Práticos do Mundo Real
+## 🌍 Practical Real-World Examples
 
-### Cenário 1: Isolamento de Salas de Chat (O Clássico)
-**Objetivo:** Garantir que uma mensagem enviada na sala "geral" não vaze para a sala "vip".
+### Scenario 1: Chat Room Isolation (The Classic)
+**Goal:** Ensure a message sent in the "general" room does not leak into the "vip" room.
 
 ```typescript
 app.ws("/chat/:room/:user", (ws, _req, params) => {
   const group = app.getWsGroupByPath("/chat/:room/:user");
-  
+
   ws.onmessage = (event) => {
     group.broadcast(
       `[${params.user}]: ${event.data}`,
-      // Filtra: O receiver deve estar na mesma sala que o sender
+      // Filter: the receiver must be in the same room as the sender
       (receiver, sender, _msg) => receiver.room === sender.room,
-      params // Passamos os params do remetente
+      params // We pass the sender's params
     );
   };
 });
 ```
 
-### Cenário 2: Controle de Acesso por Nível de Usuário (RBAC)
-**Objetivo:** Apenas usuários com role `admin` podem enviar alertas de sistema críticos.
+### Scenario 2: Access Control by User Level (RBAC)
+**Goal:** Only users with the `admin` role may send critical system alerts.
 
 ```typescript
 app.ws("/dashboard/:role/:userId", (ws, _req, params) => {
   const group = app.getWsGroupByPath("/dashboard/:role/:userId");
-  
+
   ws.onmessage = (event) => {
     group.broadcast(
-      `🚨 ALERTA: ${event.data}`,
+      `🚨 ALERT: ${event.data}`,
       (_receiver, sender, _msg) => {
-        // Só permite o broadcast se o SENDER for admin
+        // Only allow the broadcast if the SENDER is admin
         return sender.role === "admin";
       },
       params
@@ -59,18 +59,18 @@ app.ws("/dashboard/:role/:userId", (ws, _req, params) => {
 });
 ```
 
-### Cenário 3: Filtragem Baseada no Conteúdo da Mensagem
-**Objetivo:** Impedir que mensagens contendo a palavra "spam" sejam propagadas.
+### Scenario 3: Filtering Based on Message Content
+**Goal:** Prevent messages containing the word "spam" from being propagated.
 
 ```typescript
 app.ws("/community/:serverId/:userId", (ws, _req, params) => {
   const group = app.getWsGroupByPath("/community/:serverId/:userId");
-  
+
   ws.onmessage = (event) => {
     group.broadcast(
       event.data,
       (_receiver, _sender, msgContent) => {
-        // Bloqueia se a mensagem contiver "spam"
+        // Block if the message contains "spam"
         return !msgContent.toLowerCase().includes("spam");
       },
       params
@@ -81,24 +81,24 @@ app.ws("/community/:serverId/:userId", (ws, _req, params) => {
 
 ---
 
-## 💡 A "Mágica" do Last Broadcast com Dual Params
+## 💡 The "Magic" of Last Broadcast with Dual Params
 
-Quando um novo membro entra na sala, o router reavalia o `lastBroadcast` usando os **Dual Params**.
+When a new member joins the room, the router re-evaluates the `lastBroadcast` using the **Dual Params**.
 
 ```typescript
-// 10:00:00 -> User A (room: "lobby") envia: "Olá a todos!"
-// O router salva: { message: "Olá...", permissionFn: (r, s) => r.room === s.room, senderParams: { room: "lobby" } }
+// 10:00:00 -> User A (room: "lobby") sends: "Hello everyone!"
+// The router stores: { message: "Hello...", permissionFn: (r, s) => r.room === s.room, senderParams: { room: "lobby" } }
 
-// 10:00:05 -> User B conecta na rota /chat/lobby/userB
-// O router reavalia: permissionFn({ room: "lobby" }, { room: "lobby" }, "Olá...") -> TRUE
-// User B recebe a mensagem histórica automaticamente!
+// 10:00:05 -> User B connects on route /chat/lobby/userB
+// The router re-evaluates: permissionFn({ room: "lobby" }, { room: "lobby" }, "Hello...") -> TRUE
+// User B automatically receives the historical message!
 
-// 10:00:10 -> User C conecta na rota /chat/vip/userC
-// O router reavalia: permissionFn({ room: "vip" }, { room: "lobby" }, "Olá...") -> FALSE
-// User C NÃO recebe a mensagem (Segurança garantida!).
+// 10:00:10 -> User C connects on route /chat/vip/userC
+// The router re-evaluates: permissionFn({ room: "vip" }, { room: "lobby" }, "Hello...") -> FALSE
+// User C does NOT receive the message (Security guaranteed!).
 ```
 
-## ⚠️ Melhores Práticas
+## ⚠️ Best Practices
 
-1. **Mantenha a `PermissionFn` Leve:** Evite operações assíncronas (como consultas ao banco de dados) dentro da `PermissionFn`.
-2. **Use `senderParams` Corretamente:** Sempre passe o terceiro argumento `params` no `group.broadcast(msg, fn, params)`. Sem isso, o `senderParams` será um objeto vazio `{}` e o recurso de "Last Broadcast" não funcionará corretamente.
+1. **Keep the `PermissionFn` Lightweight:** Avoid asynchronous operations (such as database queries) inside the `PermissionFn`.
+2. **Use `senderParams` Correctly:** Always pass the third argument `params` in `group.broadcast(msg, fn, params)`. Without it, `senderParams` will be an empty object `{}` and the "Last Broadcast" feature will not work correctly.

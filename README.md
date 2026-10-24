@@ -96,7 +96,7 @@ For full API reference and advanced guides, visit the
 MIT - see [LICENSE](./LICENSE) for details.
 
 
-## 📦 Últimas Atualizações
+## 📦 Latest Updates
 
 <!-- START:changelog -->
 ### 📦 Latest updates

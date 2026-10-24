@@ -1,42 +1,42 @@
-# 🎯 Sim, Middleware cabe perfeitamente no WebSocket!
+# 🎯 Yes, Middleware Fits WebSocket Perfectly!
 
-Na verdade, é **onde ele brilha mais**, pois permite autenticar **antes** do upgrade (evitando criar conexões não autorizadas), em vez de validar dentro do handler quando o socket já está aberto.
+In fact, that is **where it shines the most**, because it lets you authenticate **before** the upgrade (avoiding the creation of unauthorized connections), instead of validating inside the handler when the socket is already open.
 
-## 📊 Como Funciona o Fluxo
+## 📊 How the Flow Works
 
 ```
-Request → Force HTTPS? → Rota encontrada? → MIDDLEWARES → Handler final
+Request → Force HTTPS? → Route found? → MIDDLEWARES → Final handler
                 ↓                                    ↓
-              301                          Se retornar Response → ABORTA
-                                           Se chamar next() → continua
+              301                          If it returns a Response → ABORTS
+                                           If it calls next() → continues
 ```
 
-**Para HTTP:** `next()` executa o handler da rota.
-**Para WS:** `next()` faz o `Deno.upgradeWebSocket` e inicia o grupo.
+**For HTTP:** `next()` executes the route handler.
+**For WS:** `next()` performs the `Deno.upgradeWebSocket` and starts the group.
 
-Se um middleware retornar uma `Response` (ex: `401`), o upgrade **nunca acontece**.
+If a middleware returns a `Response` (e.g. `401`), the upgrade **never happens**.
 
 
 ---
 
-## 🌍 Exemplos Práticos
+## 🌍 Practical Examples
 
-### Exemplo 1: Autenticação JWT via Subprotocol (agora como middleware!)
+### Example 1: JWT Authentication via Subprotocol (now as middleware!)
 
-O exemplo do `jwt/main.ts` fica **muito mais limpo**. Toda a validação sai do handler:
+The `jwt/main.ts` example becomes **much cleaner**. All validation moves out of the handler:
 
 ```typescript
 import { Router } from "../../src/mod.ts";
 import { SignJWT, jwtVerify } from "jose";
 
-const JWT_SECRET = "meu-segredo-super-secreto-123";
+const JWT_SECRET = "my-super-secret-key-123";
 const encoder = new TextEncoder();
 
 const app = new Router({ basePath: "/api" });
 
-// ✅ Middleware de autenticação: bloqueia ANTES do upgrade
+// ✅ Authentication middleware: blocks BEFORE the upgrade
 app.use(async (req, _params, next) => {
-  // Só aplica em rotas WebSocket
+  // Only applies to WebSocket routes
   if (req.headers.get("upgrade")?.toLowerCase() !== "websocket") {
     return await next();
   }
@@ -47,21 +47,21 @@ app.use(async (req, _params, next) => {
   const token = bearerIndex !== -1 ? protocols[bearerIndex + 1] : null;
 
   if (!token) {
-    console.error("[Middleware] ❌ Token ausente");
+    console.error("[Middleware] ❌ Token missing");
     return new Response("Token required", { status: 401 });
   }
 
   try {
     await jwtVerify(token, encoder.encode(JWT_SECRET));
-    console.log("[Middleware] ✅ Token válido, permitindo upgrade");
-    return await next(); // Prossegue com o upgrade
+    console.log("[Middleware] ✅ Token valid, allowing upgrade");
+    return await next(); // Proceeds with the upgrade
   } catch {
-    console.error("[Middleware] ❌ Token inválido");
+    console.error("[Middleware] ❌ Invalid token");
     return new Response("Invalid token", { status: 403 });
   }
 });
 
-// Handler WS agora fica limpo — só lógica de negócio
+// The WS handler is now clean — only business logic
 app.ws("/chat/:room", (ws, _req, params) => {
   const room = params.room as string;
   const group = app.getWsGroupByPath("/chat/:room");
@@ -79,10 +79,10 @@ app.ws("/chat/:room", (ws, _req, params) => {
 Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 ```
 
-### Exemplo 2: Logging + Rate Limiting
+### Example 2: Logging + Rate Limiting
 
 ```typescript
-// Logging de todas as requisições (HTTP + WS)
+// Log every request (HTTP + WS)
 app.use(async (req, params, next) => {
   const start = Date.now();
   const res = await next();
@@ -92,7 +92,7 @@ app.use(async (req, params, next) => {
   return res;
 });
 
-// Rate limiting por IP (simples, em memória)
+// Rate limiting by IP (simple, in-memory)
 const requestCounts = new Map<string, { count: number; resetAt: number }>();
 
 app.use(async (req, _params, next) => {
@@ -113,14 +113,14 @@ app.use(async (req, _params, next) => {
 });
 ```
 
-### Exemplo 3: Manutenção Programada
+### Example 3: Scheduled Maintenance
 
 ```typescript
 let maintenanceMode = false;
 
 app.use(async (_req, _params, next) => {
   if (maintenanceMode) {
-    return new Response("🔧 Em manutenção", {
+    return new Response("🔧 Under maintenance", {
       status: 503,
       headers: { "Retry-After": "300" },
     });
@@ -129,18 +129,18 @@ app.use(async (_req, _params, next) => {
 });
 ```
 
-### Exemplo 4: Middleware Escopado por Path e State/Meta
+### Example 4: Path-Scoped Middleware and State/Meta
 
-Você pode aplicar middlewares apenas a caminhos específicos e compartilhar metadados (como usuário autenticado) através do terceiro parâmetro de contexto ou headers:
+You can apply middlewares only to specific paths and share metadata (such as the authenticated user) through the third context parameter or headers:
 
 ```typescript
-// Executa apenas para rotas que iniciam com /admin/*
+// Runs only for routes starting with /admin/*
 app.use("/admin/*", async (req, params, next, ctx) => {
   const token = req.headers.get("Authorization");
   if (!token) {
     return new Response("Unauthorized", { status: 401 });
   }
-  // Anexa metadados ao state compartilhado
+  // Attach metadata to the shared state
   if (ctx) {
     ctx.state.authorizedUser = { id: "user-123", role: "admin" };
   }
@@ -150,33 +150,33 @@ app.use("/admin/*", async (req, params, next, ctx) => {
 
 ---
 
-## 🏗️ Arquitetura Modular Interna
+## 🏗️ Internal Modular Architecture
 
-A engine de middlewares foi modularizada em classes dedicadas:
-- **`MiddlewareRoute`** (`src/middleware-route.ts`): Encapsula a função de middleware e o padrão opcional de rota (como `/api/*` ou wildcard global).
-- **`MiddlewareChain`** (`src/middleware-chain.ts`): Executa o padrão Onion (cebola), passando requisições recursivamente com suporte a `RequestContext` (`req`, `params`, `state`).
+The middleware engine was modularized into dedicated classes:
+- **`MiddlewareRoute`** (`src/middleware-route.ts`): Encapsulates the middleware function and the optional route pattern (such as `/api/*` or a global wildcard).
+- **`MiddlewareChain`** (`src/middleware-chain.ts`): Executes the Onion pattern, passing requests recursively with `RequestContext` support (`req`, `params`, `state`).
 
 ---
 
-## 📊 Comparação: Middleware vs PermissionFn
+## 📊 Comparison: Middleware vs PermissionFn
 
-| Aspecto | `app.use()` (Middleware) | `permissionFn` (Broadcast) |
+| Aspect | `app.use()` (Middleware) | `permissionFn` (Broadcast) |
 |---|---|---|
-| **Quando roda** | No momento da conexão/requisição | A cada mensagem broadcastada |
-| **O que controla** | Se a conexão/requisição é aceita | Quem recebe cada mensagem |
-| **Acesso ao WebSocket** | ❌ Não (ainda não foi criado) | ✅ Sim (sockets já conectados) |
-| **Acesso à Request** | ✅ Sim (headers, URL, method) | ❌ Não |
-| **Caso de uso** | Auth, rate limit, logging, CORS | Isolamento de salas, filtros de conteúdo |
+| **When it runs** | At connection/request time | For every broadcasted message |
+| **What it controls** | Whether the connection/request is accepted | Who receives each message |
+| **Access to the WebSocket** | ❌ No (it hasn't been created yet) | ✅ Yes (sockets already connected) |
+| **Access to the Request** | ✅ Yes (headers, URL, method) | ❌ No |
+| **Use case** | Auth, rate limiting, logging, CORS | Room isolation, content filters |
 
-**Eles se complementam:** Middleware controla **quem entra**, `permissionFn` controla **quem ouve o quê**.
+**They complement each other:** the middleware controls **who gets in**, the `permissionFn` controls **who hears what**.
 
 ---
 
-## ⚠️ Pontos Importantes
+## ⚠️ Important Points
 
-1. **Ordem importa:** Middlewares são executados na ordem em que foram registrados com `app.use()`.
-2. **Executam em todas as requisições:** Middlewares rodam para todas as 
-   requisições, incluindo 404, arquivos estáticos e rotas não encontradas.
-   Isso permite logging global, CORS e rate limiting universais.
-3. **Abortar o upgrade:** Se um middleware retornar `Response` sem chamar `next()` em uma rota WS, o upgrade nunca acontece — o cliente recebe uma resposta HTTP normal (ex: 401).
-4. **Params disponíveis:** O middleware recebe os `params` já extraídos da rota, permitindo lógica como "bloquear acesso à sala X".
+1. **Order matters:** Middlewares run in the order they were registered with `app.use()`.
+2. **They run on every request:** Middlewares run for every
+   request, including 404s, static files, and unmatched routes.
+   This enables global logging, CORS, and universal rate limiting.
+3. **Aborting the upgrade:** If a middleware returns a `Response` without calling `next()` on a WS route, the upgrade never happens — the client receives a regular HTTP response (e.g. 401).
+4. **Params available:** The middleware receives the `params` already extracted from the route, enabling logic such as "block access to room X".

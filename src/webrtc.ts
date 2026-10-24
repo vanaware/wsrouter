@@ -6,7 +6,7 @@
  * targeted SDP offer/answer exchanges, ICE candidate forwarding, and room management.
  */
 
-import type { RouteParams } from "./types.ts";
+import type { PermissionFn, RouteParams } from "./types.ts";
 import type { WebSocketGroup } from "./websocket-group.ts";
 
 /**
@@ -274,6 +274,40 @@ export class WebRTCSignalingHub {
   }
 
   /**
+   * Builds a broadcast filter that restricts delivery to sockets of a specific room.
+   *
+   * @param room - Target room name.
+   * @returns Permission function allowing only same-room receivers.
+   */
+  private roomFilter(room: string): PermissionFn {
+    return (recvParams, sendParams) =>
+      !recvParams.room || recvParams.room === room ||
+      recvParams.room === sendParams.room;
+  }
+
+  /**
+   * Serializes a signaling message and broadcasts it to a room via the bound group.
+   *
+   * @param room - Target room name.
+   * @param message - Signaling message to serialize and deliver.
+   * @param params - Optional sender parameters forwarded to the group broadcast.
+   * @returns `true` if a group is bound and the broadcast was emitted, `false` otherwise.
+   */
+  private broadcastToRoom(
+    room: string,
+    message: WebRTCSignalingMessage,
+    params?: RouteParams,
+  ): boolean {
+    if (!this.group) return false;
+    this.group.broadcast(
+      this.serialize(message),
+      this.roomFilter(room),
+      params,
+    );
+    return true;
+  }
+
+  /**
    * Registers a user as the active webcam broadcaster for a room and broadcasts the start event.
    */
   startBroadcasting(
@@ -303,15 +337,7 @@ export class WebRTCSignalingHub {
       room,
     };
 
-    if (this.group) {
-      this.group.broadcast(
-        this.serialize(msg),
-        (recvParams, sendParams) => {
-          return !recvParams.room || recvParams.room === room || recvParams.room === sendParams.room;
-        },
-        params,
-      );
-    }
+    this.broadcastToRoom(room, msg, params);
 
     return streamInfo;
   }
@@ -332,15 +358,7 @@ export class WebRTCSignalingHub {
         room,
       };
 
-      if (this.group) {
-        this.group.broadcast(
-          this.serialize(msg),
-          (recvParams, sendParams) => {
-            return !recvParams.room || recvParams.room === room || recvParams.room === sendParams.room;
-          },
-          params,
-        );
-      }
+      this.broadcastToRoom(room, msg, params);
       return true;
     }
     return false;
@@ -398,17 +416,7 @@ export class WebRTCSignalingHub {
       room,
     });
 
-    if (this.group) {
-      this.group.broadcast(
-        this.serialize(payload),
-        (recvParams, sendParams) => {
-          return !recvParams.room || recvParams.room === room || recvParams.room === sendParams.room;
-        },
-        params,
-      );
-      return true;
-    }
-    return false;
+    return this.broadcastToRoom(room, payload, params);
   }
 
   /**
@@ -475,17 +483,7 @@ export class WebRTCSignalingHub {
       }
 
       case "stream_reaction": {
-        if (this.group) {
-          this.group.broadcast(
-            this.serialize({ ...msg, room }),
-            (recvParams, sendParams) => {
-              return !recvParams.room || recvParams.room === room || recvParams.room === sendParams.room;
-            },
-            params,
-          );
-          return true;
-        }
-        return false;
+        return this.broadcastToRoom(room, { ...msg, room }, params);
       }
 
       default:

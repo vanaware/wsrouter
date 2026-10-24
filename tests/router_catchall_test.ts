@@ -2,7 +2,7 @@
 import { assertEquals, } from "@std/assert";
 import { createDenoRouter, } from "../src/deno.ts";
 
-Deno.test("Catch-all com * captura path completo", async () => {
+Deno.test("Catch-all with * captures the full path", async () => {
   const app = createDenoRouter("", null, null,);
   app.get("/files/*", (_req, params,) => ({
     body: JSON.stringify(params.catch,),
@@ -13,7 +13,7 @@ Deno.test("Catch-all com * captura path completo", async () => {
   assertEquals(await res.json(), ["docs/readme.md",],);
 });
 
-Deno.test("Catch-all com múltiplos * gera array", async () => {
+Deno.test("Catch-all with multiple * produces an array", async () => {
   const app = createDenoRouter("", null, null,);
   app.get("/a/*/b/*", (_req, params,) => ({
     body: JSON.stringify(params.catch,),
@@ -24,7 +24,7 @@ Deno.test("Catch-all com múltiplos * gera array", async () => {
   assertEquals(await res.json(), ["x", "y/z",],);
 });
 
-Deno.test("Catch-all combinado com parâmetro nomeado", async () => {
+Deno.test("Catch-all combined with named parameter", async () => {
   const app = createDenoRouter("", null, null,);
   app.get("/api/:version/*", (_req, params,) => ({
     body: JSON.stringify({ version: params.version, catch: params.catch, },),

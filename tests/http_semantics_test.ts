@@ -2,7 +2,7 @@
 import { assertEquals, } from "@std/assert";
 import { createDenoRouter, } from "../src/deno.ts";
 
-Deno.test("HEAD automático: usa rota GET se HEAD não existir", async () => {
+Deno.test("Automatic HEAD: uses GET route when HEAD does not exist", async () => {
   const app = createDenoRouter({ basePath: "", },);
   app.get("/resource", () => ({
     body: "data",
@@ -13,10 +13,10 @@ Deno.test("HEAD automático: usa rota GET se HEAD não existir", async () => {
   const res = await app.handleRequest(req,);
   assertEquals(res.status, 200,);
   assertEquals(res.headers.get("X-Custom",), "value",);
-  assertEquals(await res.text(), "", "HEAD deve ter body vazio",);
+  assertEquals(await res.text(), "", "HEAD should have an empty body",);
 });
 
-Deno.test("405 Method Not Allowed: retorna quando path existe com outro método", async () => {
+Deno.test("405 Method Not Allowed: returned when the path exists with another method", async () => {
   const app = createDenoRouter({ basePath: "", },);
   app.get("/resource", () => ({ body: "data", }),);
   app.post("/resource", () => ({ body: "created", init: { status: 201, }, }),);
@@ -27,7 +27,7 @@ Deno.test("405 Method Not Allowed: retorna quando path existe com outro método"
   assertEquals(res.headers.get("Allow",), "GET, POST",);
 });
 
-Deno.test("Static files: POST retorna 404", async () => {
+Deno.test("Static files: POST returns 404", async () => {
   const tmpDir = await Deno.makeTempDir();
   await Deno.writeTextFile(`${tmpDir}/file.txt`, "content",);
 
@@ -40,7 +40,7 @@ Deno.test("Static files: POST retorna 404", async () => {
   await Deno.remove(tmpDir, { recursive: true, },);
 });
 
-Deno.test("Static files: HEAD retorna headers sem body", async () => {
+Deno.test("Static files: HEAD returns headers without body", async () => {
   const tmpDir = await Deno.makeTempDir();
   await Deno.writeTextFile(`${tmpDir}/file.txt`, "content",);
 
@@ -50,12 +50,12 @@ Deno.test("Static files: HEAD retorna headers sem body", async () => {
   const res = await app.handleRequest(req,);
   assertEquals(res.status, 200,);
   assertEquals(res.headers.get("Content-Type",), "text/plain; charset=utf-8",);
-  assertEquals(await res.text(), "", "HEAD deve ter body vazio",);
+  assertEquals(await res.text(), "", "HEAD should have an empty body",);
 
   await Deno.remove(tmpDir, { recursive: true, },);
 });
 
-Deno.test("basePath normaliza '/' para ''", async () => {
+Deno.test("basePath normalizes '/' to ''", async () => {
   const app = createDenoRouter({ basePath: "/", },);
   app.get("/test", () => ({ body: "ok", }),);
 
@@ -65,9 +65,9 @@ Deno.test("basePath normaliza '/' para ''", async () => {
   assertEquals(await res.text(), "ok",);
 });
 
-Deno.test("lastBroadcastDelay default é 0ms", async () => {
-  // Teste implícito: se fosse 50ms, testes de last broadcast seriam mais lentos
+Deno.test("lastBroadcastDelay default is 0ms", async () => {
+  // Implicit test: if it were 50ms, last broadcast tests would be slower
   const app = createDenoRouter({ basePath: "", },);
-  // Se não houver erro, o default está correto
+  // If there is no error, the default is correct
   assertEquals(true, true,);
 });

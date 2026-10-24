@@ -1,31 +1,31 @@
-# Possibilidades de Retorno dos Handlers HTTP
+# HTTP Handler Return Possibilities
 
-Os handlers HTTP no `@vanaware/wsrouter` oferecem **duas formas flexíveis de retorno**:
+HTTP handlers in `@vanaware/wsrouter` offer **two flexible return forms**:
 
-1. **Instância nativa de `Response`** (padrão Web API)
-2. **Objeto com `{ body, init }`** (formato ergonômico simplificado)
+1. **Native `Response` instance** (Web API standard)
+2. **Object with `{ body, init }`** (simplified, ergonomic format)
 
 ---
 
-## 🚀 1. Retorno de `Response` Nativo (Web Standard)
+## 🚀 1. Returning a Native `Response` (Web Standard)
 
-Você pode retornar diretamente qualquer instância de `Response` nativa, incluindo helpers como `Response.json()` ou `new Response(...)`:
+You can directly return any native `Response` instance, including helpers like `Response.json()` or `new Response(...)`:
 
 ```typescript
-// Resposta simples com texto
+// Simple text response
 app.get("/ping", () => new Response("pong"));
 
-// JSON com helper nativo Response.json()
+// JSON with the native Response.json() helper
 app.get("/api/users", () => {
   return Response.json({ users: ["Alice", "Bob"] }, { status: 200 });
 });
 
-// Redirecionamento nativo
+// Native redirect
 app.get("/legacy", () => {
   return Response.redirect("https://example.com/new-url", 301);
 });
 
-// Resposta customizada com headers e status
+// Custom response with headers and status
 app.post("/api/items", async (req) => {
   const item = await req.json();
   return new Response(JSON.stringify(item), {
@@ -37,22 +37,22 @@ app.post("/api/items", async (req) => {
 
 ---
 
-## 📦 2. Retorno com Objeto `{ body, init }`
+## 📦 2. Returning a `{ body, init }` Object
 
-O `body` pode ser qualquer um destes tipos:
+The `body` can be any of these types:
 
-| Tipo | Descrição | Exemplo |
+| Type | Description | Example |
 |------|-----------|---------|
-| `string` | Texto simples | `"Hello World"` |
-| `ArrayBuffer` | Dados binários | `new ArrayBuffer(8)` |
-| `TypedArray` | Arrays tipados | `new Uint8Array([1, 2, 3])` |
-| `Blob` | Dados binários com tipo | `new Blob(["data"], { type: "text/plain" })` |
-| `FormData` | Dados de formulário | `new FormData()` |
+| `string` | Plain text | `"Hello World"` |
+| `ArrayBuffer` | Binary data | `new ArrayBuffer(8)` |
+| `TypedArray` | Typed arrays | `new Uint8Array([1, 2, 3])` |
+| `Blob` | Typed binary data | `new Blob(["data"], { type: "text/plain" })` |
+| `FormData` | Form data | `new FormData()` |
 | `URLSearchParams` | Query string | `new URLSearchParams({ a: "1" })` |
-| `ReadableStream` | Stream de dados | `file.readable` |
-| `null` | Sem body | `null` |
+| `ReadableStream` | Data stream | `file.readable` |
+| `null` | No body | `null` |
 
-### Exemplos práticos
+### Practical examples
 
 ```typescript
 // String
@@ -83,7 +83,7 @@ app.get("/blob", () => ({
 // FormData
 app.post("/form", () => {
   const formData = new FormData();
-  formData.append("name", "João");
+  formData.append("name", "John");
   formData.append("age", "30");
   return { body: formData };
 });
@@ -93,13 +93,13 @@ app.get("/query", () => ({
   body: new URLSearchParams({ foo: "bar", baz: "qux" })
 }));
 
-// ReadableStream (arquivo)
+// ReadableStream (file)
 app.get("/file", async () => {
   const file = await Deno.open("./data.txt");
   return { body: file.readable };
 });
 
-// null (sem body)
+// null (no body)
 app.head("/check", () => ({
   body: null
 }));
@@ -109,36 +109,36 @@ app.head("/check", () => ({
 
 ## ⚙️ `init?: ResponseInit`
 
-O `init` é opcional e pode conter:
+The `init` is optional and may contain:
 
-| Propriedade | Tipo | Padrão | Descrição |
+| Property | Type | Default | Description |
 |-------------|------|--------|-----------|
-| `status` | `number` | `200` | Código HTTP de status |
-| `statusText` | `string` | `""` | Texto do status (raramente usado) |
-| `headers` | `HeadersInit` | `{}` | Headers da resposta |
+| `status` | `number` | `200` | HTTP status code |
+| `statusText` | `string` | `""` | Status text (rarely used) |
+| `headers` | `HeadersInit` | `{}` | Response headers |
 
-### `headers` pode ser:
+### `headers` can be:
 
-1. **Objeto simples**
+1. **Plain object**
 ```typescript
 { "Content-Type": "application/json" }
 ```
 
-2. **Array de tuplas**
+2. **Array of tuples**
 ```typescript
 [["Content-Type", "application/json"], ["X-Custom", "value"]]
 ```
 
-3. **Instância de Headers**
+3. **Headers instance**
 ```typescript
 new Headers({ "Content-Type": "application/json" })
 ```
 
 ---
 
-## 🎯 Combinações Comuns
+## 🎯 Common Combinations
 
-### 1. **Resposta simples (200 OK)**
+### 1. **Simple response (200 OK)**
 ```typescript
 app.get("/hello", () => ({
   body: "Hello World"
@@ -146,17 +146,17 @@ app.get("/hello", () => ({
 // Status: 200, Headers: {}
 ```
 
-### 2. **JSON com headers**
+### 2. **JSON with headers**
 ```typescript
 app.get("/api/data", () => ({
-  body: JSON.stringify({ id: 1, name: "João" }),
+  body: JSON.stringify({ id: 1, name: "John" }),
   init: {
     headers: { "Content-Type": "application/json" }
   }
 }));
 ```
 
-### 3. **Status customizado (201 Created)**
+### 3. **Custom status (201 Created)**
 ```typescript
 app.post("/users", async (req) => {
   const data = await req.json();
@@ -220,7 +220,7 @@ app.options("/*", () => ({
 }));
 ```
 
-### 9. **Download de arquivo**
+### 9. **File download**
 ```typescript
 app.get("/download", async () => {
   const file = await Deno.open("./document.pdf");
@@ -236,7 +236,7 @@ app.get("/download", async () => {
 });
 ```
 
-### 10. **Múltiplos headers**
+### 10. **Multiple headers**
 ```typescript
 app.get("/custom", () => ({
   body: "data",
@@ -330,38 +330,38 @@ app.get("/page", () => ({
 
 ---
 
-## 📊 Tabela de Status Codes Comuns
+## 📊 Common Status Codes Table
 
-| Status | Texto | Uso |
+| Status | Text | Usage |
 |--------|-------|-----|
-| `200` | OK | Sucesso padrão |
-| `201` | Created | Recurso criado (POST) |
-| `204` | No Content | Sucesso sem body (DELETE) |
-| `301` | Moved Permanently | Redirect permanente |
-| `302` | Found | Redirect temporário |
-| `304` | Not Modified | Cache válido |
-| `400` | Bad Request | Erro do cliente |
-| `401` | Unauthorized | Não autenticado |
-| `403` | Forbidden | Não autorizado |
-| `404` | Not Found | Recurso não encontrado |
-| `405` | Method Not Allowed | Método HTTP não permitido |
-| `409` | Conflict | Conflito (ex: duplicata) |
-| `422` | Unprocessable Entity | Erro de validação |
-| `429` | Too Many Requests | Rate limit excedido |
-| `500` | Internal Server Error | Erro do servidor |
-| `502` | Bad Gateway | Erro de gateway |
-| `503` | Service Unavailable | Serviço indisponível |
+| `200` | OK | Default success |
+| `201` | Created | Resource created (POST) |
+| `204` | No Content | Success without body (DELETE) |
+| `301` | Moved Permanently | Permanent redirect |
+| `302` | Found | Temporary redirect |
+| `304` | Not Modified | Valid cache |
+| `400` | Bad Request | Client error |
+| `401` | Unauthorized | Not authenticated |
+| `403` | Forbidden | Not authorized |
+| `404` | Not Found | Resource not found |
+| `405` | Method Not Allowed | HTTP method not allowed |
+| `409` | Conflict | Conflict (e.g. duplicate) |
+| `422` | Unprocessable Entity | Validation error |
+| `429` | Too Many Requests | Rate limit exceeded |
+| `500` | Internal Server Error | Server error |
+| `502` | Bad Gateway | Gateway error |
+| `503` | Service Unavailable | Service unavailable |
 
 ---
 
-## 🎨 Exemplo Completo com Todas as Opções
+## 🎨 Complete Example with All Options
 
 ```typescript
 import { Router } from "../src/mod.ts";
 
 const app = new Router({ basePath: "/api" });
 
-// 1. String simples
+// 1. Simple string
 app.get("/text", () => ({
   body: "Hello World"
 }));
@@ -372,7 +372,7 @@ app.get("/json", () => ({
   init: { headers: { "Content-Type": "application/json" } }
 }));
 
-// 3. Status customizado
+// 3. Custom status
 app.post("/create", async (req) => {
   const data = await req.json();
   return {
@@ -465,21 +465,21 @@ Deno.serve({ port: 3000 }, app.handleRequest.bind(app));
 
 ---
 
-## ✅ Resumo
+## ✅ Summary
 
-**`body`** pode ser:
+**`body`** can be:
 - `string`, `ArrayBuffer`, `TypedArray`, `Blob`, `FormData`, `URLSearchParams`, `ReadableStream`, `null`
 
-**`init`** pode conter:
+**`init`** may contain:
 - `status` (number)
 - `statusText` (string)
-- `headers` (object, array, ou Headers)
+- `headers` (object, array, or Headers)
 
-**Combinações mais comuns:**
+**Most common combinations:**
 1. `{ body: "text" }` → 200 OK
 2. `{ body: json, init: { headers } }` → JSON response
 3. `{ body: "", init: { status: 204 } }` → No Content
 4. `{ body: "", init: { status: 302, headers: { Location } } }` → Redirect
 5. `{ body: stream, init: { headers } }` → File download / streaming
 
-Todas essas combinações são válidas e suportadas pelo router! 🚀
+All these combinations are valid and supported by the router! 🚀

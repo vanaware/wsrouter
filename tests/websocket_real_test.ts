@@ -30,7 +30,7 @@ async function startServer(
   return { server, port: addr.port, };
 }
 
-Deno.test("WebSocket real: conexão, broadcast e last broadcast para novo membro", async () => {
+Deno.test("Real WebSocket: connection, broadcast and last broadcast for a new member", async () => {
   const app = createDenoRouter({ basePath: "/api", },);
   const receivedByUser1: string[] = [];
   const receivedByUser2: string[] = [];
@@ -43,7 +43,7 @@ Deno.test("WebSocket real: conexão, broadcast e last broadcast para novo membro
       return;
     }
     ws.onmessage = (event,) => {
-      // ✅ CORRETO: usar dual params
+      // ✅ CORRECT: use dual params
       group.broadcast(
         `[${user}]: ${event.data}`,
         (receiver, sender, _msg,) => receiver.room === sender.room, // ← NEW
@@ -55,12 +55,12 @@ Deno.test("WebSocket real: conexão, broadcast e last broadcast para novo membro
   try {
     const ws1 = new WebSocket(`ws://localhost:${port}/api/chat/roomA/user1`,);
     await waitFor(() => ws1.readyState === WebSocket.OPEN);
-    assertEquals(ws1.readyState, WebSocket.OPEN, "user1 deve conectar",);
+    assertEquals(ws1.readyState, WebSocket.OPEN, "user1 should connect",);
     ws1.onmessage = (e,) => receivedByUser1.push(e.data,);
 
     const ws2 = new WebSocket(`ws://localhost:${port}/api/chat/roomA/user2`,);
     await waitFor(() => ws2.readyState === WebSocket.OPEN);
-    assertEquals(ws2.readyState, WebSocket.OPEN, "user2 deve conectar",);
+    assertEquals(ws2.readyState, WebSocket.OPEN, "user2 should connect",);
     ws2.onmessage = (e,) => receivedByUser2.push(e.data,);
 
     await new Promise((r,) => setTimeout(r, 100,));
@@ -77,7 +77,7 @@ Deno.test("WebSocket real: conexão, broadcast e last broadcast para novo membro
     assertEquals(
       got,
       true,
-      "user3 deve receber o último broadcast ao conectar",
+      "user3 should receive the last broadcast when connecting",
     );
     assertEquals(receivedByUser3[0], "[user1]: hello from user1",);
 
@@ -89,7 +89,7 @@ Deno.test("WebSocket real: conexão, broadcast e last broadcast para novo membro
     assertEquals(
       receivedByUser4.length,
       0,
-      "user4 em roomB não deve receber broadcast de roomA",
+      "user4 in roomB should not receive the broadcast from roomA",
     );
 
     ws1.close();
@@ -103,7 +103,7 @@ Deno.test("WebSocket real: conexão, broadcast e last broadcast para novo membro
   }
 });
 
-Deno.test("WebSocket real: rota inexistente retorna 404", async () => {
+Deno.test("Real WebSocket: nonexistent route returns 404", async () => {
   const app = createDenoRouter({ basePath: "/api", },);
   app.ws("/exists", () => {},);
   const { server, port, } = await startServer(app,);
@@ -116,14 +116,14 @@ Deno.test("WebSocket real: rota inexistente retorna 404", async () => {
     assertEquals(
       errored,
       true,
-      "WebSocket deve fechar ao tentar rota inexistente",
+      "WebSocket should close when trying a nonexistent route",
     );
   } finally {
     await server.shutdown();
   }
 });
 
-Deno.test("WebSocket real: closeGroup fecha todos os sockets do grupo", async () => {
+Deno.test("Real WebSocket: closeGroup closes all sockets in the group", async () => {
   const app = createDenoRouter({ basePath: "/api", },);
   app.ws("/chat/:room/:user", () => {},);
   const { server, port, } = await startServer(app,);

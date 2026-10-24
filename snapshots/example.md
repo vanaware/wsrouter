@@ -1,17 +1,17 @@
-> **INSTRUÇÃO PARA A IA:** 
-> O texto abaixo contém os arquivos de CÓDIGO FONTE principais da aplicação exemplo (example).
-> Cada arquivo começa com um título indicando seu caminho relativo exato (ex: `## Arquivo: src/main.ts`).
-> Sempre que sugerir alterações, indique claramente qual arquivo deve ser modificado com base nesses caminhos e forneça o novo código completo do arquivo.
+> **AI INSTRUCTION:** 
+> The text below contains the main SOURCE CODE files of the example application (example).
+> Each file starts with a title indicating its exact relative path (e.g., `## File: src/main.ts`).
+> Whenever suggesting changes, clearly indicate which file should be modified based on these paths and provide the complete new code for the file.
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB [v0.4.2#mun7c937] - Modo: EXAMPLE
+# Exported Context from Project WorkerDB [v0.6.0#mv39h36q] - Mode: EXAMPLE
 
-Gerado automaticamente em: 2026-10-01T22:35:55.018Z
+Automatically generated at: 2026-10-24T20:20:08.304Z
 
 ---
 
-## Arquivo: `example/main.ts`
+## File: `example/main.ts`
 
 ```ts
 // example/main.ts
@@ -29,8 +29,8 @@ console.log(`Starting WsRouter Example Server v${APP_VERSION}`);
 
 
 /**
- * Procura o primeiro diretório válido entre os candidatos.
- * Retorna o caminho resolvido ou `null` se nenhum existir.
+ * Looks for the first valid directory among the candidates.
+ * Returns the resolved path or `null` if none exists.
  */
 async function resolveStaticDir(
   candidates: string[],
@@ -40,19 +40,19 @@ async function resolveStaticDir(
       const stat = await Deno.stat(candidate);
       if (stat.isDirectory) {
         const absolute = await Deno.realPath(candidate);
-        console.log(`✅ staticDir encontrado: "${candidate}" → ${absolute}`);
+        console.log(`✅ staticDir found: "${candidate}" → ${absolute}`);
         return candidate;
       }
-      console.warn(`⚠️  "${candidate}" existe, mas não é um diretório.`);
+      console.warn(`⚠️  "${candidate}" exists, but it is not a directory.`);
     } catch (err) {
       if (err instanceof Deno.errors.NotFound) {
-        // Silencioso: era só um candidato que não existe.
+        // Silent: it was just a candidate that does not exist.
       } else {
-        console.warn(`⚠️  Erro ao testar "${candidate}":`, err);
+        console.warn(`⚠️  Error while testing "${candidate}":`, err);
       }
     }
   }
-  console.error("❌ Nenhum staticDir válido encontrado entre os candidatos:");
+  console.error("❌ No valid staticDir found among the candidates:");
   for (const c of candidates) console.error(`   - ${c}`);
   return null;
 }
@@ -68,7 +68,7 @@ const staticDirCandidates = [
 const resolvedStaticDir = await resolveStaticDir(staticDirCandidates);
 
 if (!resolvedStaticDir) {
-  console.error("🚨 Continuando sem arquivos estáticos — rotas de API ainda funcionarão.");
+  console.error("🚨 Continuing without static files — API routes will still work.");
 }
 
 const PORT = Number(Deno.env.get("PORT") || 3000);
@@ -585,7 +585,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
 
 ---
 
-## Arquivo: `example/public/components/ApiInspectorExample.js`
+## File: `example/public/components/ApiInspectorExample.js`
 
 ```js
 // example/public/components/ApiInspectorExample.js
@@ -790,7 +790,7 @@ export function ApiInspectorExample() {
 
 ---
 
-## Arquivo: `example/public/components/App.js`
+## File: `example/public/components/App.js`
 
 ```js
 // example/public/components/App.js
@@ -987,7 +987,7 @@ export function App() {
 
 ---
 
-## Arquivo: `example/public/components/ChatPanel.js`
+## File: `example/public/components/ChatPanel.js`
 
 ```js
 // example/public/components/ChatPanel.js
@@ -1111,7 +1111,7 @@ export function ChatPanel({ messages, onSendMessage, user, isLive, broadcasterId
 
 ---
 
-## Arquivo: `example/public/components/EntryGate.js`
+## File: `example/public/components/EntryGate.js`
 
 ```js
 // example/public/components/EntryGate.js
@@ -1251,7 +1251,7 @@ export function EntryGate({ initialName, initialAvatar, initialRoom, onSubmit, i
 
 ---
 
-## Arquivo: `example/public/components/Header.js`
+## File: `example/public/components/Header.js`
 
 ```js
 // example/public/components/Header.js
@@ -1427,7 +1427,7 @@ export function Header({
 
 ---
 
-## Arquivo: `example/public/components/JwtExample.js`
+## File: `example/public/components/JwtExample.js`
 
 ```js
 // example/public/components/JwtExample.js
@@ -1797,7 +1797,7 @@ export function JwtExample() {
 
 ---
 
-## Arquivo: `example/public/components/OnlineUsers.js`
+## File: `example/public/components/OnlineUsers.js`
 
 ```js
 // example/public/components/OnlineUsers.js
@@ -1899,7 +1899,7 @@ export function OnlineUsers({ users, currentUserId, isLive, broadcasterId }) {
 
 ---
 
-## Arquivo: `example/public/components/PresenceExample.js`
+## File: `example/public/components/PresenceExample.js`
 
 ```js
 // example/public/components/PresenceExample.js
@@ -2346,7 +2346,7 @@ export function PresenceExample({ user }) {
 
 ---
 
-## Arquivo: `example/public/components/ReactionOverlay.js`
+## File: `example/public/components/ReactionOverlay.js`
 
 ```js
 // example/public/components/ReactionOverlay.js
@@ -2395,7 +2395,7 @@ export function ReactionOverlay({ floatingReactions, onSendReaction }) {
 
 ---
 
-## Arquivo: `example/public/components/ServerSettingsModal.js`
+## File: `example/public/components/ServerSettingsModal.js`
 
 ```js
 // example/public/components/ServerSettingsModal.js
@@ -2700,7 +2700,7 @@ export function ServerSettingsModal({ isOpen, onClose }) {
 
 ---
 
-## Arquivo: `example/public/components/StreamStats.js`
+## File: `example/public/components/StreamStats.js`
 
 ```js
 // example/public/components/StreamStats.js
@@ -2755,7 +2755,7 @@ export function StreamStats({ stats, room, user, isBroadcasting, isLive, onClose
 
 ---
 
-## Arquivo: `example/public/components/StreamView.js`
+## File: `example/public/components/StreamView.js`
 
 ```js
 // example/public/components/StreamView.js
@@ -3033,7 +3033,7 @@ export function StreamView({
 
 ---
 
-## Arquivo: `example/public/components/WebRTCExample.js`
+## File: `example/public/components/WebRTCExample.js`
 
 ```js
 // example/public/components/WebRTCExample.js
@@ -3625,7 +3625,7 @@ export function WebRTCExample({ user, activeMobileTab, showStats, setShowStats, 
 
 ---
 
-## Arquivo: `example/public/components/config.js`
+## File: `example/public/components/config.js`
 
 ```js
 // example/public/components/config.js
@@ -3879,7 +3879,7 @@ setInterval(() => {
 
 ---
 
-## Arquivo: `example/public/index.html`
+## File: `example/public/index.html`
 
 ```html
 <!DOCTYPE html>
@@ -4151,7 +4151,7 @@ setInterval(() => {
     import { App } from './components/App.js';
     import { APP_VERSION } from './version.js';
 
-    // Título dinâmico
+    // Dynamic title
     document.title = `WsRouter v${APP_VERSION} • WebRTC & Real-time Showcase`;
 
     render(h(App, null), document.getElementById('app'));
@@ -4172,7 +4172,7 @@ setInterval(() => {
 
 ---
 
-## Arquivo: `example/public/manifest.json`
+## File: `example/public/manifest.json`
 
 ```json
 {
@@ -4201,7 +4201,7 @@ setInterval(() => {
 
 ---
 
-## Arquivo: `example/public/sw.js`
+## File: `example/public/sw.js`
 
 ```js
 // example/public/sw.js
@@ -4294,7 +4294,7 @@ self.addEventListener('fetch', (event) => {
 
 ---
 
-## Arquivo: `example/public/version.js`
+## File: `example/public/version.js`
 
 ```js
 // Automatically generated file during build
@@ -4303,15 +4303,15 @@ self.addEventListener('fetch', (event) => {
  * Current library/application version.
  * @type {string}
  */
-export const APP_VERSION = typeof "0.4.2#mun7c937" !== "undefined"
-  ? "0.4.2#mun7c937"
+export const APP_VERSION = typeof "0.5.1#mv39h36q" !== "undefined"
+  ? "0.5.1#mv39h36q"
   : "";
 
 ```
 
 ---
 
-## Arquivo: `example/version.ts`
+## File: `example/version.ts`
 
 ```ts
 // Automatically generated file during build
@@ -4320,9 +4320,9 @@ export const APP_VERSION = typeof "0.4.2#mun7c937" !== "undefined"
  * Current library/application version.
  * @type {string}
  */
-// @ts-ignore: Identifier '"0.4.2#mun7c937"' is replaced by a string literal at build time
-export const APP_VERSION: string = typeof "0.4.2#mun7c937" !== "undefined"
-  ? "0.4.2#mun7c937"
+// @ts-ignore: Identifier '"0.5.1#mv39h36q"' is replaced by a string literal at build time
+export const APP_VERSION: string = typeof "0.5.1#mv39h36q" !== "undefined"
+  ? "0.5.1#mv39h36q"
   : "";
 
 ```

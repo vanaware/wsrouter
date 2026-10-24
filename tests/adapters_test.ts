@@ -4,14 +4,14 @@ import { Router, } from "../src/mod.ts";
 import { createDenoRouter, } from "../src/deno.ts";
 
 // ============================================================
-// 1. TESTES DO ADAPTADOR DENO
+// 1. DENO ADAPTER TESTS
 // ============================================================
-Deno.test("createDenoRouter cria router com adaptadores configurados", () => {
+Deno.test("createDenoRouter creates router with configured adapters", () => {
   const app = createDenoRouter({ basePath: "/api", staticDir: null, },);
-  assert(app instanceof Router, "Deve retornar instância de Router",);
+  assert(app instanceof Router, "Should return a Router instance",);
 });
 
-Deno.test("createDenoRouter com staticDir serve arquivos", async () => {
+Deno.test("createDenoRouter with staticDir serves files", async () => {
   const tmpDir = await Deno.makeTempDir();
   await Deno.writeTextFile(`${tmpDir}/hello.txt`, "hello world",);
   const app = createDenoRouter({ basePath: "", staticDir: tmpDir, },);
@@ -22,7 +22,7 @@ Deno.test("createDenoRouter com staticDir serve arquivos", async () => {
   await Deno.remove(tmpDir, { recursive: true, },);
 });
 
-Deno.test("createDenoRouter sem staticDir retorna 404 para estáticos", async () => {
+Deno.test("createDenoRouter without staticDir returns 404 for static paths", async () => {
   const app = createDenoRouter({ basePath: "", staticDir: null, },);
   const req = new Request("http://localhost/anything.txt",);
   const res = await app.handleRequest(req,);
@@ -30,9 +30,9 @@ Deno.test("createDenoRouter sem staticDir retorna 404 para estáticos", async ()
 });
 
 // ============================================================
-// 2. TESTE DE WEBSOCKET SEM UPGRADER (Erro esperado)
+// 2. WEBSOCKET WITHOUT UPGRADER TEST (Expected error)
 // ============================================================
-Deno.test("WebSocket sem upgrader retorna 501", async () => {
+Deno.test("WebSocket without upgrader returns 501", async () => {
   const app = new Router({ basePath: "", webSocketUpgrader: undefined, },);
   app.ws("/chat", () => {},);
   const req = new Request("http://localhost/chat", {
@@ -44,9 +44,9 @@ Deno.test("WebSocket sem upgrader retorna 501", async () => {
 });
 
 // ============================================================
-// 3. TESTE DE INTEGRAÇÃO COM createDenoRouter + WebSocket
+// 3. INTEGRATION TEST WITH createDenoRouter + WebSocket
 // ============================================================
-Deno.test("createDenoRouter com WebSocket funciona", async () => {
+Deno.test("createDenoRouter with WebSocket works", async () => {
   const app = createDenoRouter({ basePath: "/api", staticDir: null, },);
   let wsHandlerCalled = false;
   app.ws("/chat/:room", (ws, _req, params,) => {
@@ -65,7 +65,7 @@ Deno.test("createDenoRouter com WebSocket funciona", async () => {
       ws.onerror = () => reject(new Error("WS connection failed",),);
       setTimeout(() => reject(new Error("WS timeout",),), 2000,);
     },);
-    assert(wsHandlerCalled, "Handler WebSocket deve ser chamado",);
+    assert(wsHandlerCalled, "WebSocket handler should be called",);
     ws.close();
     await new Promise((r,) => setTimeout(r, 100,));
   } finally {
@@ -75,9 +75,9 @@ Deno.test("createDenoRouter com WebSocket funciona", async () => {
 });
 
 // ============================================================
-// 4. TESTE DE FORCE HTTPS COM createDenoRouter
+// 4. FORCE HTTPS TEST WITH createDenoRouter
 // ============================================================
-Deno.test("createDenoRouter com forceHttps redireciona", async () => {
+Deno.test("createDenoRouter with forceHttps redirects", async () => {
   const app = createDenoRouter({
     basePath: "",
     staticDir: null,
@@ -90,7 +90,7 @@ Deno.test("createDenoRouter com forceHttps redireciona", async () => {
   assertEquals(res.headers.get("Location",), "https://example.com/ping",);
 });
 
-Deno.test("createDenoRouter com forceHttps ignora localhost", async () => {
+Deno.test("createDenoRouter with forceHttps ignores localhost", async () => {
   const app = createDenoRouter({
     basePath: "",
     staticDir: null,

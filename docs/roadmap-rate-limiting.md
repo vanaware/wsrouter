@@ -1,45 +1,45 @@
-# 🚦 Roadmap: Rate Limiting e Proteção contra Abuso
+# 🚦 Roadmap: Rate Limiting and Abuse Protection
 
-O `@vanaware/wsrouter` atualmente **não inclui rate limiting nativo**. Este documento descreve estratégias recomendadas e o roadmap para possíveis implementações futuras.
+`@vanaware/wsrouter` currently **does not include native rate limiting**. This document describes recommended strategies and the roadmap for possible future implementations.
 
 ---
 
-## 📊 Status Atual
+## 📊 Current Status
 
-| Feature | Status | Implementação Recomendada |
+| Feature | Status | Recommended Implementation |
 |---------|--------|---------------------------|
-| Rate Limiting por IP | ❌ | Middleware customizado |
-| Rate Limiting por Usuário | ❌ | Middleware customizado |
-| Rate Limiting por WebSocket | ❌ | Middleware customizado |
-| Tamanho Máximo de Mensagem | ❌ | Validação no handler |
-| Backpressure de Broadcast | ❌ | Lógica no handler |
+| Rate Limiting by IP | ❌ | Custom middleware |
+| Rate Limiting by User | ❌ | Custom middleware |
+| Rate Limiting by WebSocket | ❌ | Custom middleware |
+| Maximum Message Size | ❌ | Handler validation |
+| Broadcast Backpressure | ❌ | Handler logic |
 
 ---
 
-## 🛡️ Por Que Rate Limiting é Importante?
+## 🛡️ Why Is Rate Limiting Important?
 
-### Ataques Comuns
+### Common Attacks
 
-1. **Brute Force**: Tentativas massivas de login
-2. **DDoS**: Sobrecarga do servidor com requests
-3. **Credential Stuffing**: Teste de credenciais vazadas
-4. **Scraping**: Extração automatizada de dados
-5. **WebSocket Flood**: Envio massivo de mensagens
+1. **Brute Force**: Massive login attempts
+2. **DDoS**: Overloading the server with requests
+3. **Credential Stuffing**: Testing leaked credentials
+4. **Scraping**: Automated data extraction
+5. **WebSocket Flood**: Massive message sending
 
-### Impactos sem Rate Limiting
+### Impacts Without Rate Limiting
 
-- **Performance degradada**: CPU/memory sobrecarregados
-- **Custos elevados**: Uso excessivo de recursos (especialmente em serverless)
-- **Dados comprometidos**: Contas invadidas via brute force
-- **Disponibilidade**: Serviço indisponível para usuários legítimos
+- **Degraded performance**: CPU/memory overloaded
+- **High costs**: Excessive resource usage (especially in serverless)
+- **Compromised data**: Accounts breached via brute force
+- **Availability**: Service unavailable for legitimate users
 
 ---
 
-## 💡 Implementações Recomendadas
+## 💡 Recommended Implementations
 
-### 1. Rate Limiting Simples (Em Memória)
+### 1. Simple Rate Limiting (In Memory)
 
-Adequado para aplicações single-instance:
+Suitable for single-instance applications:
 
 ```typescript
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
@@ -47,7 +47,7 @@ const requestCounts = new Map<string, { count: number; resetTime: number }>();
 app.use(async (req, _params, next) => {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
   const now = Date.now();
-  const windowMs = 60000; // 1 minuto
+  const windowMs = 60000; // 1 minute
   const maxRequests = 100;
   
   const record = requestCounts.get(ip) ?? { count: 0, resetTime: now + windowMs };
@@ -81,16 +81,16 @@ app.use(async (req, _params, next) => {
 });
 ```
 
-**Limitações:**
-- Não funciona em múltiplas instâncias
-- Perde estado ao reiniciar
-- Sem persistência
+**Limitations:**
+- Does not work across multiple instances
+- Loses state on restart
+- No persistence
 
 ---
 
-### 2. Rate Limiting com Redis (Distribuído)
+### 2. Rate Limiting with Redis (Distributed)
 
-Para aplicações multi-instância:
+For multi-instance applications:
 
 ```typescript
 import { connect } from "redis";
@@ -128,14 +128,14 @@ app.use(async (req, _params, next) => {
 });
 ```
 
-**Vantagens:**
-- Funciona em múltiplas instâncias
-- Persistente
-- Atomicidade garantida
+**Advantages:**
+- Works across multiple instances
+- Persistent
+- Atomicity guaranteed
 
 ---
 
-### 3. Rate Limiting por Usuário Autenticado
+### 3. Rate Limiting by Authenticated User
 
 ```typescript
 app.use(async (req, _params, next) => {
@@ -149,11 +149,11 @@ app.use(async (req, _params, next) => {
     const { payload } = await jwtVerify(token, secret);
     userId = payload.userId as string;
   } catch {
-    return await next(); // Deixa o handler de auth lidar
+    return await next(); // Let the auth handler deal with it
   }
   
   const key = `ratelimit:user:${userId}`;
-  // ... mesma lógica de rate limiting
+  // ... same rate limiting logic
   
   return await next();
 });
@@ -161,9 +161,9 @@ app.use(async (req, _params, next) => {
 
 ---
 
-### 4. Rate Limiting de WebSocket
+### 4. WebSocket Rate Limiting
 
-#### Limite de Mensagens por Segundo
+#### Message Limit per Second
 
 ```typescript
 app.ws("/chat/:room/:user", (ws, _req, params) => {
@@ -188,14 +188,14 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
       return;
     }
     
-    // Processar mensagem normalmente
+    // Process the message normally
     const group = app.getWsGroupByPath("/chat/:room/:user");
     group.broadcast(event.data, /* ... */);
   };
 });
 ```
 
-#### Tamanho Máximo de Mensagem
+#### Maximum Message Size
 
 ```typescript
 app.ws("/chat/:room/:user", (ws, _req, params) => {
@@ -210,16 +210,16 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
       return;
     }
     
-    // Processar mensagem
+    // Process the message
   };
 });
 ```
 
 ---
 
-### 5. Backpressure de Broadcast
+### 5. Broadcast Backpressure
 
-Quando um cliente está lento, o broadcast pode acumular mensagens:
+When a client is slow, broadcasting can pile up messages:
 
 ```typescript
 app.ws("/chat/:room/:user", (ws, _req, params) => {
@@ -228,7 +228,7 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
   let messageQueue: string[] = [];
   
   ws.onmessage = (event) => {
-    // Broadcast normal
+    // Normal broadcast
     group.broadcast(
       `[${params.user}]: ${event.data}`,
       (receiver, sender, _msg) => receiver.room === sender.room,
@@ -236,11 +236,11 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
     );
   };
   
-  // Monitorar bufferedAmount (WebSocket API)
+  // Monitor bufferedAmount (WebSocket API)
   setInterval(() => {
     if (ws.bufferedAmount > 1024 * 1024) { // > 1 MB
-      console.warn(`[WS] Cliente ${params.user} com buffer alto: ${ws.bufferedAmount}`);
-      // Opcional: fechar conexão ou enviar alerta
+      console.warn(`[WS] Client ${params.user} has a high buffer: ${ws.bufferedAmount}`);
+      // Optional: close the connection or send an alert
       ws.send(JSON.stringify({
         type: "warning",
         message: "You're receiving messages faster than you can process them.",
@@ -252,9 +252,9 @@ app.ws("/chat/:room/:user", (ws, _req, params) => {
 
 ---
 
-## 🔮 Possível Implementação Futura no Core
+## 🔮 Possible Future Implementation in the Core
 
-Se rate limiting for adicionado ao core, poderia ser assim:
+If rate limiting were added to the core, it could look like this:
 
 ```typescript
 const app = createDenoRouter({
@@ -275,80 +275,80 @@ const app = createDenoRouter({
 });
 ```
 
-### Desafios
+### Challenges
 
-1. **Storage**: Em memória vs Redis vs banco de dados
-2. **Distribuição**: Como sincronizar entre instâncias
-3. **Flexibilidade**: Diferentes limites para diferentes rotas
-4. **Performance**: Overhead de verificar rate limit em cada request
+1. **Storage**: In memory vs Redis vs database
+2. **Distribution**: How to synchronize between instances
+3. **Flexibility**: Different limits for different routes
+4. **Performance**: Overhead of checking rate limits on every request
 
-### Prioridade: **Média**
+### Priority: **Medium**
 
-Rate limiting é importante, mas existem soluções maduras (middlewares, proxies) que podem ser usadas. Implementar no core pode ser over-engineering.
-
----
-
-## 📚 Bibliotecas Recomendadas
-
-### Para Node.js
-
-- **rate-limiter-flexible**: Suporta Redis, MongoDB, memória
-- **express-rate-limit**: Simples e popular
-- **slow-down**: Adiciona delay em vez de bloquear
-
-### Para Deno
-
-Atualmente não há bibliotecas maduras. Implemente custom ou use Redis diretamente.
-
-### Para Cloudflare
-
-- **Cloudflare Rate Limiting Rules**: Configurado no dashboard
-- **Workers KV**: Para rate limiting distribuído
+Rate limiting is important, but mature solutions (middlewares, proxies) already exist and can be used. Implementing it in the core may be over-engineering.
 
 ---
 
-## ✅ Checklist de Rate Limiting
+## 📚 Recommended Libraries
 
-- [ ] Rate limit por IP em endpoints públicos
-- [ ] Rate limit mais agressivo em `/login`, `/register`
-- [ ] Rate limit por usuário autenticado
-- [ ] Rate limit de WebSocket (mensagens/segundo)
-- [ ] Tamanho máximo de mensagem WebSocket
-- [ ] Headers `X-RateLimit-*` nas respostas
-- [ ] Logs de tentativas de abuso
-- [ ] Alertas para picos anômalos de tráfego
+### For Node.js
+
+- **rate-limiter-flexible**: Supports Redis, MongoDB, memory
+- **express-rate-limit**: Simple and popular
+- **slow-down**: Adds delay instead of blocking
+
+### For Deno
+
+There are currently no mature libraries. Implement your own or use Redis directly.
+
+### For Cloudflare
+
+- **Cloudflare Rate Limiting Rules**: Configured in the dashboard
+- **Workers KV**: For distributed rate limiting
 
 ---
 
-## 🎯 Recomendações por Tamanho de Aplicação
+## ✅ Rate Limiting Checklist
 
-### Pequena (Single Instance, < 1000 req/min)
+- [ ] Rate limit by IP on public endpoints
+- [ ] More aggressive rate limit on `/login`, `/register`
+- [ ] Rate limit by authenticated user
+- [ ] WebSocket rate limiting (messages/second)
+- [ ] Maximum WebSocket message size
+- [ ] `X-RateLimit-*` headers on responses
+- [ ] Logs of abuse attempts
+- [ ] Alerts for anomalous traffic spikes
 
-- Rate limiting em memória
-- Sem Redis
-- Middleware simples
+---
 
-### Média (Multi-Instance, < 10000 req/min)
+## 🎯 Recommendations by Application Size
 
-- Redis para rate limiting distribuído
-- Diferentes limites por rota
-- Monitoramento básico
+### Small (Single Instance, < 1000 req/min)
 
-### Grande (> 10000 req/min)
+- In-memory rate limiting
+- No Redis
+- Simple middleware
 
-- Solução de edge (Cloudflare, AWS WAF)
+### Medium (Multi-Instance, < 10000 req/min)
+
+- Redis for distributed rate limiting
+- Different limits per route
+- Basic monitoring
+
+### Large (> 10000 req/min)
+
+- Edge solution (Cloudflare, AWS WAF)
 - Redis cluster
-- Análise de padrões de tráfego
-- Machine learning para detecção de anomalias
+- Traffic pattern analysis
+- Machine learning for anomaly detection
 
 ---
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-Se você implementou uma solução de rate limiting robusta, considere:
+If you have implemented a robust rate limiting solution, consider:
 
-1. Compartilhar como exemplo em `example/rate-limiting/`
-2. Criar um pacote separado: `@vanaware/wsrouter-rate-limit`
-3. Abrir uma issue discutindo a abordagem
+1. Sharing it as an example in `example/rate-limiting/`
+2. Creating a separate package: `@vanaware/wsrouter-rate-limit`
+3. Opening an issue discussing the approach
 
-Estamos abertos a contribuições! 🚀
+We are open to contributions! 🚀

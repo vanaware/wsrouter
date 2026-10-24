@@ -15,10 +15,10 @@ async function setupFixture(): Promise<{ tmpRoot: string; publicDir: string }> {
 async function cleanup(path: string,) {
   try {
     await Deno.remove(path, { recursive: true, },);
-  } catch { /* ignora */ }
+  } catch { /* ignore */ }
 }
 
-Deno.test("Path traversal: ../ não deve escapar do staticDir", async () => {
+Deno.test("Path traversal: ../ must not escape staticDir", async () => {
   const { tmpRoot, publicDir, } = await setupFixture();
   try {
     const app = createDenoRouter({ basePath: "", staticDir: publicDir, },);
@@ -27,20 +27,20 @@ Deno.test("Path traversal: ../ não deve escapar do staticDir", async () => {
     assertEquals(
       res.status,
       404,
-      "Deve retornar 404 ao tentar path traversal com ..",
+      "Should return 404 when attempting path traversal with ..",
     );
     const body = await res.text();
     assertEquals(
       body.includes("TOP-SECRET-DATA",),
       false,
-      "NUNCA deve vazar conteúdo do arquivo secreto",
+      "MUST NEVER leak the secret file content",
     );
   } finally {
     await cleanup(tmpRoot,);
   }
 });
 
-Deno.test("Path traversal: múltiplos ../ não escapam", async () => {
+Deno.test("Path traversal: multiple ../ do not escape", async () => {
   const { tmpRoot, publicDir, } = await setupFixture();
   try {
     const app = createDenoRouter({ basePath: "", staticDir: publicDir, },);
@@ -54,7 +54,7 @@ Deno.test("Path traversal: múltiplos ../ não escapam", async () => {
   }
 });
 
-Deno.test("Path traversal: /subdir/../../secret.txt não escapa", async () => {
+Deno.test("Path traversal: /subdir/../../secret.txt does not escape", async () => {
   const { tmpRoot, publicDir, } = await setupFixture();
   try {
     const app = createDenoRouter({ basePath: "", staticDir: publicDir, },);
@@ -68,7 +68,7 @@ Deno.test("Path traversal: /subdir/../../secret.txt não escapa", async () => {
   }
 });
 
-Deno.test("Path traversal: URL-encoded ..%2F não escapa", async () => {
+Deno.test("Path traversal: URL-encoded ..%2F does not escape", async () => {
   const { tmpRoot, publicDir, } = await setupFixture();
   try {
     const app = createDenoRouter({ basePath: "", staticDir: publicDir, },);
@@ -82,7 +82,7 @@ Deno.test("Path traversal: URL-encoded ..%2F não escapa", async () => {
   }
 });
 
-Deno.test("Path traversal: backslash (Windows-style) não escapa", async () => {
+Deno.test("Path traversal: backslash (Windows-style) does not escape", async () => {
   const { tmpRoot, publicDir, } = await setupFixture();
   try {
     const app = createDenoRouter({ basePath: "", staticDir: publicDir, },);
@@ -95,7 +95,7 @@ Deno.test("Path traversal: backslash (Windows-style) não escapa", async () => {
   }
 });
 
-Deno.test("Path traversal: basePath não é bypassado", async () => {
+Deno.test("Path traversal: basePath is not bypassed", async () => {
   const { tmpRoot, publicDir, } = await setupFixture();
   try {
     const app = createDenoRouter({ basePath: "/api", staticDir: publicDir, },);
@@ -108,7 +108,7 @@ Deno.test("Path traversal: basePath não é bypassado", async () => {
   }
 });
 
-Deno.test("Arquivo legítimo dentro do staticDir é servido normalmente", async () => {
+Deno.test("Legitimate file inside staticDir is served normally", async () => {
   const { tmpRoot, publicDir, } = await setupFixture();
   try {
     const app = createDenoRouter({ basePath: "", staticDir: publicDir, },);
@@ -121,7 +121,7 @@ Deno.test("Arquivo legítimo dentro do staticDir é servido normalmente", async 
   }
 });
 
-Deno.test("Arquivo legítimo em subpasta é servido", async () => {
+Deno.test("Legitimate file in subfolder is served", async () => {
   const tmpRoot = await Deno.makeTempDir({ prefix: "router_sub_", },);
   const publicDir = join(tmpRoot, "public",);
   const subDir = join(publicDir, "docs",);

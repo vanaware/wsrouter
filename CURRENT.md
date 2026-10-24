@@ -66,8 +66,8 @@ A dedicated, high-performance `PresenceTracker` engine (`src/presence.ts`) is no
    - `router.getPresence(pathOrPattern)` and `router.getPresenceUser(pathOrPattern, userId)`.
    - Automatic cleanup when sockets are removed from groups or when groups are closed.
 5. **Standalone Example & UI**:
-   - `example/presence/`: Full client/server example with BeerCSS, room switching, live event ticker, multi-tab simulation, and REST API inspector.
-   - `example/principal/public/presence.html`: Live interactive presence dashboard integrated into the main dev server.
+   - `example/main.ts`: Live demo server exposing chat, presence, WebRTC streaming, and API inspector routes.
+   - `example/public/`: Browser client (components for chat, presence dashboard, WebRTC viewer, and header) served as static assets.
 
 ---
 
@@ -85,8 +85,8 @@ A complete, high-performance WebRTC peer connection and signaling engine (`src/w
    - **WebRTC Viewers**: Automatically connect to the active broadcaster upon entering or when the broadcaster goes live, exchanging SDP offers/answers and ICE candidates seamlessly.
    - **Live Reactions & Chat**: Floating live emoji reactions (👏, ❤️, 🔥, 🚀, 👍) and synchronized room chat.
 3. **Dedicated Example & Dev Server Integration**:
-   - `example/webrtc/`: Standalone WebRTC application runnable via `deno task webrtc`.
-   - `example/principal/public/webrtc.html`: Integrated WebRTC Live Stream dashboard in the main dev server with multi-tab simulation and navigation links.
+   - `example/main.ts`: WebRTC signaling wired into the shared demo server runnable via `deno task start`.
+   - `example/public/`: Integrated WebRTC Live Stream client dashboard with multi-tab simulation and navigation links.
 
 ---
 
@@ -122,7 +122,7 @@ A complete, high-performance WebRTC peer connection and signaling engine (`src/w
    - Deploys static assets in `example/public` using `actions/deploy-pages@v4`.
    - **Subfolder Resilience**: Configured client-side modules (`config.js`, `App.js`, etc.) using relative imports, `new URL(window.location.href)` query parameter handling, and customizable backend server connection settings for seamless operation on GitHub Pages subfolder paths (`https://<owner>.github.io/<repo>/`).
 
-2. **JSR Publishing Workflow (`.github/workflows/publish.yml`)**:
+2. **JSR Publishing Workflow (`.github/workflows/jsr-publish.yml`)**:
    - Triggers on tag release (`v*`), runs full verification `deno task check-all`, and publishes package to JSR.
 
 3. **Continuous Integration (`.github/workflows/ci.yml`)**:

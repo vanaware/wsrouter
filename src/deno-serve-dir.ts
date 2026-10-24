@@ -5,6 +5,7 @@
  */
 
 import { Router } from "./mod.ts";
+import { resolveFactoryOptions } from "./factory-options.ts";
 import {
   denoWebSocketUpgrader,
   createDenoServeDirStaticFileHandler,
@@ -57,51 +58,38 @@ export function createDenoServeDirRouter(
   forceHttps: boolean = false,
   lastBroadcastDelay?: number,
 ): Router {
-  let options: DenoServeDirRouterOptions;
-  if (typeof basePathOrOptions === "string") {
-    options = {
-      basePath: basePathOrOptions,
-      staticDir,
-      embeddedDir,
-      forceHttps,
-      lastBroadcastDelay,
-    };
-  } else {
-    options = basePathOrOptions;
-  }
-
-  const {
-    basePath = "",
-    staticDir: sDir = null,
-    embeddedDir: eDir = null,
-    forceHttps: fHttps = false,
-    trustProxy = false,
-    allowDotfiles = false,
-    lastBroadcastDelay: lDelay,
-    serveDir: serveDirOpts = {},
-  } = options;
+  const options = resolveFactoryOptions(basePathOrOptions, (basePath) => ({
+    basePath,
+    staticDir,
+    embeddedDir,
+    forceHttps,
+    lastBroadcastDelay,
+  }));
 
   const staticOptions: DenoServeDirOptions = {
-    allowDotfiles,
-    showDirListing: serveDirOpts.showDirListing ?? false,
-    enableCors: serveDirOpts.enableCors ?? false,
+    allowDotfiles: options.allowDotfiles,
+    showDirListing: options.serveDir?.showDirListing ?? false,
+    enableCors: options.serveDir?.enableCors ?? false,
   };
 
-  const router = new Router({
-    basePath,
-    forceHttps: fHttps,
-    trustProxy,
-    allowDotfiles,
-    lastBroadcastDelay: lDelay,
+  return new Router({
+    basePath: options.basePath,
+    forceHttps: options.forceHttps,
+    trustProxy: options.trustProxy,
+    allowDotfiles: options.allowDotfiles,
+    lastBroadcastDelay: options.lastBroadcastDelay,
     webSocketUpgrader: denoWebSocketUpgrader,
-    staticFileHandler: sDir || eDir
-      ? createDenoServeDirStaticFileHandler(sDir, eDir, staticOptions)
+    staticFileHandler: options.staticDir || options.embeddedDir
+      ? createDenoServeDirStaticFileHandler(
+        options.staticDir ?? null,
+        options.embeddedDir ?? null,
+        staticOptions,
+      )
       : undefined,
   });
-  return router;
 }
 
-// Re-exporta tudo do core
+// Re-export everything from the core module.
 export * from "./mod.ts";
 export {
   denoWebSocketUpgrader,

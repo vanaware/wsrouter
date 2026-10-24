@@ -13,8 +13,8 @@ console.log(`Starting WsRouter Example Server v${APP_VERSION}`);
 
 
 /**
- * Procura o primeiro diretório válido entre os candidatos.
- * Retorna o caminho resolvido ou `null` se nenhum existir.
+ * Looks for the first valid directory among the candidates.
+ * Returns the resolved path or `null` if none exists.
  */
 async function resolveStaticDir(
   candidates: string[],
@@ -24,19 +24,19 @@ async function resolveStaticDir(
       const stat = await Deno.stat(candidate);
       if (stat.isDirectory) {
         const absolute = await Deno.realPath(candidate);
-        console.log(`✅ staticDir encontrado: "${candidate}" → ${absolute}`);
+        console.log(`✅ staticDir found: "${candidate}" → ${absolute}`);
         return candidate;
       }
-      console.warn(`⚠️  "${candidate}" existe, mas não é um diretório.`);
+      console.warn(`⚠️  "${candidate}" exists, but it is not a directory.`);
     } catch (err) {
       if (err instanceof Deno.errors.NotFound) {
-        // Silencioso: era só um candidato que não existe.
+        // Silent: it was just a candidate that does not exist.
       } else {
-        console.warn(`⚠️  Erro ao testar "${candidate}":`, err);
+        console.warn(`⚠️  Error while testing "${candidate}":`, err);
       }
     }
   }
-  console.error("❌ Nenhum staticDir válido encontrado entre os candidatos:");
+  console.error("❌ No valid staticDir found among the candidates:");
   for (const c of candidates) console.error(`   - ${c}`);
   return null;
 }
@@ -52,7 +52,7 @@ const staticDirCandidates = [
 const resolvedStaticDir = await resolveStaticDir(staticDirCandidates);
 
 if (!resolvedStaticDir) {
-  console.error("🚨 Continuando sem arquivos estáticos — rotas de API ainda funcionarão.");
+  console.error("🚨 Continuing without static files — API routes will still work.");
 }
 
 const PORT = Number(Deno.env.get("PORT") || 3000);

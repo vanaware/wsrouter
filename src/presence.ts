@@ -200,18 +200,11 @@ export class PresenceTracker<T = Record<string, unknown>> {
     if (isNewUser) {
       this.emit("join", presenceUser, ws);
       if (this.options.autoBroadcast && this.group) {
-        const joinPayload = this.options.serialize({
-          type: "presence_join",
-          user: presenceUser,
-        });
+        const event: PresenceEvent<T> = { type: "presence_join", user: presenceUser };
         this.group.broadcast(
-          joinPayload,
-          (recvParams, sendParams, _msg) => {
-            return this.options.filter(recvParams, sendParams, {
-              type: "presence_join",
-              user: presenceUser!,
-            });
-          },
+          this.options.serialize(event),
+          (recvParams, sendParams, _msg) =>
+            this.options.filter(recvParams, sendParams, event),
           params,
         );
       }
@@ -260,20 +253,15 @@ export class PresenceTracker<T = Record<string, unknown>> {
       this.emit("leave", presenceUser, ws);
 
       if (this.options.autoBroadcast && this.group) {
-        const leavePayload = this.options.serialize({
+        const event: PresenceEvent<T> = {
           type: "presence_leave",
           userId,
           lastSeenAt: presenceUser.lastSeenAt,
-        });
+        };
         this.group.broadcast(
-          leavePayload,
-          (recvParams, sendParams, _msg) => {
-            return this.options.filter(recvParams, sendParams, {
-              type: "presence_leave",
-              userId,
-              lastSeenAt: presenceUser.lastSeenAt,
-            });
-          },
+          this.options.serialize(event),
+          (recvParams, sendParams, _msg) =>
+            this.options.filter(recvParams, sendParams, event),
           params,
         );
       }
@@ -314,18 +302,11 @@ export class PresenceTracker<T = Record<string, unknown>> {
     this.emit("update", presenceUser, oldData);
 
     if (this.options.autoBroadcast && this.group) {
-      const updatePayload = this.options.serialize({
-        type: "presence_update",
-        user: presenceUser,
-      });
+      const event: PresenceEvent<T> = { type: "presence_update", user: presenceUser };
       this.group.broadcast(
-        updatePayload,
-        (recvParams, sendParams, _msg) => {
-          return this.options.filter(recvParams, sendParams, {
-            type: "presence_update",
-            user: presenceUser,
-          });
-        },
+        this.options.serialize(event),
+        (recvParams, sendParams, _msg) =>
+          this.options.filter(recvParams, sendParams, event),
         params,
       );
     }
